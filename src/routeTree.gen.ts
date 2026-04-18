@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SobreNosotrosRouteImport } from './routes/sobre-nosotros'
+import { Route as PadresRouteImport } from './routes/padres'
+import { Route as MembresiaRouteImport } from './routes/membresia'
+import { Route as GuiaRouteImport } from './routes/guia'
+import { Route as ContactanosRouteImport } from './routes/contactanos'
+import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
+  id: '/sobre-nosotros',
+  path: '/sobre-nosotros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PadresRoute = PadresRouteImport.update({
+  id: '/padres',
+  path: '/padres',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembresiaRoute = MembresiaRouteImport.update({
+  id: '/membresia',
+  path: '/membresia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuiaRoute = GuiaRouteImport.update({
+  id: '/guia',
+  path: '/guia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactanosRoute = ContactanosRouteImport.update({
+  id: '/contactanos',
+  path: '/contactanos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AsesoramientoRoute = AsesoramientoRouteImport.update({
+  id: '/asesoramiento',
+  path: '/asesoramiento',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/asesoramiento': typeof AsesoramientoRoute
+  '/contactanos': typeof ContactanosRoute
+  '/guia': typeof GuiaRoute
+  '/membresia': typeof MembresiaRoute
+  '/padres': typeof PadresRoute
+  '/sobre-nosotros': typeof SobreNosotrosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/asesoramiento': typeof AsesoramientoRoute
+  '/contactanos': typeof ContactanosRoute
+  '/guia': typeof GuiaRoute
+  '/membresia': typeof MembresiaRoute
+  '/padres': typeof PadresRoute
+  '/sobre-nosotros': typeof SobreNosotrosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/asesoramiento': typeof AsesoramientoRoute
+  '/contactanos': typeof ContactanosRoute
+  '/guia': typeof GuiaRoute
+  '/membresia': typeof MembresiaRoute
+  '/padres': typeof PadresRoute
+  '/sobre-nosotros': typeof SobreNosotrosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/asesoramiento'
+    | '/contactanos'
+    | '/guia'
+    | '/membresia'
+    | '/padres'
+    | '/sobre-nosotros'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/asesoramiento'
+    | '/contactanos'
+    | '/guia'
+    | '/membresia'
+    | '/padres'
+    | '/sobre-nosotros'
+  id:
+    | '__root__'
+    | '/'
+    | '/asesoramiento'
+    | '/contactanos'
+    | '/guia'
+    | '/membresia'
+    | '/padres'
+    | '/sobre-nosotros'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AsesoramientoRoute: typeof AsesoramientoRoute
+  ContactanosRoute: typeof ContactanosRoute
+  GuiaRoute: typeof GuiaRoute
+  MembresiaRoute: typeof MembresiaRoute
+  PadresRoute: typeof PadresRoute
+  SobreNosotrosRoute: typeof SobreNosotrosRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sobre-nosotros': {
+      id: '/sobre-nosotros'
+      path: '/sobre-nosotros'
+      fullPath: '/sobre-nosotros'
+      preLoaderRoute: typeof SobreNosotrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/padres': {
+      id: '/padres'
+      path: '/padres'
+      fullPath: '/padres'
+      preLoaderRoute: typeof PadresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membresia': {
+      id: '/membresia'
+      path: '/membresia'
+      fullPath: '/membresia'
+      preLoaderRoute: typeof MembresiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guia': {
+      id: '/guia'
+      path: '/guia'
+      fullPath: '/guia'
+      preLoaderRoute: typeof GuiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contactanos': {
+      id: '/contactanos'
+      path: '/contactanos'
+      fullPath: '/contactanos'
+      preLoaderRoute: typeof ContactanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/asesoramiento': {
+      id: '/asesoramiento'
+      path: '/asesoramiento'
+      fullPath: '/asesoramiento'
+      preLoaderRoute: typeof AsesoramientoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,7 +177,22 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AsesoramientoRoute: AsesoramientoRoute,
+  ContactanosRoute: ContactanosRoute,
+  GuiaRoute: GuiaRoute,
+  MembresiaRoute: MembresiaRoute,
+  PadresRoute: PadresRoute,
+  SobreNosotrosRoute: SobreNosotrosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
