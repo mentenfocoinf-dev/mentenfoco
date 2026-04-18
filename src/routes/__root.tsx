@@ -81,7 +81,7 @@ function Header() {
           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
             M
           </div>
-          <span className="text-lg font-semibold text-primary">Mente Sana</span>
+          <span className="text-lg font-semibold text-primary font-sans">Mente en Foco</span>
         </Link>
         <nav className="hidden items-center gap-1 lg:flex">
           {navItems.map((item) => (
@@ -103,7 +103,7 @@ function Header() {
           Agendar cita
         </Link>
       </div>
-      <nav className="flex gap-1 overflow-x-auto border-t border-border px-4 py-2 lg:hidden">
+      <nav className="gap-1 overflow-x-auto border-t border-border px-4 py-2 lg:hidden items-start justify-center flex flex-row border-none shadow-xl rounded-none">
         {navItems.map((item) => (
           <Link
             key={item.to}
