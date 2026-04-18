@@ -29,10 +29,10 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Mente Sana — Salud Mental Integral" },
+      { title: "Mente en Foco — Salud Mental Integral" },
       { name: "description", content: "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres." },
-      { name: "author", content: "Mente Sana" },
-      { property: "og:title", content: "Mente Sana — Salud Mental Integral" },
+      { name: "author", content: "Mente en Foco" },
+      { property: "og:title", content: "Mente en Foco — Salud Mental Integral" },
       { property: "og:description", content: "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -129,7 +129,7 @@ function Footer() {
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-background text-primary font-bold">
               M
             </div>
-            <span className="text-lg font-semibold">Mente Sana</span>
+            <span className="text-lg font-semibold">Mente en Foco</span>
           </div>
           <p className="mt-3 text-sm text-primary-foreground/70">
             Cuidamos tu bienestar emocional con un enfoque humano y profesional.
@@ -161,7 +161,7 @@ function Footer() {
         </div>
       </div>
       <div className="border-t border-primary-foreground/10 px-4 py-4 text-center text-xs text-primary-foreground/60">
-        © {new Date().getFullYear()} Mente Sana. Todos los derechos reservados.
+        © {new Date().getFullYear()} Mente en Foco. Todos los derechos reservados.
       </div>
     </footer>
   );
