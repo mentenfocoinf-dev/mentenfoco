@@ -138,8 +138,28 @@
     border-color: var(--color-border);
   }
 
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer utilities {
+  .bg-primary-soft {
+    background-color: var(--primary-soft);
+  }
+  .gradient-soft {
+    background: linear-gradient(135deg, var(--primary-soft) 0%, oklch(1 0 0) 100%);
   }
 }
