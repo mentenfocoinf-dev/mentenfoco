@@ -24,6 +24,7 @@ WORKDIR /app
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/vite.config.ts ./
 
 # Variables de entorno para que Vite Preview se exponga al exterior en el puerto 80
 ENV HOST=0.0.0.0
