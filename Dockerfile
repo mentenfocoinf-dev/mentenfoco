@@ -29,11 +29,11 @@ COPY --from=builder /app/*.json ./
 COPY --from=builder /app/*.ts ./
 COPY --from=builder /app/*.js ./
 
-# Variables de entorno para que Vite Preview se exponga al exterior en el puerto 80
+# Variables de entorno para que Vite Preview se exponga al exterior
 ENV HOST=0.0.0.0
-ENV PORT=80
+ENV PORT=8080
 
-EXPOSE 80
+EXPOSE 8080
 
 # Usamos preview para levantar el servidor SSR en producción
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "80"]
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "8080"]
