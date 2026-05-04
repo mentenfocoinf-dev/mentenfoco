@@ -15,19 +15,21 @@ COPY . .
 # Construir la aplicación para producción (Vite crea la carpeta 'dist')
 RUN npm run build
 
-# Etapa 2: Producción
-FROM nginx:alpine
+# Etapa 2: Producción (Node.js para SSR)
+FROM node:22-alpine
 
-# Copiar los archivos compilados desde la etapa anterior hacia el directorio público de Nginx
-COPY --from=builder /app/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Opcional: Si usamos React Router (TanStack Router) en modo history,
-# necesitamos redirigir el tráfico a index.html. Un nginx.conf personalizado
-# o un comando para reescribir la ruta sería ideal, pero lo más simple es
-# exponer el puerto y dejar que Nginx sirva los estáticos por defecto.
-# Nota: Si el enrutamiento falla al recargar en rutas como /sobre-nosotros,
-# deberías inyectar un nginx.conf personalizado.
+# Copiamos los archivos necesarios desde el builder
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/dist ./dist
+
+# Variables de entorno para que Vite Preview se exponga al exterior en el puerto 80
+ENV HOST=0.0.0.0
+ENV PORT=80
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# Usamos preview para levantar el servidor SSR en producción
+CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "80"]
