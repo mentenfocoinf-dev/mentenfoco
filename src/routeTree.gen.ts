@@ -10,26 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreNosotrosRouteImport } from './routes/sobre-nosotros'
-import { Route as PadresRouteImport } from './routes/padres'
 import { Route as MembresiaRouteImport } from './routes/membresia'
+import { Route as IngresaRouteImport } from './routes/ingresa'
 import { Route as GuiaRouteImport } from './routes/guia'
 import { Route as ContactanosRouteImport } from './routes/contactanos'
 import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
 
 const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
   id: '/sobre-nosotros',
   path: '/sobre-nosotros',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PadresRoute = PadresRouteImport.update({
-  id: '/padres',
-  path: '/padres',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const MembresiaRoute = MembresiaRouteImport.update({
   id: '/membresia',
   path: '/membresia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngresaRoute = IngresaRouteImport.update({
+  id: '/ingresa',
+  path: '/ingresa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuiaRoute = GuiaRouteImport.update({
@@ -52,24 +53,31 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuiasGuiaIdRoute = GuiasGuiaIdRouteImport.update({
+  id: '/guias/$guiaId',
+  path: '/guias/$guiaId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/asesoramiento': typeof AsesoramientoRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
+  '/ingresa': typeof IngresaRoute
   '/membresia': typeof MembresiaRoute
-  '/padres': typeof PadresRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/guias/$guiaId': typeof GuiasGuiaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/asesoramiento': typeof AsesoramientoRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
+  '/ingresa': typeof IngresaRoute
   '/membresia': typeof MembresiaRoute
-  '/padres': typeof PadresRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/guias/$guiaId': typeof GuiasGuiaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,9 +85,10 @@ export interface FileRoutesById {
   '/asesoramiento': typeof AsesoramientoRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
+  '/ingresa': typeof IngresaRoute
   '/membresia': typeof MembresiaRoute
-  '/padres': typeof PadresRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/guias/$guiaId': typeof GuiasGuiaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -88,27 +97,30 @@ export interface FileRouteTypes {
     | '/asesoramiento'
     | '/contactanos'
     | '/guia'
+    | '/ingresa'
     | '/membresia'
-    | '/padres'
     | '/sobre-nosotros'
+    | '/guias/$guiaId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/asesoramiento'
     | '/contactanos'
     | '/guia'
+    | '/ingresa'
     | '/membresia'
-    | '/padres'
     | '/sobre-nosotros'
+    | '/guias/$guiaId'
   id:
     | '__root__'
     | '/'
     | '/asesoramiento'
     | '/contactanos'
     | '/guia'
+    | '/ingresa'
     | '/membresia'
-    | '/padres'
     | '/sobre-nosotros'
+    | '/guias/$guiaId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,9 +128,10 @@ export interface RootRouteChildren {
   AsesoramientoRoute: typeof AsesoramientoRoute
   ContactanosRoute: typeof ContactanosRoute
   GuiaRoute: typeof GuiaRoute
+  IngresaRoute: typeof IngresaRoute
   MembresiaRoute: typeof MembresiaRoute
-  PadresRoute: typeof PadresRoute
   SobreNosotrosRoute: typeof SobreNosotrosRoute
+  GuiasGuiaIdRoute: typeof GuiasGuiaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -130,18 +143,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SobreNosotrosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/padres': {
-      id: '/padres'
-      path: '/padres'
-      fullPath: '/padres'
-      preLoaderRoute: typeof PadresRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/membresia': {
       id: '/membresia'
       path: '/membresia'
       fullPath: '/membresia'
       preLoaderRoute: typeof MembresiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingresa': {
+      id: '/ingresa'
+      path: '/ingresa'
+      fullPath: '/ingresa'
+      preLoaderRoute: typeof IngresaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guia': {
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guias/$guiaId': {
+      id: '/guias/$guiaId'
+      path: '/guias/$guiaId'
+      fullPath: '/guias/$guiaId'
+      preLoaderRoute: typeof GuiasGuiaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -180,10 +200,20 @@ const rootRouteChildren: RootRouteChildren = {
   AsesoramientoRoute: AsesoramientoRoute,
   ContactanosRoute: ContactanosRoute,
   GuiaRoute: GuiaRoute,
+  IngresaRoute: IngresaRoute,
   MembresiaRoute: MembresiaRoute,
-  PadresRoute: PadresRoute,
   SobreNosotrosRoute: SobreNosotrosRoute,
+  GuiasGuiaIdRoute: GuiasGuiaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

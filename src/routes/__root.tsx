@@ -29,7 +29,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Mente en Foco — Salud Mental Integral" },
+      { title: "Mente en Foco — Salud Mental con Propósito" },
       { name: "description", content: "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres." },
       { name: "author", content: "Mente en Foco" },
       { property: "og:title", content: "Mente en Foco — Salud Mental Integral" },
@@ -68,9 +68,9 @@ const navItems = [
   { to: "/asesoramiento" as const, label: "Asesoramiento" },
   { to: "/guia" as const, label: "Guía" },
   { to: "/membresia" as const, label: "Membresía" },
-  { to: "/padres" as const, label: "Padres" },
   { to: "/sobre-nosotros" as const, label: "Sobre nosotros" },
   { to: "/contactanos" as const, label: "Contáctanos" },
+  { to: "/ingresa" as const, label: "Ingresa" },
 ];
 
 function Header() {
@@ -78,9 +78,7 @@ function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-            M
-          </div>
+          <img src="/GOLO.png" alt="Mente en Foco" className="h-9 w-auto object-contain" />
           <span className="text-lg font-semibold text-primary font-sans">Mente en Foco</span>
         </Link>
         <nav className="hidden items-center gap-1 lg:flex">
@@ -126,9 +124,7 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4 md:px-6">
         <div>
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-background text-primary font-bold">
-              M
-            </div>
+            <img src="/GOLO.png" alt="Mente en Foco" className="h-9 w-auto object-contain bg-background rounded-md p-1" />
             <span className="text-lg font-semibold">Mente en Foco</span>
           </div>
           <p className="mt-3 text-sm text-primary-foreground/70">
@@ -141,7 +137,7 @@ function Footer() {
             <li><Link to="/asesoramiento">Asesoramiento</Link></li>
             <li><Link to="/guia">Guías</Link></li>
             <li><Link to="/membresia">Membresía</Link></li>
-            <li><Link to="/padres">Portal padres</Link></li>
+            <li><Link to="/ingresa">Portal de Usuarios</Link></li>
           </ul>
         </div>
         <div>
@@ -154,8 +150,8 @@ function Footer() {
         <div>
           <h4 className="mb-3 text-sm font-semibold">Contacto</h4>
           <ul className="space-y-2 text-sm text-primary-foreground/70">
-            <li>contacto@mentesana.com</li>
-            <li>+34 900 123 456</li>
+            <li>mentenfocoinf@gmail.com</li>
+            <li>3186546057</li>
             <li>Lun – Vie · 9:00 – 19:00</li>
           </ul>
         </div>

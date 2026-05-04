@@ -160,6 +160,79 @@
     background-color: var(--primary-soft);
   }
   .gradient-soft {
-    background: linear-gradient(135deg, var(--primary-soft) 0%, oklch(1 0 0) 100%);
+    background: radial-gradient(circle at top right, var(--primary-soft) 0%, transparent 80%),
+                radial-gradient(circle at bottom left, var(--muted) 0%, oklch(1 0 0) 100%);
+  }
+  .glass {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255,255,255,0.4);
+  }
+  .dark .glass {
+    background: rgba(20, 20, 20, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255,255,255,0.05);
+  }
+  .glass-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+  }
+  .dark .glass-card {
+    background: linear-gradient(135deg, rgba(30,30,30,0.6) 0%, rgba(20,20,20,0.3) 100%);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  }
+
+  @keyframes selected-glow-pulsate {
+    0% {
+      box-shadow: 0 0 10px 0px rgba(0, 255, 255, 0.6);
+    }
+    50% {
+      box-shadow: 0 0 35px 5px rgba(0, 255, 255, 0.9);
+    }
+    100% {
+      box-shadow: 0 0 10px 0px rgba(0, 255, 255, 0.6);
+    }
+  }
+
+  .selected-card-glow {
+    animation: selected-glow-pulsate 2s infinite;
+    border-color: rgba(0, 255, 255, 0.8) !important;
+    transition: all 300ms ease-in-out;
+    z-index: 10;
   }
 }
+
+@keyframes neon-hover-pulse {
+  0%, 100% {
+    box-shadow: 0 0 15px 2px rgba(56, 189, 248, 0.4);
+    border-color: rgba(56, 189, 248, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 35px 8px rgba(56, 189, 248, 0.9);
+    border-color: rgba(56, 189, 248, 1);
+  }
+}
+
+.card-neon-hover {
+  border: 2px solid transparent;
+  transition: all 0.3s ease-in-out;
+}
+
+.card-neon-hover:hover {
+  animation: neon-hover-pulse 1.5s infinite;
+}
+
+.hide-scrollbar {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE/Edge */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;               /* Chrome/Safari */
+}
+

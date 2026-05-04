@@ -1,4 +1,9 @@
-# Logs
+# Environment variables — NEVER commit to Git
+.env
+.env.local
+.env.production
+
+
 logs
 *.log
 npm-debug.log*

@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 
 export const Route = createFileRoute("/asesoramiento")({
   head: () => ({
     meta: [
-      { title: "Asesoramiento — Mente Sana" },
+      { title: "Asesoramiento — Mente en Foco" },
       { name: "description", content: "Tres planes de asesoramiento psicológico diseñados a tu medida." },
-      { property: "og:title", content: "Asesoramiento — Mente Sana" },
+      { property: "og:title", content: "Asesoramiento — Mente en Foco" },
       { property: "og:description", content: "Tres planes de asesoramiento psicológico diseñados a tu medida." },
     ],
   }),
@@ -15,57 +16,61 @@ export const Route = createFileRoute("/asesoramiento")({
 const plans = [
   {
     name: "Esencial",
-    price: "€49",
+    price: "$180.000",
     period: "/sesión",
-    desc: "Ideal para comenzar tu proceso de autoconocimiento.",
+    desc: "El paso inicial para cuidar de ti con la guía de un especialista.",
     features: [
-      "1 sesión individual al mes",
-      "Evaluación inicial completa",
-      "Material de apoyo digital",
-      "Atención por chat (horario laboral)",
+      "1 sesión con tu especialista al mes",
+      "Valoración inicial completa y cercana",
+      "Material de apoyo práctico para tu día a día",
+      "Seguimiento continuo por nuestra plataforma",
     ],
     highlighted: false,
+    link: "https://buy.stripe.com/test_dRm6oH3zU0eMg7g64D5Vu03",
   },
   {
     name: "Integral",
-    price: "€129",
+    price: "$480.000",
     period: "/mes",
-    desc: "El equilibrio perfecto entre acompañamiento y autonomía.",
+    desc: "Acompañamiento completo con varios especialistas trabajando para ti.",
     features: [
-      "4 sesiones individuales al mes",
-      "Plan terapéutico personalizado",
-      "Acceso a guías premium",
-      "Seguimiento semanal por chat",
-      "Sesión grupal mensual",
+      "4 sesiones terapéuticas al mes",
+      "Un plan de bienestar claro y a tu medida",
+      "Nuestro equipo completo analiza tu avance",
+      "Acompañamiento y apoyo semanal",
+      "Acceso total a nuestras guías y herramientas",
     ],
     highlighted: true,
+    link: "https://buy.stripe.com/test_28EbJ16M63qYaMWakT5Vu04",
   },
   {
     name: "Premium",
-    price: "€249",
+    price: "$950.000",
     period: "/mes",
-    desc: "Acompañamiento intensivo con un equipo multidisciplinar.",
+    desc: "Cuidado integral y constante con todo nuestro equipo experto a tu lado.",
     features: [
-      "8 sesiones individuales al mes",
-      "Equipo psicólogo + psiquiatra",
-      "Disponibilidad 24/7 vía app",
-      "Sesiones familiares incluidas",
-      "Plan personalizado mensual",
-      "Acceso total a recursos",
+      "8 sesiones terapéuticas al mes",
+      "Atención médica y psicológica unida para ti",
+      "Todo el equipo evalúa tu progreso mensualmente",
+      "Sesiones de apoyo para tu familia",
+      "Acompañamiento médico cuidadoso (si lo necesitas)",
+      "Prioridad siempre que necesites agendar",
     ],
     highlighted: false,
+    link: "https://buy.stripe.com/test_5kQ6oHfiCd1y7AKboX5Vu05",
   },
 ];
 
 function Asesoramiento() {
+  const [selectedPlan, setSelectedPlan] = useState<string | null>("Integral");
+  
   return (
     <>
-      <section className="gradient-soft">
-        <div className="mx-auto max-w-7xl px-4 py-16 text-center md:px-6 md:py-20">
-          <h1 className="text-4xl font-bold text-primary md:text-5xl">Planes de asesoramiento</h1>
+      <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat">
+        <div className="mx-auto max-w-7xl px-4 py-16 text-center md:px-6 md:py-20 glass-card mx-4 rounded-3xl mt-8">
+          <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">Planes de Intervención Clínica</h1>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Elige el plan que mejor se adapta a tus necesidades. Todos incluyen profesionales
-            certificados y total confidencialidad.
+            Planes diseñados para tu bienestar. Nuestro equipo de especialistas trabaja unido, usando métodos comprobados científicamente para apoyarte a ti y a tu familia.
           </p>
         </div>
       </section>
@@ -75,61 +80,56 @@ function Asesoramiento() {
           {plans.map((plan) => (
             <div
               key={plan.name}
-              className={`relative rounded-2xl border p-8 transition-shadow hover:shadow-lg ${
-                plan.highlighted
-                  ? "border-primary bg-primary text-primary-foreground shadow-md"
-                  : "border-border bg-card"
+              onClick={() => setSelectedPlan(plan.name)}
+              className={`card-neon-hover relative bg-white rounded-3xl p-8 shadow-sm transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105 flex flex-col ${
+                selectedPlan === plan.name ? "selected-card-glow scale-105" : ""
               }`}
             >
               {plan.highlighted && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-background px-3 py-1 text-xs font-semibold text-primary">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-primary/20 bg-background/80 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-primary shadow-sm">
                   Más popular
                 </span>
               )}
-              <h3 className={`text-2xl font-bold ${plan.highlighted ? "" : "text-primary"}`}>
-                {plan.name}
-              </h3>
-              <p className={`mt-2 text-sm ${plan.highlighted ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                {plan.desc}
-              </p>
+              <h3 className="text-2xl font-bold text-primary">{plan.name}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{plan.desc}</p>
               <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-bold">{plan.price}</span>
-                <span className={plan.highlighted ? "text-primary-foreground/70" : "text-muted-foreground"}>
-                  {plan.period}
-                </span>
+                <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
+                <span className="text-muted-foreground">{plan.period}</span>
               </div>
-              <ul className="mt-6 space-y-3">
+              <ul className="mt-6 space-y-3 flex-grow">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm">
-                    <span className={plan.highlighted ? "text-primary-foreground" : "text-primary"}>✓</span>
-                    <span>{f}</span>
+                    <span className="text-primary font-bold">✓</span>
+                    <span className="text-slate-700">{f}</span>
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/contactanos"
-                className={`mt-8 inline-flex w-full items-center justify-center rounded-md px-4 py-3 text-sm font-medium transition-colors ${
+              <a
+                href={plan.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all hover:scale-105 shadow-sm ${
                   plan.highlighted
-                    ? "bg-background text-primary hover:bg-background/90"
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20"
+                    : "border border-primary/20 text-primary hover:bg-primary/10"
                 }`}
               >
                 Elegir {plan.name}
-              </Link>
+              </a>
             </div>
           ))}
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-20 md:px-6">
-        <div className="rounded-2xl border border-border bg-card p-8 md:p-12">
-          <h2 className="text-2xl font-semibold text-primary">¿Tienes dudas sobre qué plan elegir?</h2>
+        <div className="card-neon-hover rounded-3xl glass-card p-10 md:p-14 text-center">
+          <h2 className="text-2xl font-semibold text-primary drop-shadow-sm">¿Tienes dudas sobre qué plan elegir?</h2>
           <p className="mt-2 text-muted-foreground">
             Agenda una llamada gratuita de 15 minutos y te ayudamos a encontrar la opción ideal.
           </p>
           <Link
             to="/contactanos"
-            className="mt-6 inline-flex rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            className="mt-6 inline-flex rounded-xl bg-primary px-8 py-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-105 shadow-lg shadow-primary/20"
           >
             Solicitar orientación
           </Link>

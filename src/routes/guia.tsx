@@ -1,11 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { guiasClinicas } from "../data/guiasData";
 
 export const Route = createFileRoute("/guia")({
   head: () => ({
     meta: [
-      { title: "Guías — Mente Sana" },
+      { title: "Guías — Mente en Foco" },
       { name: "description", content: "Guías prácticas para ansiedad, autoestima, motricidad y bienestar emocional." },
-      { property: "og:title", content: "Guías — Mente Sana" },
+      { property: "og:title", content: "Guías — Mente en Foco" },
       { property: "og:description", content: "Guías prácticas para afrontar diferentes situaciones de la vida." },
     ],
   }),
@@ -20,63 +22,73 @@ const categories = [
   { name: "Relaciones", count: 3 },
 ];
 
-const guides = [
-  { cat: "Ansiedad", title: "Cómo afrontar ataques de ansiedad", desc: "Técnicas de respiración y grounding paso a paso.", read: "8 min", icon: "🌬️" },
-  { cat: "Ansiedad", title: "Manejo del estrés laboral", desc: "Estrategias efectivas para entornos exigentes.", read: "10 min", icon: "💼" },
-  { cat: "Ansiedad", title: "Insomnio y descanso reparador", desc: "Higiene del sueño y mindfulness nocturno.", read: "7 min", icon: "🌙" },
-  { cat: "Autoestima", title: "Mejorar tu autoconcepto", desc: "Ejercicios para reconectar con tu valor personal.", read: "12 min", icon: "💛" },
-  { cat: "Autoestima", title: "Diálogo interno positivo", desc: "Reformula tus pensamientos automáticos.", read: "9 min", icon: "💭" },
-  { cat: "Autoestima", title: "Establecer límites sanos", desc: "Aprende a decir 'no' sin culpa.", read: "6 min", icon: "🛡️" },
-  { cat: "Infantil", title: "Estimular la motricidad", desc: "Actividades para desarrollar habilidades motoras.", read: "11 min", icon: "🧸" },
-  { cat: "Infantil", title: "Manejo de berrinches", desc: "Comprender y acompañar la frustración infantil.", read: "8 min", icon: "👶" },
-  { cat: "Infantil", title: "Apoyo escolar emocional", desc: "Acompañar el rendimiento sin presionar.", read: "10 min", icon: "📚" },
-  { cat: "Relaciones", title: "Comunicación en pareja", desc: "Escucha activa y resolución de conflictos.", read: "13 min", icon: "💬" },
-  { cat: "Relaciones", title: "Superar una ruptura", desc: "Proceso emocional y reconstrucción personal.", read: "15 min", icon: "🌱" },
-  { cat: "Relaciones", title: "Apego y vínculos sanos", desc: "Identifica tu estilo de apego.", read: "12 min", icon: "🤝" },
-];
-
 function Guia() {
+  const [activeFilter, setActiveFilter] = useState("Todas");
+
+  const filteredGuides = activeFilter === "Todas"
+    ? guiasClinicas
+    : guiasClinicas.filter((g) => g.categoria === activeFilter);
+
   return (
     <>
-      <section className="gradient-soft">
-        <div className="mx-auto max-w-7xl px-4 py-16 text-center md:px-6 md:py-20">
-          <h1 className="text-4xl font-bold text-primary md:text-5xl">Guías de bienestar</h1>
+      <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
+        <div className="mx-auto max-w-7xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
+          <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">Guías de bienestar</h1>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Recursos prácticos creados por nuestros profesionales para acompañarte en distintos
-            momentos de tu vida.
+            Recursos prácticos desarrollados por nuestros profesionales clínicos para acompañarte en distintos
+            momentos de tu vida. Escritos desde la ciencia y la empatía.
           </p>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
-        <div className="mb-8 flex flex-wrap gap-2">
+        <div className="mb-10 flex flex-wrap gap-3 justify-center">
           {categories.map((c) => (
             <button
               key={c.name}
-              className="rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary hover:bg-primary-soft hover:text-primary"
+              onClick={() => setActiveFilter(c.name)}
+              className={`rounded-full px-5 py-2.5 text-sm font-bold transition-all shadow-sm ${
+                activeFilter === c.name
+                  ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90 hover:scale-105"
+                  : "glass border border-white/40 text-foreground hover:border-primary/50 hover:bg-primary/5"
+              }`}
             >
-              {c.name} <span className="text-muted-foreground">({c.count})</span>
+              {c.name} <span className="opacity-70 font-medium">({c.count})</span>
             </button>
           ))}
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {guides.map((g) => (
+          {filteredGuides.map((g) => (
             <article
-              key={g.title}
-              className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-primary hover:shadow-md"
+              key={g.id}
+              className="card-neon-hover group relative rounded-3xl border-border bg-white overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col h-full"
             >
-              <div className="text-3xl">{g.icon}</div>
-              <span className="mt-4 inline-block rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-                {g.cat}
-              </span>
-              <h3 className="mt-3 text-lg font-semibold text-primary group-hover:underline">
-                {g.title}
-              </h3>
-              <p className="mt-2 text-sm text-muted-foreground">{g.desc}</p>
-              <div className="mt-4 flex items-center justify-between text-xs text-muted-foreground">
-                <span>📖 {g.read} de lectura</span>
-                <span className="font-medium text-primary">Leer →</span>
+              <div
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity group-hover:opacity-30"
+                style={{ backgroundImage: `url('/guias/${g.imageName}')` }}
+              />
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="mb-2">
+                  <span className="inline-block rounded-full bg-primary/10 border border-primary/10 px-3 py-1 text-xs font-bold text-primary">
+                    {g.categoria}
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors">
+                  {g.titulo}
+                </h3>
+                <p className="mt-3 text-sm text-foreground/80 flex-grow">{g.descripcionBreve}</p>
+
+                <div className="mt-8 pt-4 border-t border-border/50 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-muted-foreground">Lectura de {g.tiempoLectura}</span>
+                  <Link
+                    to="/guias/$guiaId"
+                    params={{ guiaId: g.id }}
+                    className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
+                  >
+                    Leer guía
+                  </Link>
+                </div>
               </div>
             </article>
           ))}
