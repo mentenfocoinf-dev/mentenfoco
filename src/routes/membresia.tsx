@@ -1,36 +1,64 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
 
 export const Route = createFileRoute("/membresia")({
   head: () => ({
     meta: [
       { title: "Membresía — Mente en Foco" },
-      { name: "description", content: "Suscríbete y recibe beneficios exclusivos cada mes sin costo adicional." },
+      {
+        name: "description",
+        content: "Suscríbete y recibe beneficios exclusivos cada mes sin costo adicional.",
+      },
       { property: "og:title", content: "Membresía — Mente en Foco" },
-      { property: "og:description", content: "Suscríbete y recibe beneficios exclusivos cada mes sin costo adicional." },
+      {
+        property: "og:description",
+        content: "Suscríbete y recibe beneficios exclusivos cada mes sin costo adicional.",
+      },
     ],
   }),
   component: Membresia,
 });
 
 const benefits = [
-  { title: "Alex - IA 24/7", desc: "Agente inteligente especializado en salud mental disponible a toda hora." },
+  {
+    title: "Alex - IA 24/7",
+    desc: "Agente inteligente especializado en salud mental disponible a toda hora.",
+  },
   { title: "Guías premium", desc: "Acceso ilimitado a más de 50 guías exclusivas cada mes." },
   { title: "Webinars en vivo", desc: "2 webinars mensuales con nuestros especialistas." },
-  { title: "Meditaciones guiadas", desc: "Biblioteca de audios para ansiedad, sueño y relajación." },
+  {
+    title: "Meditaciones guiadas",
+    desc: "Biblioteca de audios para ansiedad, sueño y relajación.",
+  },
   { title: "Test psicológicos", desc: "Evaluaciones validadas con resultados detallados." },
   { title: "Comunidad privada", desc: "Espacio seguro moderado por psicólogos." },
   { title: "Descuentos exclusivos", desc: "20% en sesiones individuales y talleres." },
 ];
 
 const tiers = [
-  { name: "Mensual", price: "$70.000", period: "/mes", note: "Cancela cuando quieras", link: "https://buy.stripe.com/test_3cI28r3zU0eM3kugJh5Vu01" },
-  { name: "Anual", price: "$700.000", period: "/año", note: "Ahorra 2 meses", highlight: true, link: "https://buy.stripe.com/test_cNi7sLc6q3qY4oy8cL5Vu06" },
+  {
+    name: "Mensual",
+    price: "$70.000",
+    period: "/mes",
+    note: "Cancela cuando quieras",
+    link: "https://buy.stripe.com/test_3cI28r3zU0eM3kugJh5Vu01",
+  },
+  {
+    name: "Anual",
+    price: "$700.000",
+    period: "/año",
+    note: "Ahorra 2 meses",
+    highlight: true,
+    link: "https://buy.stripe.com/test_cNi7sLc6q3qY4oy8cL5Vu06",
+  },
 ];
 
 function Membresia() {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { profile } = useAuth();
+  const router = useRouter();
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -108,27 +136,41 @@ function Membresia() {
 
       <section className="bg-primary/5 py-16">
         <div className="mx-auto max-w-4xl px-4 md:px-6 glass-card rounded-3xl py-16 border border-white/40 shadow-xl shadow-primary/5">
-          <h2 className="text-center text-3xl font-bold text-primary drop-shadow-sm">Elige tu plan</h2>
+          <h2 className="text-center text-3xl font-bold text-primary drop-shadow-sm">
+            Elige tu plan
+          </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             {tiers.map((t) => (
               <div
                 key={t.name}
                 className={`card-neon-hover rounded-3xl p-8 transition-transform hover:scale-[1.02] ${
-                  t.highlight ? "bg-primary/20 backdrop-blur-xl shadow-lg shadow-primary/20" : "bg-white/40 backdrop-blur-lg"
+                  t.highlight
+                    ? "bg-primary/20 backdrop-blur-xl shadow-lg shadow-primary/20"
+                    : "bg-white/40 backdrop-blur-lg"
                 }`}
               >
                 <h3 className="text-xl font-semibold text-primary">{t.name}</h3>
                 <div className="mt-4 flex items-baseline gap-1">
                   <span className="text-4xl font-bold">{t.price}</span>
-                  <span className={t.highlight ? "text-primary/70" : "text-muted-foreground"}>{t.period}</span>
+                  <span className={t.highlight ? "text-primary/70" : "text-muted-foreground"}>
+                    {t.period}
+                  </span>
                 </div>
-                <p className={`mt-2 text-sm ${t.highlight ? "text-primary/80" : "text-muted-foreground"}`}>
+                <p
+                  className={`mt-2 text-sm ${t.highlight ? "text-primary/80" : "text-muted-foreground"}`}
+                >
                   {t.note}
                 </p>
-                <a
-                  href={t.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => {
+                    if (!profile) {
+                      // Si NO está logueado, llevar directamente al Checkout para compra inicial (generará el usuario por webhook)
+                      window.location.href = t.link;
+                    } else {
+                      // Si está logueado, inyectar el ID para vincular el pago a su cuenta existente
+                      window.location.href = `${t.link}?client_reference_id=${profile.id}&prefilled_email=${encodeURIComponent(profile.email || "")}`;
+                    }
+                  }}
                   className={`mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-4 text-sm font-semibold transition-all hover:scale-105 shadow-sm ${
                     t.highlight
                       ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20"
@@ -136,7 +178,7 @@ function Membresia() {
                   }`}
                 >
                   Suscribirme
-                </a>
+                </button>
               </div>
             ))}
           </div>

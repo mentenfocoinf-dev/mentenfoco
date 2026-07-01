@@ -1,94 +1,81 @@
 import { useState, useEffect } from "react";
-import { LogOut, Users, Loader2, Plus, Send, Zap, BookOpen } from "lucide-react";
+import { LogOut, Users, Loader2, Plus, Send, BookOpen, FileText } from "lucide-react";
 import { supabase, type Profile, type PatientTherapist } from "../../lib/supabase";
+import { ClinicalReportModal } from "./ClinicalReportModal";
 
 interface Props {
   profile: Profile;
   onLogout: () => void;
 }
 
-const TEMPLATES = [
-  {
-    label: "Ansiedad: Respiración",
-    title: "Respiración Diafragmática",
-    frequency: "3 veces al día o en crisis",
-    description: "Inhala profundamente en 4 segundos, mantén en 4 segundos y exhala suavemente en 6 segundos. Repite el ciclo 5 veces para regular el sistema nervioso parasimpático."
-  },
-  {
-    label: "Depresión: Activación",
-    title: "Activación Conductual",
-    frequency: "Diario, por las mañanas",
-    description: "Realiza una caminata ligera de 15 minutos al despertar, seguida de una tarea pequeña y sencilla (ej. tender la cama) para generar inercia positiva."
-  },
-  {
-    label: "Higiene del Sueño",
-    title: "Rutina de Higiene del Sueño",
-    frequency: "Diario, 1 hora antes de dormir",
-    description: "Apaga pantallas 1 hora antes de acostarte. Lee un libro físico o realiza estiramientos suaves. Evita la cafeína después de las 4 PM y mantén la habitación oscura."
-  }
-];
-
-const TECHNIQUES = [
-  {
-    title: "Reestructuración Cognitiva",
-    description: "Identificación y desafío de pensamientos automáticos negativos para sustituirlos por alternativas racionales."
-  },
-  {
-    title: "Mindfulness (Atención Plena)",
-    description: "Técnica de anclaje al momento presente, observando pensamientos y sensaciones sin juzgarlos."
-  },
-  {
-    title: "Terapia de Aceptación (ACT)",
-    description: "Fomenta la flexibilidad psicológica aceptando lo incontrolable y comprometiéndose con acciones alineadas a los valores personales."
-  }
-];
-
 export function TherapistDashboard({ profile, onLogout }: Props) {
-  const [patients, setPatients] = useState<PatientTherapist[]>([]);
+  const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Form states
+  // Modal State
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [activeReportPatient, setActiveReportPatient] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
+  // Prescriptions Catalog State
+  const [prescriptionsCatalog, setPrescriptionsCatalog] = useState<any[]>([]);
+
+  // Assignment Form State
   const [selectedPatientId, setSelectedPatientId] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [frequency, setFrequency] = useState("");
+  const [selectedPrescriptionIds, setSelectedPrescriptionIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
-    async function fetchPatients() {
-      const { data, error } = await supabase
+    async function fetchDashboardData() {
+      // Fetch Patients
+      const { data: patientsData, error: patientsError } = await supabase
         .from("patient_therapist")
-        .select(`
-          id,
+        .select(
+          `
           patient_id,
           therapist_id,
-          status,
           created_at,
-          patient:profiles!patient_id (
+          patient:profiles!patient_therapist_patient_id_fkey (
             id,
             full_name,
-            email,
             plan_type,
             subscription_status
           )
-        `)
+        `,
+        )
         .eq("therapist_id", profile.id);
 
-      if (!error && data) {
-        setPatients(data as any);
+      if (patientsError) {
+        console.error("Error fetching patients:", patientsError);
       }
+      if (patientsData) {
+        console.log("Patients loaded:", patientsData);
+        setPatients(patientsData);
+      }
+
+      // Fetch Prescriptions Catalog
+      const { data: presData } = await supabase
+        .from("clinical_prescriptions")
+        .select("*")
+        .order("titulo");
+
+      if (presData) {
+        setPrescriptionsCatalog(presData);
+      }
+
       setLoading(false);
     }
-    fetchPatients();
+    fetchDashboardData();
   }, [profile.id]);
 
-  function applyTemplate(template: typeof TEMPLATES[0]) {
-    setTitle(template.title);
-    setFrequency(template.frequency);
-    setDescription(template.description);
-  }
+  const openReportModal = (patientId: string, patientName: string) => {
+    setActiveReportPatient({ id: patientId, name: patientName });
+    setIsReportModalOpen(true);
+  };
 
   async function handleAssignPlan(e: React.FormEvent) {
     e.preventDefault();
@@ -96,38 +83,51 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     setSuccessMsg("");
     setErrorMsg("");
 
-    if (!selectedPatientId) {
-      setErrorMsg("Debes seleccionar un paciente.");
+    if (!selectedPatientId || selectedPrescriptionIds.length === 0) {
+      setErrorMsg("Debes seleccionar un paciente y al menos una tarea clínica.");
       setSubmitting(false);
       return;
     }
 
-    const { error } = await supabase.from("clinical_recommendations").insert({
+    const payload = selectedPrescriptionIds.map((id) => ({
       patient_id: selectedPatientId,
       therapist_id: profile.id,
-      title,
-      description,
-      frequency
-    });
+      prescription_id: id,
+      assigned_at: new Date().toISOString(),
+    }));
+
+    const { error } = await supabase.from("patient_prescriptions").insert(payload);
 
     setSubmitting(false);
 
     if (error) {
-      setErrorMsg("Hubo un error al asignar el plan. Verifica tu conexión.");
+      setErrorMsg("Hubo un error al asignar las tareas. Verifica tu conexión.");
+      console.error(error);
     } else {
-      setSuccessMsg("¡Recomendación asignada correctamente!");
-      setTitle("");
-      setDescription("");
-      setFrequency("");
+      setSuccessMsg("¡Tareas clínicas asignadas correctamente al paciente!");
+      setSelectedPrescriptionIds([]);
       setSelectedPatientId("");
       setTimeout(() => setSuccessMsg(""), 3000);
     }
   }
 
-  const displayName = profile.full_name ?? profile.id.slice(0, 8);
+  const displayName = profile.full_name || profile.email || "Terapeuta";
+  const selectedPrescriptions = prescriptionsCatalog.filter((p) =>
+    selectedPrescriptionIds.includes(p.id),
+  );
 
   return (
     <>
+      {activeReportPatient && (
+        <ClinicalReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+          patientName={activeReportPatient.name}
+          patientId={activeReportPatient.id}
+          therapistId={profile.id}
+        />
+      )}
+
       <section className="gradient-soft border-b border-white/30 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
           <div className="flex items-center justify-between glass-card p-6 rounded-3xl border border-white/40 shadow-sm">
@@ -158,59 +158,59 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
             </h2>
             <div className="card-neon-hover rounded-3xl glass-card p-6 border border-white/40 overflow-hidden">
               {loading ? (
-                <p className="text-sm text-muted-foreground animate-pulse">Cargando pacientes...</p>
+                <p className="text-sm text-muted-foreground animate-pulse">
+                  Cargando datos del dashboard...
+                </p>
               ) : patients.length > 0 ? (
                 <ul className="space-y-4">
                   {patients.map((p) => {
                     const pat = p.patient as any;
+                    const patName = pat?.full_name || pat?.email;
                     return (
-                      <li key={p.id} className="flex items-center justify-between p-4 bg-white/50 rounded-2xl border border-white/60 shadow-sm transition-transform hover:scale-[1.01]">
+                      <li
+                        key={p.patient_id}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white/50 rounded-2xl border border-white/60 shadow-sm transition-transform hover:scale-[1.01]"
+                      >
                         <div>
-                          <p className="font-bold text-primary">{pat?.full_name || pat?.email}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-primary">{patName}</p>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider ${pat?.subscription_status === "active" ? "bg-emerald-100 border-emerald-200 text-emerald-700" : "bg-amber-100 border-amber-200 text-amber-700"}`}
+                            >
+                              {pat?.subscription_status === "active" ? "Activo" : "Inactivo"}
+                            </span>
+                          </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             Plan: <span className="font-semibold capitalize">{pat?.plan_type}</span>
                           </p>
                         </div>
-                        <span className={`text-xs px-2 py-1 rounded-full border ${pat?.subscription_status === 'activate' ? 'bg-emerald-100 border-emerald-200 text-emerald-700' : 'bg-amber-100 border-amber-200 text-amber-700'}`}>
-                          {pat?.subscription_status === 'activate' ? "Activo" : "Inactivo"}
-                        </span>
+                        <button
+                          onClick={() => openReportModal(p.patient_id, patName)}
+                          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors border border-primary/20"
+                        >
+                          <FileText size={14} /> Informe Clínico
+                        </button>
                       </li>
-                    )
+                    );
                   })}
                 </ul>
               ) : (
                 <div className="p-6 text-center border border-white/40 border-dashed rounded-2xl">
-                  <p className="text-sm text-muted-foreground">No tienes pacientes asignados actualmente.</p>
+                  <p className="text-sm text-muted-foreground">
+                    No tienes pacientes asignados actualmente.
+                  </p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Panel derecho: Formulario Asignar Plan */}
+          {/* Panel derecho: Formulario Asignar Prescripción */}
           <div>
             <h2 className="text-xl font-bold text-primary drop-shadow-sm flex items-center gap-2">
               <Plus size={20} />
-              Asignar Plan / Recomendación
+              Asignar Tarea de Intervención
             </h2>
             <div className="mt-6 card-neon-hover rounded-3xl glass-card p-6 border border-white/40">
-              
-              {/* Plantillas Rápidas */}
-              <div className="mb-6">
-                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-1"><Zap size={14} className="text-amber-500" /> Plantillas Rápidas</p>
-                <div className="flex flex-wrap gap-2">
-                  {TEMPLATES.map(t => (
-                    <button
-                      key={t.label}
-                      type="button"
-                      onClick={() => applyTemplate(t)}
-                      className="text-xs font-semibold bg-white/50 border border-white/60 text-primary hover:bg-primary hover:text-primary-foreground hover:border-primary px-3 py-1.5 rounded-lg transition-colors shadow-sm"
-                    >
-                      {t.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {successMsg && (
                 <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm text-center font-medium animate-in fade-in slide-in-from-top-2">
                   {successMsg}
@@ -221,10 +221,12 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                   {errorMsg}
                 </div>
               )}
-              
-              <form onSubmit={handleAssignPlan} className="space-y-4">
+
+              <form onSubmit={handleAssignPlan} className="space-y-5">
                 <div>
-                  <label className="text-sm font-semibold text-primary">Paciente</label>
+                  <label className="text-sm font-semibold text-primary">
+                    1. Seleccionar Paciente
+                  </label>
                   <select
                     required
                     value={selectedPatientId}
@@ -232,59 +234,87 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                     className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm"
                   >
                     <option value="">-- Selecciona un paciente --</option>
-                    {patients.map(p => {
+                    {patients.map((p) => {
                       const pat = p.patient as any;
                       return (
                         <option key={p.patient_id} value={p.patient_id}>
                           {pat?.full_name || pat?.email}
                         </option>
-                      )
+                      );
                     })}
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-primary">Asunto</label>
-                  <input
+                  <label className="text-sm font-semibold text-primary">
+                    2. Seleccionar Tarea del Catálogo
+                  </label>
+                  <select
                     required
-                    type="text"
-                    placeholder="Ej. Ejercicios de respiración"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm transition-all"
-                  />
+                    multiple
+                    value={selectedPrescriptionIds}
+                    onChange={(e) => {
+                      const options = Array.from(
+                        e.target.selectedOptions,
+                        (option) => option.value,
+                      );
+                      setSelectedPrescriptionIds(options);
+                    }}
+                    className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm min-h-[120px]"
+                  >
+                    {prescriptionsCatalog.map((pres) => (
+                      <option
+                        key={pres.id}
+                        value={pres.id}
+                        className="p-2 border-b border-white/20 last:border-0 hover:bg-primary/10"
+                      >
+                        {pres.titulo}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Mantén presionado Ctrl (o Cmd) para seleccionar múltiples tareas.
+                  </p>
                 </div>
 
-                <div>
-                  <label className="text-sm font-semibold text-primary">Frecuencia</label>
-                  <input
-                    required
-                    type="text"
-                    placeholder="Ej. Diario antes de dormir"
-                    value={frequency}
-                    onChange={(e) => setFrequency(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-semibold text-primary">Descripción</label>
-                  <textarea
-                    required
-                    rows={4}
-                    placeholder="Instrucciones detalladas..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm resize-none transition-all"
-                  />
-                </div>
+                {/* Vista Previa de la Instrucción */}
+                {selectedPrescriptions.length > 0 && (
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 animate-in fade-in slide-in-from-bottom-2">
+                    <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
+                      Tareas Seleccionadas ({selectedPrescriptions.length})
+                    </p>
+                    <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                      {selectedPrescriptions.map((sp) => (
+                        <div
+                          key={sp.id}
+                          className="border-b border-primary/10 pb-3 last:border-0 last:pb-0"
+                        >
+                          <p className="text-sm font-bold text-slate-800">{sp.titulo}</p>
+                          <p className="text-xs text-slate-600 italic mt-1 line-clamp-2">
+                            "{sp.instruccion_paciente}"
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"
-                  disabled={submitting || patients.length === 0}
-                  className="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-[1.02] shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={
+                    submitting || patients.length === 0 || selectedPrescriptionIds.length === 0
+                  }
+                  className="mt-6 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-[1.02] shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {submitting ? <><Loader2 size={16} className="animate-spin" /> Asignando...</> : <><Send size={16} /> Enviar Recomendación</>}
+                  {submitting ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" /> Asignando...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={16} /> Enviar Prescripción
+                    </>
+                  )}
                 </button>
               </form>
             </div>
@@ -292,19 +322,36 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         </div>
       </section>
 
-      {/* Sección Inferior: Repositorio de Técnicas Clínicas */}
+      {/* Sección Inferior: Catálogo de Tareas Clínicas (Solo Lectura) */}
       <section className="mx-auto max-w-7xl px-4 pb-16 md:px-6">
         <h2 className="text-xl font-bold text-primary drop-shadow-sm flex items-center gap-2 mb-6">
           <BookOpen size={20} />
-          Repositorio de Técnicas Clínicas
+          Directorio de Tareas Clínicas
         </h2>
-        <div className="grid gap-6 md:grid-cols-3">
-          {TECHNIQUES.map(tech => (
-            <div key={tech.title} className="card-neon-hover bg-white/40 glass-card p-5 rounded-2xl border border-white/50 shadow-sm transition-all hover:-translate-y-1">
-              <h3 className="font-bold text-primary mb-2">{tech.title}</h3>
-              <p className="text-sm text-slate-600 leading-relaxed">{tech.description}</p>
-            </div>
-          ))}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {prescriptionsCatalog.length > 0 ? (
+            prescriptionsCatalog.map((tech) => (
+              <div
+                key={tech.id}
+                className="card-neon-hover flex flex-col justify-between bg-white/40 glass-card p-5 rounded-2xl border border-white/50 shadow-sm transition-all hover:-translate-y-1"
+              >
+                <div>
+                  <h3 className="font-bold text-primary mb-2">{tech.titulo}</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                    {tech.objetivo_clinico}
+                  </p>
+                </div>
+                <p className="text-xs text-slate-500 border-t border-slate-200/60 pt-3">
+                  <span className="font-semibold text-slate-400">Instrucción:</span>{" "}
+                  {tech.instruccion_paciente.substring(0, 100)}...
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground col-span-3">
+              Cargando directorio clínico...
+            </p>
+          )}
         </div>
       </section>
     </>

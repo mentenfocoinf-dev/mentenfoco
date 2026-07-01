@@ -1,4 +1,7 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
+import { AuthProvider } from "../hooks/useAuth";
 
 import appCss from "../styles.css?url";
 
@@ -30,17 +33,32 @@ export const Route = createRootRoute({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Mente en Foco — Salud Mental con Propósito" },
-      { name: "description", content: "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres." },
+      {
+        name: "description",
+        content:
+          "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres.",
+      },
       { name: "author", content: "Mente en Foco" },
+      { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Mente en Foco — Salud Mental Integral" },
-      { property: "og:description", content: "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres." },
+      {
+        property: "og:description",
+        content:
+          "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
+      { property: "og:image", content: "/BANNER.jpg" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "/BANNER.jpg" },
     ],
     links: [
+      { rel: "icon", href: "/GOLO.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+      },
       { rel: "stylesheet", href: appCss },
     ],
   }),
@@ -66,54 +84,95 @@ function RootShell({ children }: { children: React.ReactNode }) {
 const navItems = [
   { to: "/" as const, label: "Inicio" },
   { to: "/asesoramiento" as const, label: "Asesoramiento" },
-  { to: "/guia" as const, label: "Guía" },
+  { to: "/guia" as const, label: "Guías" },
   { to: "/membresia" as const, label: "Membresía" },
-  { to: "/sobre-nosotros" as const, label: "Sobre nosotros" },
+  { to: "/sobre-nosotros" as const, label: "Nosotros" },
   { to: "/contactanos" as const, label: "Contáctanos" },
   { to: "/ingresa" as const, label: "Ingresa" },
 ];
 
 function Header() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-        <Link to="/" className="flex items-center gap-2">
+        {/* Logo */}
+        <Link to="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
           <img src="/GOLO.png" alt="Mente en Foco" className="h-9 w-auto object-contain" />
           <span className="text-lg font-semibold text-primary font-sans">Mente en Foco</span>
         </Link>
-        <nav className="hidden items-center gap-1 lg:flex">
+
+        {/* Nav desktop */}
+        <nav className="hidden items-center gap-1 lg:flex" aria-label="Navegación principal">
           {navItems.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               className="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-primary"
-              activeProps={{ className: "rounded-md px-3 py-2 text-sm font-semibold text-primary bg-primary-soft" }}
+              activeProps={{
+                className:
+                  "rounded-md px-3 py-2 text-sm font-semibold text-primary bg-primary-soft",
+              }}
               activeOptions={{ exact: item.to === "/" }}
             >
               {item.label}
             </Link>
           ))}
         </nav>
-        <Link
-          to="/contactanos"
-          className="hidden rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:inline-flex"
-        >
-          Agendar cita
-        </Link>
-      </div>
-      <nav className="gap-1 overflow-x-auto border-t border-border px-4 py-2 lg:hidden items-start justify-center flex flex-row border-none shadow-xl rounded-none">
-        {navItems.map((item) => (
+
+        {/* CTA desktop + botón hamburguesa móvil */}
+        <div className="flex items-center gap-3">
           <Link
-            key={item.to}
-            to={item.to}
-            className="whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-primary"
-            activeProps={{ className: "whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-semibold text-primary bg-primary-soft" }}
-            activeOptions={{ exact: item.to === "/" }}
+            to="/contactanos"
+            className="hidden rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 lg:inline-flex"
           >
-            {item.label}
+            Agendar cita
           </Link>
-        ))}
-      </nav>
+          <button
+            className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-primary hover:bg-muted transition-colors"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobileOpen}
+            aria-controls="mobile-menu"
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Menú móvil desplegable */}
+      {mobileOpen && (
+        <nav
+          id="mobile-menu"
+          className="lg:hidden border-t border-border bg-background/95 backdrop-blur animate-in slide-in-from-top-2 duration-200"
+          aria-label="Menú móvil"
+        >
+          <div className="mx-auto max-w-7xl px-4 py-3 flex flex-col gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
+                activeProps={{
+                  className: "rounded-lg px-4 py-3 text-sm font-semibold text-primary bg-primary-soft",
+                }}
+                activeOptions={{ exact: item.to === "/" }}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link
+              to="/contactanos"
+              onClick={() => setMobileOpen(false)}
+              className="mt-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground text-center hover:bg-primary/90 transition-colors"
+            >
+              Agendar cita
+            </Link>
+          </div>
+        </nav>
+      )}
     </header>
   );
 }
@@ -124,7 +183,11 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-4 md:px-6">
         <div>
           <div className="flex items-center gap-2">
-            <img src="/GOLO.png" alt="Mente en Foco" className="h-9 w-auto object-contain bg-background rounded-md p-1" />
+            <img
+              src="/GOLO.png"
+              alt="Mente en Foco"
+              className="h-9 w-auto object-contain bg-background rounded-md p-1"
+            />
             <span className="text-lg font-semibold">Mente en Foco</span>
           </div>
           <p className="mt-3 text-sm text-primary-foreground/70">
@@ -165,12 +228,14 @@ function Footer() {
 
 function RootComponent() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Header />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <Footer />
-    </div>
+    <AuthProvider>
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 }

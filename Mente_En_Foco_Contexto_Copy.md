@@ -68,7 +68,7 @@ const plans = [
 
 function Asesoramiento() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>("Integral");
-  
+
   return (
     <>
       <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat">
@@ -717,17 +717,17 @@ function Ingresa() {
       .select("*")
       .eq("id", userId)
       .single();
-    
-    setProfile(profileData ?? { 
-      id: userId, 
-      role: "patient", 
-      plan_type: "free", 
-      subscription_status: "canceled", 
-      stripe_customer_id: null, 
-      full_name: email ?? null, 
-      avatar_url: null, 
-      created_at: "", 
-      updated_at: "" 
+
+    setProfile(profileData ?? {
+      id: userId,
+      role: "patient",
+      plan_type: "free",
+      subscription_status: "canceled",
+      stripe_customer_id: null,
+      full_name: email ?? null,
+      avatar_url: null,
+      created_at: "",
+      updated_at: ""
     });
   }
 
@@ -1025,7 +1025,7 @@ function SobreNosotros() {
         <div className="mx-auto max-w-5xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">Sobre nosotros</h1>
           <p className="mt-6 text-lg text-muted-foreground max-w-3xl mx-auto">
-            Somos un centro de salud mental enfocado en hacer accesible el bienestar emocional. 
+            Somos un centro de salud mental enfocado en hacer accesible el bienestar emocional.
             Creemos que cuidar la mente es tan importante como cuidar el cuerpo.
           </p>
         </div>
@@ -1091,7 +1091,7 @@ function SobreNosotros() {
 
 ```
 
-### Archivo: src/routes/__root.tsx
+### Archivo: src/routes/\_\_root.tsx
 
 ```
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
@@ -1805,7 +1805,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
               Asignar Plan / Recomendación
             </h2>
             <div className="mt-6 card-neon-hover rounded-3xl glass-card p-6 border border-white/40">
-              
+
               {/* Plantillas Rápidas */}
               <div className="mb-6">
                 <p className="text-xs font-bold text-primary uppercase tracking-wider mb-3 flex items-center gap-1"><Zap size={14} className="text-amber-500" /> Plantillas Rápidas</p>
@@ -1833,7 +1833,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                   {errorMsg}
                 </div>
               )}
-              
+
               <form onSubmit={handleAssignPlan} className="space-y-4">
                 <div>
                   <label className="text-sm font-semibold text-primary">Paciente</label>
@@ -6662,7 +6662,7 @@ async function createProfileRecord(userId, profileData) {
   const { error } = await supabase
     .from('profiles')
     .upsert({ id: userId, ...profileData });
-  
+
   if (error) {
     console.error(`❌ Error upserting profile for ${profileData.full_name}:`, error.message);
   } else {
@@ -6738,13 +6738,13 @@ async function seedUsers() {
 
   console.log("\n------------------------------------------------");
   console.log("Fase 3: Verificación de Login para Paciente Premium");
-  
-  // Normal sign-in uses anon key ideally, but we can try it with service client since 
-  // auth.signInWithPassword works on any client. However, testing RLS properly 
-  // requires an anon/authenticated client. 
-  
+
+  // Normal sign-in uses anon key ideally, but we can try it with service client since
+  // auth.signInWithPassword works on any client. However, testing RLS properly
+  // requires an anon/authenticated client.
+
   const anonSupabase = createClient(supabaseUrl, process.env.VITE_SUPABASE_ANON_KEY);
-  
+
   const { data: authData, error: authError } = await anonSupabase.auth.signInWithPassword({
     email: 'paciente@test.com',
     password: 'Password123!'
@@ -6754,14 +6754,14 @@ async function seedUsers() {
     console.error("❌ Falló la autenticación del Paciente Premium:", authError.message);
   } else {
     console.log("✅ Autenticación exitosa (Status 200). Usuario:", authData.user.email);
-    
+
     // Check RLS by fetching profile
     const { data: profileData, error: profileError } = await anonSupabase
       .from('profiles')
       .select('*')
       .eq('id', authData.user.id)
       .single();
-      
+
     if (profileError) {
       console.error("❌ Falló la lectura del perfil debido a políticas RLS u otro error:", profileError.message);
     } else {
@@ -6775,4 +6775,3 @@ async function seedUsers() {
 seedUsers();
 
 ```
-

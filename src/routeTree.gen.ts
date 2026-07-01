@@ -14,7 +14,9 @@ import { Route as MembresiaRouteImport } from './routes/membresia'
 import { Route as IngresaRouteImport } from './routes/ingresa'
 import { Route as GuiaRouteImport } from './routes/guia'
 import { Route as ContactanosRouteImport } from './routes/contactanos'
+import { Route as CompraExitosaRouteImport } from './routes/compra-exitosa'
 import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
+import { Route as AnamnesisRouteImport } from './routes/anamnesis'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
 
@@ -43,9 +45,19 @@ const ContactanosRoute = ContactanosRouteImport.update({
   path: '/contactanos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompraExitosaRoute = CompraExitosaRouteImport.update({
+  id: '/compra-exitosa',
+  path: '/compra-exitosa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AsesoramientoRoute = AsesoramientoRouteImport.update({
   id: '/asesoramiento',
   path: '/asesoramiento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnamnesisRoute = AnamnesisRouteImport.update({
+  id: '/anamnesis',
+  path: '/anamnesis',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -61,7 +73,9 @@ const GuiasGuiaIdRoute = GuiasGuiaIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/compra-exitosa': typeof CompraExitosaRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -71,7 +85,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/compra-exitosa': typeof CompraExitosaRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -82,7 +98,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/compra-exitosa': typeof CompraExitosaRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -94,7 +112,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/anamnesis'
     | '/asesoramiento'
+    | '/compra-exitosa'
     | '/contactanos'
     | '/guia'
     | '/ingresa'
@@ -104,7 +124,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/anamnesis'
     | '/asesoramiento'
+    | '/compra-exitosa'
     | '/contactanos'
     | '/guia'
     | '/ingresa'
@@ -114,7 +136,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/anamnesis'
     | '/asesoramiento'
+    | '/compra-exitosa'
     | '/contactanos'
     | '/guia'
     | '/ingresa'
@@ -125,7 +149,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnamnesisRoute: typeof AnamnesisRoute
   AsesoramientoRoute: typeof AsesoramientoRoute
+  CompraExitosaRoute: typeof CompraExitosaRoute
   ContactanosRoute: typeof ContactanosRoute
   GuiaRoute: typeof GuiaRoute
   IngresaRoute: typeof IngresaRoute
@@ -171,11 +197,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactanosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compra-exitosa': {
+      id: '/compra-exitosa'
+      path: '/compra-exitosa'
+      fullPath: '/compra-exitosa'
+      preLoaderRoute: typeof CompraExitosaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/asesoramiento': {
       id: '/asesoramiento'
       path: '/asesoramiento'
       fullPath: '/asesoramiento'
       preLoaderRoute: typeof AsesoramientoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/anamnesis': {
+      id: '/anamnesis'
+      path: '/anamnesis'
+      fullPath: '/anamnesis'
+      preLoaderRoute: typeof AnamnesisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -197,7 +237,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnamnesisRoute: AnamnesisRoute,
   AsesoramientoRoute: AsesoramientoRoute,
+  CompraExitosaRoute: CompraExitosaRoute,
   ContactanosRoute: ContactanosRoute,
   GuiaRoute: GuiaRoute,
   IngresaRoute: IngresaRoute,

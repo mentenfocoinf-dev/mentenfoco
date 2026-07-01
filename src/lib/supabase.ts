@@ -3,11 +3,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 // No lanza error en SSR — el cliente se inicializa con placeholders seguros
 // si las vars aún no están inyectadas por Vite. Las peticiones reales solo
 // ocurren en el cliente donde import.meta.env ya está disponible.
-const supabaseUrl  = (import.meta.env.VITE_SUPABASE_URL  as string) || "https://placeholder.supabase.co";
-const supabaseKey  = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || "placeholder";
+const supabaseUrl =
+  (import.meta.env.VITE_SUPABASE_URL as string) || "https://placeholder.supabase.co";
+const supabaseKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || "placeholder";
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey);
-
 
 // ── Tipos derivados del schema ─────────────────────────────────────────
 export type UserRole = "admin" | "therapist" | "patient";
@@ -24,8 +24,26 @@ export interface Profile {
   subscription_status: string;
   full_name: string | null;
   avatar_url: string | null;
+  email?: string | null;
+  session_token?: string | null;
+  onboarding_completed?: boolean;
   created_at: string;
   updated_at: string;
+}
+
+export async function trackTelemetryEvent(eventType: string, payload: any = {}) {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    await supabase.from("telemetry_events").insert({
+      user_id: user?.id || null,
+      event_type: eventType,
+      payload,
+    });
+  } catch (err) {
+    console.error("Error tracking telemetry:", err);
+  }
 }
 
 export interface CrmLead {
@@ -39,10 +57,8 @@ export interface CrmLead {
 }
 
 export interface PatientTherapist {
-  id: string;
   patient_id: string;
   therapist_id: string;
-  status: string;
   created_at: string;
   // Join para obtener datos del paciente
   patient?: Profile;

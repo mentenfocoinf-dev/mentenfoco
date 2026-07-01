@@ -5,9 +5,15 @@ export const Route = createFileRoute("/asesoramiento")({
   head: () => ({
     meta: [
       { title: "Asesoramiento — Mente en Foco" },
-      { name: "description", content: "Tres planes de asesoramiento psicológico diseñados a tu medida." },
+      {
+        name: "description",
+        content: "Tres planes de asesoramiento psicológico diseñados a tu medida.",
+      },
       { property: "og:title", content: "Asesoramiento — Mente en Foco" },
-      { property: "og:description", content: "Tres planes de asesoramiento psicológico diseñados a tu medida." },
+      {
+        property: "og:description",
+        content: "Tres planes de asesoramiento psicológico diseñados a tu medida.",
+      },
     ],
   }),
   component: Asesoramiento,
@@ -63,14 +69,17 @@ const plans = [
 
 function Asesoramiento() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>("Integral");
-  
+
   return (
     <>
       <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat">
         <div className="mx-auto max-w-7xl px-4 py-16 text-center md:px-6 md:py-20 glass-card mx-4 rounded-3xl mt-8">
-          <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">Planes de Intervención Clínica</h1>
+          <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">
+            Planes de Intervención Clínica
+          </h1>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Planes diseñados para tu bienestar. Nuestro equipo de especialistas trabaja unido, usando métodos comprobados científicamente para apoyarte a ti y a tu familia.
+            Planes diseñados para tu bienestar. Nuestro equipo de especialistas trabaja unido,
+            usando métodos comprobados científicamente para apoyarte a ti y a tu familia.
           </p>
         </div>
       </section>
@@ -123,7 +132,9 @@ function Asesoramiento() {
 
       <section className="mx-auto max-w-7xl px-4 pb-20 md:px-6">
         <div className="card-neon-hover rounded-3xl glass-card p-10 md:p-14 text-center">
-          <h2 className="text-2xl font-semibold text-primary drop-shadow-sm">¿Tienes dudas sobre qué plan elegir?</h2>
+          <h2 className="text-2xl font-semibold text-primary drop-shadow-sm">
+            ¿Tienes dudas sobre qué plan elegir?
+          </h2>
           <p className="mt-2 text-muted-foreground">
             Agenda una llamada gratuita de 15 minutos y te ayudamos a encontrar la opción ideal.
           </p>

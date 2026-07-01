@@ -1,42 +1,75 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { guiasClinicas } from "../data/guiasData";
+import { supabase } from "../lib/supabase";
+import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/guia")({
   head: () => ({
     meta: [
       { title: "Guías — Mente en Foco" },
-      { name: "description", content: "Guías prácticas para ansiedad, autoestima, motricidad y bienestar emocional." },
+      {
+        name: "description",
+        content: "Guías prácticas para ansiedad, autoestima, motricidad y bienestar emocional.",
+      },
       { property: "og:title", content: "Guías — Mente en Foco" },
-      { property: "og:description", content: "Guías prácticas para afrontar diferentes situaciones de la vida." },
+      {
+        property: "og:description",
+        content: "Guías prácticas para afrontar diferentes situaciones de la vida.",
+      },
     ],
   }),
+  loader: async () => {
+    const { data: guias, error } = await supabase
+      .from("clinical_guides")
+      .select(
+        'id, categoria, etiquetas, titulo, "descripcionBreve", "tiempoLectura", "imageName", es_premium',
+      );
+
+    if (error) {
+      console.error("Error fetching guides:", error);
+      return { guias: [] };
+    }
+    return { guias: guias || [] };
+  },
+  pendingComponent: () => (
+    <div className="flex min-h-[50vh] items-center justify-center">
+      <Loader2 className="animate-spin text-primary" size={32} />
+    </div>
+  ),
   component: Guia,
 });
 
-const categories = [
-  { name: "Todas", count: 12 },
-  { name: "Ansiedad", count: 3 },
-  { name: "Autoestima", count: 3 },
-  { name: "Infantil", count: 3 },
-  { name: "Relaciones", count: 3 },
-];
-
 function Guia() {
+  const { guias } = Route.useLoaderData();
   const [activeFilter, setActiveFilter] = useState("Todas");
 
-  const filteredGuides = activeFilter === "Todas"
-    ? guiasClinicas
-    : guiasClinicas.filter((g) => g.categoria === activeFilter);
+  const categoriesMap: Record<string, number> = { Todas: guias.length };
+  guias.forEach((g) => {
+    categoriesMap[g.categoria] = (categoriesMap[g.categoria] || 0) + 1;
+  });
+
+  const categories = Object.keys(categoriesMap)
+    .map((name) => ({
+      name,
+      count: categoriesMap[name],
+    }))
+    .sort((a, b) =>
+      a.name === "Todas" ? -1 : b.name === "Todas" ? 1 : a.name.localeCompare(b.name),
+    );
+
+  const filteredGuides =
+    activeFilter === "Todas" ? guias : guias.filter((g) => g.categoria === activeFilter);
 
   return (
     <>
       <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
-          <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">Guías de bienestar</h1>
+          <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">
+            Guías de bienestar
+          </h1>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Recursos prácticos desarrollados por nuestros profesionales clínicos para acompañarte en distintos
-            momentos de tu vida. Escritos desde la ciencia y la empatía.
+            Recursos prácticos desarrollados por nuestros profesionales clínicos para acompañarte en
+            distintos momentos de tu vida. Escritos desde la ciencia y la empatía.
           </p>
         </div>
       </section>
@@ -80,7 +113,9 @@ function Guia() {
                 <p className="mt-3 text-sm text-foreground/80 flex-grow">{g.descripcionBreve}</p>
 
                 <div className="mt-8 pt-4 border-t border-border/50 flex items-center justify-between text-xs">
-                  <span className="font-semibold text-muted-foreground">Lectura de {g.tiempoLectura}</span>
+                  <span className="font-semibold text-muted-foreground">
+                    Lectura de {g.tiempoLectura}
+                  </span>
                   <Link
                     to="/guias/$guiaId"
                     params={{ guiaId: g.id }}

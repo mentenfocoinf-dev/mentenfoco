@@ -1,39 +1,35 @@
-# Etapa 1: Build
+# ── Etapa 1: Build ────────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copiar el package.json y package-lock.json
+# Instalar dependencias (sin devtools innecesarios en la imagen final)
 COPY package*.json ./
+RUN npm ci --frozen-lockfile
 
-# Instalar dependencias
-RUN npm install
-
-# Copiar el código fuente
+# Copiar fuente (el .dockerignore excluye .env, node_modules, dist, .git)
 COPY . .
 
-# Construir la aplicación para producción (Vite crea la carpeta 'dist')
+# Variables públicas inyectadas como ARG en CI/CD (no en .env)
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_STRIPE_PUBLISHABLE_KEY
+
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_STRIPE_PUBLISHABLE_KEY=$VITE_STRIPE_PUBLISHABLE_KEY
+
 RUN npm run build
 
-# Etapa 2: Producción (Node.js para SSR)
-FROM node:22-alpine
+# ── Etapa 2: Producción con nginx (ligero, gzip, headers de cache) ────────────
+FROM nginx:alpine
 
-WORKDIR /app
+# Copiar solo los estáticos compilados
+COPY --from=builder /app/dist/client /usr/share/nginx/html
 
-# Copiamos los archivos necesarios desde el builder
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-# Copiamos TODOS los archivos de configuración de la raíz para que Vite Preview no falle silenciosamente
-COPY --from=builder /app/*.json ./
-COPY --from=builder /app/*.ts ./
-COPY --from=builder /app/*.js ./
-
-# Variables de entorno para que Vite Preview se exponga al exterior
-ENV HOST=0.0.0.0
-ENV PORT=8080
+# Configuración de nginx con SPA fallback + gzip + cache headers
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 8080
 
-# Usamos preview para levantar el servidor SSR en producción
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["nginx", "-g", "daemon off;"]

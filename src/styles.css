@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -139,7 +140,11 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family:
+      "Inter",
+      system-ui,
+      -apple-system,
+      sans-serif;
     scroll-behavior: smooth;
   }
 
@@ -150,7 +155,10 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     letter-spacing: -0.02em;
   }
 }
@@ -160,32 +168,37 @@
     background-color: var(--primary-soft);
   }
   .gradient-soft {
-    background: radial-gradient(circle at top right, var(--primary-soft) 0%, transparent 80%),
-                radial-gradient(circle at bottom left, var(--muted) 0%, oklch(1 0 0) 100%);
+    background:
+      radial-gradient(circle at top right, var(--primary-soft) 0%, transparent 80%),
+      radial-gradient(circle at bottom left, var(--muted) 0%, oklch(1 0 0) 100%);
   }
   .glass {
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.6);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05), inset 0 0 0 1px rgba(255,255,255,0.4);
+    box-shadow:
+      0 8px 32px 0 rgba(0, 0, 0, 0.05),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.4);
   }
   .dark .glass {
     background: rgba(20, 20, 20, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255,255,255,0.05);
+    box-shadow:
+      0 8px 32px 0 rgba(0, 0, 0, 0.2),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   }
   .glass-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.3) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.8);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
   }
   .dark .glass-card {
-    background: linear-gradient(135deg, rgba(30,30,30,0.6) 0%, rgba(20,20,20,0.3) 100%);
-    border: 1px solid rgba(255,255,255,0.15);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.6) 0%, rgba(20, 20, 20, 0.3) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   }
 
   @keyframes selected-glow-pulsate {
@@ -209,7 +222,8 @@
 }
 
 @keyframes neon-hover-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 15px 2px rgba(56, 189, 248, 0.4);
     border-color: rgba(56, 189, 248, 0.6);
   }
@@ -229,10 +243,9 @@
 }
 
 .hide-scrollbar {
-  scrollbar-width: none;       /* Firefox */
-  -ms-overflow-style: none;    /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 .hide-scrollbar::-webkit-scrollbar {
-  display: none;               /* Chrome/Safari */
+  display: none; /* Chrome/Safari */
 }
-
