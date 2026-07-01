@@ -5,18 +5,47 @@ import {
   BookOpen,
   Activity,
   AlertTriangle,
+  ClipboardCheck,
 } from "lucide-react";
 import { supabase, type Profile } from "../../lib/supabase";
+import { PsychometricScaleModal } from "../PsychometricScaleModal";
 
 interface Props {
   profile: Profile;
   onLogout: () => void;
 }
 
+interface RecentEvaluation {
+  scale_type: string;
+  total_score: number;
+  severity_level: string | null;
+  evaluated_at: string;
+}
+
 export function PatientDashboard({ profile, onLogout }: Props) {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCrisisAlert, setActiveCrisisAlert] = useState(false);
+  const [activeScale, setActiveScale] = useState<"phq9" | "gad7" | null>(null);
+  const [recentEvaluations, setRecentEvaluations] = useState<Record<string, RecentEvaluation>>({});
+
+  async function fetchRecentEvaluations() {
+    const { data, error } = await supabase
+      .from("psychometric_evaluations")
+      .select("scale_type, total_score, severity_level, evaluated_at")
+      .eq("patient_id", profile.id)
+      .order("evaluated_at", { ascending: false });
+
+    if (!error && data) {
+      const latestByScale: Record<string, RecentEvaluation> = {};
+      for (const evaluation of data as RecentEvaluation[]) {
+        if (!latestByScale[evaluation.scale_type]) {
+          latestByScale[evaluation.scale_type] = evaluation;
+        }
+      }
+      setRecentEvaluations(latestByScale);
+    }
+  }
 
   useEffect(() => {
     // 1. Fetch recommendations
@@ -44,6 +73,7 @@ export function PatientDashboard({ profile, onLogout }: Props) {
       setLoading(false);
     }
     fetchRecommendations();
+    fetchRecentEvaluations();
 
     // 2. Supabase Realtime Subscription for High Priority Alerts
     const channel = supabase
@@ -156,6 +186,44 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                 mejorando tu plan.
               </p>
 
+            </div>
+
+            <div className="card-neon-hover rounded-3xl glass-card p-6 border border-white/40">
+              <h2 className="text-lg font-bold text-primary mb-1 flex items-center gap-2">
+                <ClipboardCheck size={20} /> Evaluaciones de bienestar
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                Cuestionarios breves y validados clínicamente que ayudan a tu terapeuta a hacer
+                seguimiento de tu evolución.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {(["phq9", "gad7"] as const).map((scaleKey) => {
+                  const label = scaleKey === "phq9" ? "PHQ-9 (Depresión)" : "GAD-7 (Ansiedad)";
+                  const recent = recentEvaluations[scaleKey];
+                  return (
+                    <div
+                      key={scaleKey}
+                      className="rounded-2xl border border-white/50 bg-white/50 p-4 backdrop-blur"
+                    >
+                      <p className="text-sm font-bold text-slate-800">{label}</p>
+                      {recent ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Última: {recent.total_score} pts · {recent.severity_level} ·{" "}
+                          {new Date(recent.evaluated_at).toLocaleDateString()}
+                        </p>
+                      ) : (
+                        <p className="mt-1 text-xs text-muted-foreground">Sin evaluaciones aún</p>
+                      )}
+                      <button
+                        onClick={() => setActiveScale(scaleKey)}
+                        className="mt-3 w-full rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
+                      >
+                        {recent ? "Volver a evaluar" : "Empezar evaluación"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -271,6 +339,15 @@ export function PatientDashboard({ profile, onLogout }: Props) {
           </div>
         </div>
       </section>
+
+      {activeScale && (
+        <PsychometricScaleModal
+          scaleType={activeScale}
+          patientId={profile.id}
+          onClose={() => setActiveScale(null)}
+          onSaved={() => fetchRecentEvaluations()}
+        />
+      )}
     </>
   );
 }
