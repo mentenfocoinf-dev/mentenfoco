@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase, type Profile } from "../../lib/supabase";
 import { PsychometricScaleModal } from "../PsychometricScaleModal";
+import { CssrsModal } from "../CssrsModal";
 
 interface Props {
   profile: Profile;
@@ -26,7 +27,7 @@ export function PatientDashboard({ profile, onLogout }: Props) {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCrisisAlert, setActiveCrisisAlert] = useState(false);
-  const [activeScale, setActiveScale] = useState<"phq9" | "gad7" | null>(null);
+  const [activeScale, setActiveScale] = useState<"phq9" | "gad7" | "cssrs" | null>(null);
   const [recentEvaluations, setRecentEvaluations] = useState<Record<string, RecentEvaluation>>({});
 
   async function fetchRecentEvaluations() {
@@ -196,9 +197,14 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                 Cuestionarios breves y validados clínicamente que ayudan a tu terapeuta a hacer
                 seguimiento de tu evolución.
               </p>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {(["phq9", "gad7"] as const).map((scaleKey) => {
-                  const label = scaleKey === "phq9" ? "PHQ-9 (Depresión)" : "GAD-7 (Ansiedad)";
+              <div className="grid gap-3 sm:grid-cols-3">
+                {(
+                  [
+                    { key: "phq9", label: "PHQ-9 (Depresión)" },
+                    { key: "gad7", label: "GAD-7 (Ansiedad)" },
+                    { key: "cssrs", label: "C-SSRS (Seguridad)" },
+                  ] as const
+                ).map(({ key: scaleKey, label }) => {
                   const recent = recentEvaluations[scaleKey];
                   return (
                     <div
@@ -208,8 +214,10 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                       <p className="text-sm font-bold text-slate-800">{label}</p>
                       {recent ? (
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Última: {recent.total_score} pts · {recent.severity_level} ·{" "}
-                          {new Date(recent.evaluated_at).toLocaleDateString()}
+                          {scaleKey === "cssrs"
+                            ? `Riesgo: ${recent.severity_level}`
+                            : `${recent.total_score} pts · ${recent.severity_level}`}{" "}
+                          · {new Date(recent.evaluated_at).toLocaleDateString()}
                         </p>
                       ) : (
                         <p className="mt-1 text-xs text-muted-foreground">Sin evaluaciones aún</p>
@@ -340,9 +348,16 @@ export function PatientDashboard({ profile, onLogout }: Props) {
         </div>
       </section>
 
-      {activeScale && (
+      {(activeScale === "phq9" || activeScale === "gad7") && (
         <PsychometricScaleModal
           scaleType={activeScale}
+          patientId={profile.id}
+          onClose={() => setActiveScale(null)}
+          onSaved={() => fetchRecentEvaluations()}
+        />
+      )}
+      {activeScale === "cssrs" && (
+        <CssrsModal
           patientId={profile.id}
           onClose={() => setActiveScale(null)}
           onSaved={() => fetchRecentEvaluations()}

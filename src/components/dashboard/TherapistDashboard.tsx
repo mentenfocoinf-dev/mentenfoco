@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { LogOut, Users, Loader2, Plus, Send, BookOpen, FileText } from "lucide-react";
 import { supabase, type Profile, type PatientTherapist } from "../../lib/supabase";
 import { ClinicalReportModal } from "./ClinicalReportModal";
+import { CognitiveScreeningForm } from "../CognitiveScreeningForm";
 
 interface Props {
   profile: Profile;
@@ -320,6 +321,16 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
             </div>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-4 md:px-6">
+        <CognitiveScreeningForm
+          therapistId={profile.id}
+          patients={patients.map((p) => ({
+            id: p.patient_id,
+            name: (p.patient as any)?.full_name || (p.patient as any)?.email || "Paciente",
+          }))}
+        />
       </section>
 
       {/* Sección Inferior: Catálogo de Tareas Clínicas (Solo Lectura) */}
