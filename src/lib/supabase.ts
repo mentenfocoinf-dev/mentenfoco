@@ -25,6 +25,7 @@ export interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   email?: string | null;
+  professional_card?: string | null;
   session_token?: string | null;
   onboarding_completed?: boolean;
   created_at: string;
