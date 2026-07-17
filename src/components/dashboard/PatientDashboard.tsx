@@ -28,6 +28,7 @@ import {
 import { supabase, type Profile } from "../../lib/supabase";
 import { PsychometricScaleModal } from "../PsychometricScaleModal";
 import { CssrsModal } from "../CssrsModal";
+import { PatientMessages } from "../messaging/PatientMessages";
 import {
   PLAN_LABELS,
   PLAN_OFFERS,
@@ -600,6 +601,9 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                 </div>
               )}
             </div>
+
+            {/* Mensajes con tu terapeuta */}
+            <PatientMessages patientId={profile.id} />
           </div>
 
           {/* Panel derecho: recomendaciones dinámicas */}

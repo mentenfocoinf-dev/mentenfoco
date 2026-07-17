@@ -41,6 +41,17 @@ export async function getConversation(
   return data ?? [];
 }
 
+// Terapeuta asignado a un paciente (o null si aún no tiene). Útil para que la UI del paciente
+// sepa con quién chatea sin traer toda la conversación.
+export async function getAssignedTherapistId(patientId: string): Promise<string | null> {
+  const { data } = await supabase
+    .from("patient_therapist")
+    .select("therapist_id")
+    .eq("patient_id", patientId)
+    .maybeSingle();
+  return data?.therapist_id ?? null;
+}
+
 // Conversación del paciente con su terapeuta asignado. Devuelve therapistId nulo
 // si el paciente aún no tiene terapeuta asignado (no hay con quién chatear).
 export async function getPatientConversation(

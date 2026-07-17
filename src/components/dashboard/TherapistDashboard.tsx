@@ -15,6 +15,7 @@ import {
 import { supabase, type Profile } from "../../lib/supabase";
 import { ClinicalReportModal } from "./ClinicalReportModal";
 import { CognitiveScreeningForm } from "../CognitiveScreeningForm";
+import { TherapistMessages } from "../messaging/TherapistMessages";
 import {
   getTherapistPatients,
   getPrescriptionsCatalog,
@@ -692,6 +693,10 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
             </form>
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-4 md:px-6">
+        <TherapistMessages therapistId={profile.id} />
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-4 md:px-6">
