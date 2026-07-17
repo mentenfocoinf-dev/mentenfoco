@@ -6,3 +6,4 @@ export * from "./adminService";
 export * from "./clinicalService";
 export * from "./guidesService";
 export * from "./sessionsService";
+export * from "./messagesService";
