@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useAuth } from "../hooks/useAuth";
+import { PLAN_OFFERS, buildCheckoutLink } from "../lib/api";
 
 export const Route = createFileRoute("/asesoramiento")({
   head: () => ({
@@ -19,56 +21,38 @@ export const Route = createFileRoute("/asesoramiento")({
   component: Asesoramiento,
 });
 
-const plans = [
-  {
-    name: "Esencial",
-    price: "$180.000",
-    period: "/sesión",
-    desc: "El paso inicial para cuidar de ti con la guía de un especialista.",
-    features: [
-      "1 sesión con tu especialista al mes",
-      "Valoración inicial completa y cercana",
-      "Material de apoyo práctico para tu día a día",
-      "Seguimiento continuo por nuestra plataforma",
-    ],
-    highlighted: false,
-    link: "https://buy.stripe.com/test_dRm6oH3zU0eMg7g64D5Vu03",
-  },
-  {
-    name: "Integral",
-    price: "$480.000",
-    period: "/mes",
-    desc: "Acompañamiento completo con varios especialistas trabajando para ti.",
-    features: [
-      "4 sesiones terapéuticas al mes",
-      "Un plan de bienestar claro y a tu medida",
-      "Nuestro equipo completo analiza tu avance",
-      "Acompañamiento y apoyo semanal",
-      "Acceso total a nuestras guías y herramientas",
-    ],
-    highlighted: true,
-    link: "https://buy.stripe.com/test_28EbJ16M63qYaMWakT5Vu04",
-  },
-  {
-    name: "Premium",
-    price: "$950.000",
-    period: "/mes",
-    desc: "Cuidado integral y constante con todo nuestro equipo experto a tu lado.",
-    features: [
-      "8 sesiones terapéuticas al mes",
-      "Atención médica y psicológica unida para ti",
-      "Todo el equipo evalúa tu progreso mensualmente",
-      "Sesiones de apoyo para tu familia",
-      "Acompañamiento médico cuidadoso (si lo necesitas)",
-      "Prioridad siempre que necesites agendar",
-    ],
-    highlighted: false,
-    link: "https://buy.stripe.com/test_5kQ6oHfiCd1y7AKboX5Vu05",
-  },
-];
+// Detalle de sesiones y acompañamiento de cada plan (la parte comercial:
+// precio, enlace y descripción vive en src/lib/api/plans.ts)
+const PLAN_FEATURES: Record<string, string[]> = {
+  esencial: [
+    "1 sesión con tu especialista al mes",
+    "Valoración inicial completa y cercana",
+    "Material de apoyo práctico para tu día a día",
+    "Seguimiento continuo por nuestra plataforma",
+    "Acceso a las guías clínicas premium",
+  ],
+  integral: [
+    "4 sesiones terapéuticas al mes",
+    "Un plan de bienestar claro y a tu medida",
+    "Nuestro equipo completo analiza tu avance",
+    "Acompañamiento y apoyo semanal",
+    "Acceso total a nuestras guías y herramientas",
+    "Webinars en vivo y meditaciones guiadas",
+  ],
+  premium: [
+    "8 sesiones terapéuticas al mes",
+    "Atención médica y psicológica unida para ti",
+    "Todo el equipo evalúa tu progreso mensualmente",
+    "Sesiones de apoyo para tu familia",
+    "Acompañamiento médico cuidadoso (si lo necesitas)",
+    "Prioridad siempre que necesites agendar",
+    "Acceso completo a todo el contenido de la plataforma",
+  ],
+};
 
 function Asesoramiento() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>("Integral");
+  const { profile } = useAuth();
 
   return (
     <>
@@ -86,7 +70,7 @@ function Asesoramiento() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
         <div className="grid gap-6 lg:grid-cols-3">
-          {plans.map((plan) => (
+          {PLAN_OFFERS.map((plan) => (
             <div
               key={plan.name}
               onClick={() => setSelectedPlan(plan.name)}
@@ -106,7 +90,7 @@ function Asesoramiento() {
                 <span className="text-muted-foreground">{plan.period}</span>
               </div>
               <ul className="mt-6 space-y-3 flex-grow">
-                {plan.features.map((f) => (
+                {(PLAN_FEATURES[plan.plan] ?? []).map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm">
                     <span className="text-primary font-bold">✓</span>
                     <span className="text-slate-700">{f}</span>
@@ -114,7 +98,7 @@ function Asesoramiento() {
                 ))}
               </ul>
               <a
-                href={plan.link}
+                href={buildCheckoutLink(plan.link, profile)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all hover:scale-105 shadow-sm ${
@@ -128,6 +112,13 @@ function Asesoramiento() {
             </div>
           ))}
         </div>
+        <p className="mt-8 text-center text-sm text-muted-foreground">
+          Cada plan incluye el nivel de contenido digital correspondiente.{" "}
+          <Link to="/membresia" className="font-bold text-primary hover:underline">
+            Compara todos los beneficios aquí
+          </Link>
+          .
+        </p>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-20 md:px-6">

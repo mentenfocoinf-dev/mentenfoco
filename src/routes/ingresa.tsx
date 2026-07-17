@@ -1,8 +1,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { lazy, Suspense, useState } from "react";
 import { Users, Loader2, CheckCircle } from "lucide-react";
-import { supabase } from "../lib/supabase";
 import { useAuth } from "../hooks/useAuth";
+import { signIn, signOut, requestPasswordReset } from "../lib/api";
 
 // Lazy loading de dashboards — solo se carga el que corresponde al rol del usuario
 const PatientDashboard = lazy(() =>
@@ -61,13 +61,11 @@ function Ingresa() {
       const email = fd.get("user") as string;
       const pass = fd.get("pass") as string;
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-
-      if (error) {
-        setErrorMsg("Credenciales incorrectas. Verifica tu correo y contraseña.");
-      }
-    } catch {
-      setErrorMsg("Ocurrió un error inesperado. Intenta de nuevo.");
+      await signIn(email, pass);
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : "Ocurrió un error inesperado. Intenta de nuevo.",
+      );
     } finally {
       setLoading(false);
     }
@@ -80,17 +78,12 @@ function Ingresa() {
     setErrorMsg(null);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
-        redirectTo: `${window.location.origin}/ingresa`,
-      });
-
-      if (error) {
-        setErrorMsg("No pudimos enviar el correo. Verifica el email ingresado.");
-      } else {
-        setView("forgot-sent");
-      }
-    } catch {
-      setErrorMsg("Ocurrió un error inesperado. Intenta de nuevo.");
+      await requestPasswordReset(forgotEmail);
+      setView("forgot-sent");
+    } catch (err) {
+      setErrorMsg(
+        err instanceof Error ? err.message : "Ocurrió un error inesperado. Intenta de nuevo.",
+      );
     } finally {
       setLoading(false);
     }
@@ -98,8 +91,7 @@ function Ingresa() {
 
   // ── Logout ────────────────────────────────────────────────────────────
   async function handleLogout() {
-    localStorage.removeItem("mf_session_token");
-    await supabase.auth.signOut();
+    await signOut();
     router.invalidate();
   }
 

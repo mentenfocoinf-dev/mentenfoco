@@ -27,7 +27,7 @@ const ANTECEDENTES_MEDICOS_OPCIONES = [
 
 const AUDIT_C_PREGUNTAS = [
   {
-    texto: "¿Con qué frecuencia consumís alguna bebida alcohólica?",
+    texto: "¿Con qué frecuencia consumes alguna bebida alcohólica?",
     opciones: [
       "Nunca",
       "Una vez al mes o menos",
@@ -37,11 +37,11 @@ const AUDIT_C_PREGUNTAS = [
     ],
   },
   {
-    texto: "¿Cuántas bebidas con alcohol tomás en un día típico de consumo?",
+    texto: "¿Cuántas bebidas con alcohol tomas en un día típico de consumo?",
     opciones: ["1 o 2", "3 o 4", "5 o 6", "7 a 9", "10 o más"],
   },
   {
-    texto: "¿Con qué frecuencia tomás 6 o más bebidas en una sola ocasión?",
+    texto: "¿Con qué frecuencia tomas 6 o más bebidas en una sola ocasión?",
     opciones: [
       "Nunca",
       "Menos de una vez al mes",
@@ -147,7 +147,7 @@ function Anamnesis() {
       return;
     }
     if (!motivoConsulta.trim()) {
-      setErrorMsg("Contanos brevemente el motivo de tu consulta.");
+      setErrorMsg("Cuéntanos brevemente el motivo de tu consulta.");
       return;
     }
 
@@ -223,7 +223,7 @@ function Anamnesis() {
           </div>
           <h1 className="text-3xl font-bold text-slate-900">Bienvenido a tu Espacio</h1>
           <p className="mt-3 text-slate-600">
-            Esta información nos ayuda a que tu terapeuta te conozca antes de la primera sesión. Podés
+            Esta información nos ayuda a que tu terapeuta te conozca antes de la primera sesión. Puedes
             dejar en blanco lo que no quieras compartir todavía — nada de esto bloquea tu acceso, salvo
             tu nombre y el motivo de consulta.
           </p>
@@ -442,12 +442,12 @@ function Anamnesis() {
               </div>
               {tieneAutolesion === true && (
                 <div>
-                  <label className={labelClass}>Contanos un poco más, si te sentís cómodo/a</label>
+                  <label className={labelClass}>Cuéntanos un poco más, si te sientes cómodo/a</label>
                   <textarea
                     rows={3}
                     value={detalleAutolesion}
                     onChange={(e) => setDetalleAutolesion(e.target.value)}
-                    placeholder="Podés dejarlo en blanco y hablarlo directamente con tu terapeuta"
+                    placeholder="Puedes dejarlo en blanco y hablarlo directamente con tu terapeuta"
                     className={inputClass}
                   />
                 </div>
@@ -460,7 +460,7 @@ function Anamnesis() {
               rows={2}
               value={redApoyo}
               onChange={(e) => setRedApoyo(e.target.value)}
-              placeholder="¿Con quién contás hoy? Familia, pareja, amistades..."
+              placeholder="¿Con quién cuentas hoy? Familia, pareja, amistades..."
               className={inputClass}
             />
           </SectionCard>
@@ -468,7 +468,7 @@ function Anamnesis() {
           <SectionCard
             icon={<Brain size={18} />}
             title="Salud cognitiva"
-            subtitle="Marcá esto si sos adulto mayor o si te preocupa tu memoria o la de un familiar."
+            subtitle="Marca esto si eres adulto mayor o si te preocupa tu memoria o la de un familiar."
           >
             <div className="space-y-4">
               <label className="flex items-center gap-2 text-sm font-medium text-slate-700 cursor-pointer">

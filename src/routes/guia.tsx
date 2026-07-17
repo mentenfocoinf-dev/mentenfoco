@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
+import { listGuides, PLAN_LABELS } from "../lib/api";
 
 export const Route = createFileRoute("/guia")({
   head: () => ({
@@ -19,17 +19,10 @@ export const Route = createFileRoute("/guia")({
     ],
   }),
   loader: async () => {
-    const { data: guias, error } = await supabase
-      .from("clinical_guides")
-      .select(
-        'id, categoria, etiquetas, titulo, "descripcionBreve", "tiempoLectura", "imageName", es_premium',
-      );
-
-    if (error) {
-      console.error("Error fetching guides:", error);
-      return { guias: [] };
-    }
-    return { guias: guias || [] };
+    // La vista de metadatos muestra TODAS las guías (también las premium),
+    // para que el visitante vea el catálogo completo con su nivel requerido.
+    const guias = await listGuides();
+    return { guias };
   },
   pendingComponent: () => (
     <div className="flex min-h-[50vh] items-center justify-center">
@@ -102,10 +95,15 @@ function Guia() {
                 style={{ backgroundImage: `url('/guias/${g.imageName}')` }}
               />
               <div className="relative z-10 flex flex-col h-full">
-                <div className="mb-2">
+                <div className="mb-2 flex items-center gap-2">
                   <span className="inline-block rounded-full bg-primary/10 border border-primary/10 px-3 py-1 text-xs font-bold text-primary">
                     {g.categoria}
                   </span>
+                  {g.min_plan && g.min_plan !== "free" && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-700">
+                      <Lock size={11} /> {PLAN_LABELS[g.min_plan].replace("Plan ", "")}
+                    </span>
+                  )}
                 </div>
                 <h3 className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors">
                   {g.titulo}

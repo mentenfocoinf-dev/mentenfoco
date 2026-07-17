@@ -4,33 +4,14 @@ import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useAuth } from "../hooks/useAuth";
-import { supabase } from "../lib/supabase";
 import { PaywallModal } from "../components/PaywallModal";
+import { getGuide, PLAN_LABELS } from "../lib/api";
 
 export const Route = createFileRoute("/guias/$guiaId")({
   loader: async ({ params }) => {
-    // Intentamos obtener la guía — si es premium y el usuario no tiene acceso,
-    // RLS devolverá error. Guardamos también si la guía es premium para poder
-    // mostrar el Paywall aunque no tengamos el contenido.
-    const { data: guia, error } = await supabase
-      .from("clinical_guides")
-      .select("*")
-      .eq("id", params.guiaId)
-      .single();
-
-    // Si RLS bloquea, intentamos obtener solo los metadatos públicos de la guía
-    // (id, titulo, es_premium, imageName, descripcionBreve) para poder mostrar el paywall
-    if (error || !guia) {
-      const { data: meta } = await supabase
-        .from("clinical_guides")
-        .select('id, titulo, "descripcionBreve", "imageName", es_premium, categoria')
-        .eq("id", params.guiaId)
-        .single();
-
-      return { guia: null, meta: meta ?? null };
-    }
-
-    return { guia, meta: null };
+    // El servicio intenta traer el contenido completo; si RLS lo bloquea por
+    // nivel de plan, devuelve los metadatos (vista pública) para el paywall.
+    return await getGuide(params.guiaId);
   },
   head: ({ loaderData }) => {
     const guia = loaderData?.guia ?? loaderData?.meta;
@@ -107,7 +88,11 @@ function GuiaDetalle() {
   if (!guia && meta?.es_premium) {
     return (
       <>
-        <PaywallModal isOpen={paywallOpen} onOpenChange={setPaywallOpen} />
+        <PaywallModal
+          isOpen={paywallOpen}
+          onOpenChange={setPaywallOpen}
+          requiredPlan={meta.min_plan}
+        />
         <section
           className="relative bg-cover bg-center bg-no-repeat py-20"
           style={{ backgroundImage: `url('/guias/${meta.imageName}')` }}
@@ -157,7 +142,11 @@ function GuiaDetalle() {
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 mb-2">Contenido Premium</h2>
                 <p className="text-sm text-slate-600 mb-6 max-w-sm mx-auto">
-                  Esta guía está disponible para miembros con plan activo.
+                  Esta guía está disponible desde el{" "}
+                  <strong className="text-primary">
+                    {meta.min_plan ? PLAN_LABELS[meta.min_plan] : "Plan Esencial"}
+                  </strong>{" "}
+                  en adelante.
                 </p>
                 <button
                   onClick={() => setPaywallOpen(true)}

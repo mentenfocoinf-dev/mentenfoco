@@ -26,7 +26,7 @@ const channels = [
   { icon: Mail, label: "Email", value: "mentenfocoinf@gmail.com" },
   { icon: Phone, label: "Teléfono", value: "3186546057" },
   { icon: MessageCircle, label: "WhatsApp", value: "3186546057" },
-  { icon: Bot, label: "Urgencias 24h", value: "Alex AI (Para VIP)" },
+  { icon: Bot, label: "Asistente Alex IA", value: "Próximamente para plan VIP" },
 ];
 
 function Contactanos() {
