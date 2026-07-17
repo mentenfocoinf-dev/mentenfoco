@@ -6,12 +6,12 @@
 -- Sigue el mismo patrón de la migración 20240514_security_sprint.sql (INSERT ... ON CONFLICT).
 
 INSERT INTO clinical_guides (id, categoria, etiquetas, titulo, "descripcionBreve", "tiempoLectura", "imageName", "fundamentoClinico", "ejercicioPractico", es_premium, "contenidoCompleto")
-VALUES ('animo-depresion-episodio', 'Ánimo', ARRAY['TCC', 'Activación Conductual', 'CIE-11'], 'Entender un episodio depresivo', 'Qué está pasando en tu cerebro y qué ayuda realmente.', '13 min', 'Entender un episodio depresivo.png', 'Un episodio depresivo no es "estar triste" sostenido en el tiempo. Es una desregulación que afecta el ánimo, la energía, el sueño, el apetito y la capacidad de sentir placer (anhedonia) al mismo tiempo. El cerebro entra en un patrón de conservación de energía que, paradójicamente, empeora el cuadro: dejás de hacer las cosas que antes te daban placer o sentido, y eso confirma la creencia de que "nada vale la pena".', 'ACTIVACIÓN CONDUCTUAL BÁSICA:
+VALUES ('animo-depresion-episodio', 'Ánimo', ARRAY['TCC', 'Activación Conductual', 'CIE-11'], 'Entender un episodio depresivo', 'Qué está pasando en tu cerebro y qué ayuda realmente.', '13 min', 'Entender un episodio depresivo.png', 'Un episodio depresivo no es "estar triste" sostenido en el tiempo. Es una desregulación que afecta el ánimo, la energía, el sueño, el apetito y la capacidad de sentir placer (anhedonia) al mismo tiempo. El cerebro entra en un patrón de conservación de energía que, paradójicamente, empeora el cuadro: dejas de hacer las cosas que antes te daban placer o sentido, y eso confirma la creencia de que "nada vale la pena".', 'ACTIVACIÓN CONDUCTUAL BÁSICA:
 
-1. Lista de 5 actividades: anotá 5 cosas que antes disfrutabas, sin importar cuán pequeñas.
-2. Elegí la más fácil: no la que "debería" motivarte más, la que requiera menos energía.
-3. Hacela sin esperar ganas: la motivación en depresión llega después de actuar, no antes.
-4. Registrá el resultado: anotá tu ánimo del 0 al 10 antes y después.', false, '
+1. Lista de 5 actividades: anota 5 cosas que antes disfrutabas, sin importar cuán pequeñas.
+2. Elige la más fácil: no la que "debería" motivarte más, la que requiera menos energía.
+3. Hazla sin esperar ganas: la motivación en depresión llega después de actuar, no antes.
+4. Registra el resultado: anota tu ánimo del 0 al 10 antes y después.', false, '
 # Episodio Depresivo: Fundamento Clínico e Intervención Inicial
 
 ## Fundamento Clínico
@@ -35,7 +35,7 @@ Neurobiológicamente, se asocia a alteraciones en la regulación de neurotransmi
 
 Explicar el círculo anhedonia-evitación-empeoramiento ayuda a que el paciente deje de interpretar su inactividad como "pereza" o "falta de voluntad", lo cual reduce la culpa secundaria que agrava el cuadro.
 
-*   **Reencuadre:** "No hacés las cosas porque estás deprimido, no estás deprimido por no hacer las cosas. El orden importa para saber por dónde empezar."
+*   **Reencuadre:** "No haces las cosas porque estás deprimido, no estás deprimido por no hacer las cosas. El orden importa para saber por dónde empezar."
 
 ### 2. Activación Conductual Gradual
 
@@ -61,10 +61,10 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO clinical_guides (id, categoria, etiquetas, titulo, "descripcionBreve", "tiempoLectura", "imageName", "fundamentoClinico", "ejercicioPractico", es_premium, "contenidoCompleto")
 VALUES ('animo-prevencion-recaida', 'Ánimo', ARRAY['MBCT', 'Mindfulness', 'Prevención'], 'Prevenir una recaída depresiva', 'Por qué después de 3 episodios el riesgo cambia, y qué hacer al respecto.', '14 min', 'Prevenir una recaída depresiva.png', 'Cada episodio depresivo deja una especie de "huella" cognitiva: patrones de pensamiento que quedan más fácilmente activables ante el próximo bajón de ánimo. Después de tres episodios, el riesgo de uno nuevo sube considerablemente, y ya no depende tanto de eventos externos como de ese patrón interno.', 'ESCANEO CORPORAL DE 3 MINUTOS:
 
-1. Sentate o acostate en un lugar tranquilo.
-2. Recorré mentalmente tu cuerpo de pies a cabeza, notando sensaciones sin juzgarlas.
-3. Si aparece un pensamiento, nombralo ("pensamiento") y volvé al cuerpo.
-4. Practicalo a diario, no solo cuando te sentís mal — es entrenamiento, no rescate.', true, '
+1. Siéntate o acuéstate en un lugar tranquilo.
+2. Recorre mentalmente tu cuerpo de pies a cabeza, notando sensaciones sin juzgarlas.
+3. Si aparece un pensamiento, nómbralo ("pensamiento") y vuelve al cuerpo.
+4. Practícalo a diario, no solo cuando te sientes mal — es entrenamiento, no rescate.', true, '
 # Prevención de Recaída Depresiva: Terapia Cognitiva Basada en Mindfulness (MBCT)
 
 ## Fundamento Clínico
@@ -111,9 +111,9 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO clinical_guides (id, categoria, etiquetas, titulo, "descripcionBreve", "tiempoLectura", "imageName", "fundamentoClinico", "ejercicioPractico", es_premium, "contenidoCompleto")
 VALUES ('trauma-primeros-pasos', 'Trauma', ARRAY['TEPT', 'EMDR', 'Regulación'], 'Primeros pasos tras un evento traumático', 'Qué es esperable en las primeras semanas y cuándo buscar ayuda especializada.', '12 min', 'Primeros pasos tras un evento traumático.png', 'No toda reacción intensa después de un evento traumático es un trastorno. El cuerpo y la mente tienen una respuesta natural de procesamiento en las primeras semanas. El problema aparece cuando esa respuesta no se resuelve y el sistema de alarma queda "encendido" mucho después de que el peligro real terminó.', 'REGULACIÓN DE PRIMERA LÍNEA:
 
-1. Anclaje al presente: nombrá 3 cosas que ves, 3 que escuchás y 3 que sentís en tu cuerpo ahora mismo.
-2. Respiración con exhalación larga: inhalá en 4, exhalá en 6-8. La exhalación larga calma el sistema nervioso.
-3. Rutina básica: mantené horarios de sueño y comida lo más regulares posible, aunque cueste.
+1. Anclaje al presente: nombra 3 cosas que ves, 3 que escuchas y 3 que sientes en tu cuerpo ahora mismo.
+2. Respiración con exhalación larga: inhala en 4, exhala en 6-8. La exhalación larga calma el sistema nervioso.
+3. Rutina básica: mantén horarios de sueño y comida lo más regulares posible, aunque cueste.
 4. No te aísles del todo: el contacto breve y seguro con otros ayuda más que la evitación total.', false, '
 # Reacciones Postraumáticas Tempranas y Señales de Alarma
 
@@ -162,10 +162,10 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO clinical_guides (id, categoria, etiquetas, titulo, "descripcionBreve", "tiempoLectura", "imageName", "fundamentoClinico", "ejercicioPractico", es_premium, "contenidoCompleto")
 VALUES ('trauma-duelo-prolongado', 'Trauma', ARRAY['Duelo', 'TIP', 'CIE-11'], 'Cuando el duelo no avanza', 'La diferencia entre un duelo doloroso y un duelo que quedó atascado.', '13 min', 'Cuando el duelo no avanza.png', 'El duelo no tiene una fecha de vencimiento universal, pero sí hay una diferencia clínica reconocida entre un duelo que, con oleadas de dolor, va encontrando su cauce, y un duelo que queda atascado en el tiempo, sin poder integrar la pérdida a la vida que sigue.', 'CARTA DE INTEGRACIÓN (no de despedida):
 
-1. Escribile a la persona que ya no está, contándole algo de tu vida actual.
+1. Escríbele a la persona que ya no está, contándole algo de tu vida actual.
 2. No busques "cerrar" nada — el objetivo es mantener el vínculo de otra forma, no cortarlo.
-3. Nombrá algo que aprendiste o heredaste de esa relación que seguís llevando con vos.
-4. Guardá la carta; podés volver a escribir otra más adelante.', true, '
+3. Nombra algo que aprendiste o heredaste de esa relación que sigues llevando contigo.
+4. Guarda la carta; puedes volver a escribir otra más adelante.', true, '
 # Trastorno de Duelo Prolongado: Diferenciación e Intervención
 
 ## Fundamento Clínico
@@ -218,10 +218,10 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO clinical_guides (id, categoria, etiquetas, titulo, "descripcionBreve", "tiempoLectura", "imageName", "fundamentoClinico", "ejercicioPractico", es_premium, "contenidoCompleto")
 VALUES ('alimentacion-relacion-comida', 'Alimentación', ARRAY['TCC-E', 'Conducta Alimentaria', 'CIE-11'], 'Reconstruir una relación sana con la comida', 'Cómo identificar señales tempranas y qué hacer al respecto.', '13 min', 'Reconstruir una relación sana con la comida.png', 'Los trastornos de la conducta alimentaria no son una elección ni una cuestión de "fuerza de voluntad". Involucran una desregulación real entre las señales de hambre y saciedad, la imagen corporal y el uso de la comida (o su restricción) como forma de manejar emociones difíciles.', 'REGISTRO SIN JUICIO:
 
-1. Anotá qué comiste, cuándo y cómo te sentiste antes (no cuántas calorías).
-2. Identificá el disparador emocional, si lo hubo, antes de comer o de restringir.
+1. Anota qué comiste, cuándo y cómo te sentiste antes (no cuántas calorías).
+2. Identifica el disparador emocional, si lo hubo, antes de comer o de restringir.
 3. No uses el registro para controlar más — es para observar patrones, no para vigilarte.
-4. Compartilo con un profesional; no es un ejercicio para hacer en soledad indefinidamente.', false, '
+4. Compártelo con un profesional; no es un ejercicio para hacer en soledad indefinidamente.', false, '
 # Trastornos de la Conducta Alimentaria: Reconocimiento Temprano
 
 ## Fundamento Clínico
@@ -272,10 +272,10 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO clinical_guides (id, categoria, etiquetas, titulo, "descripcionBreve", "tiempoLectura", "imageName", "fundamentoClinico", "ejercicioPractico", es_premium, "contenidoCompleto")
 VALUES ('alimentacion-atracones', 'Alimentación', ARRAY['Atracones', 'TCC-E', 'CIE-11'], 'Entender el trastorno por atracones', 'Por qué no es "falta de disciplina" y qué intervención realmente ayuda.', '12 min', 'Entender el trastorno por atracones.png', 'El trastorno por atracones (CIE-11 6B82) es el trastorno de la conducta alimentaria más frecuente, y probablemente el más malentendido: se lo suele confundir con "comer mucho" o "falta de disciplina", cuando en realidad es un patrón compulsivo asociado a una intensa desregulación emocional.', 'PAUSA ANTES DEL ATRACÓN:
 
-1. Cuando sientas el impulso, poné una pausa de 5 minutos antes de actuar.
-2. Preguntate: "¿tengo hambre física o estoy buscando calmar algo más?"
-3. Si es emocional, nombrá la emoción específica (aburrimiento, ansiedad, soledad).
-4. Buscá una alternativa breve para esa emoción puntual (llamar a alguien, moverte, escribir).', true, '
+1. Cuando sientas el impulso, pon una pausa de 5 minutos antes de actuar.
+2. Pregúntate: "¿tengo hambre física o estoy buscando calmar algo más?"
+3. Si es emocional, nombra la emoción específica (aburrimiento, ansiedad, soledad).
+4. Busca una alternativa breve para esa emoción puntual (llamar a alguien, moverte, escribir).', true, '
 # Trastorno por Atracones: Más Allá del Estigma
 
 ## Fundamento Clínico
@@ -381,8 +381,8 @@ INSERT INTO clinical_guides (id, categoria, etiquetas, titulo, "descripcionBreve
 VALUES ('memoria-apoyo-familiar-demencia', 'Memoria', ARRAY['Demencia', 'Cuidadores', 'CIE-11'], 'Acompañar a un familiar con demencia', 'Entender las alteraciones conductuales y cuidar a quien cuida.', '14 min', 'Acompañar a un familiar con demencia.png', 'Cuando a un familiar le diagnostican demencia, la atención suele centrarse en la memoria — pero con frecuencia son los cambios de conducta (agitación, apatía, desconfianza) los que más desgastan a la familia día a día, y los que menos se explican con claridad.', 'REGISTRO ABC PARA CONDUCTAS DIFÍCILES:
 
 1. Antecedente: ¿qué pasaba justo antes de la conducta (ruido, cambio de rutina, hambre, dolor)?
-2. Conducta: describí exactamente qué hizo o dijo, sin interpretarlo todavía.
-3. Consecuencia: ¿qué pasó después? ¿Qué hiciste vos y cómo reaccionó?
+2. Conducta: describe exactamente qué hizo o dijo, sin interpretarlo todavía.
+3. Consecuencia: ¿qué pasó después? ¿Qué hiciste tú y cómo reaccionó?
 4. Con varios registros, suelen aparecer patrones que permiten anticipar y prevenir, no solo reaccionar.', true, '
 # Alteraciones Conductuales en la Demencia y Cuidado del Cuidador
 
