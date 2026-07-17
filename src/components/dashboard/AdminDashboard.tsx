@@ -1,12 +1,28 @@
-import { useState, useEffect } from "react";
-import { LogOut, Contact, Loader2, Users, UserRound } from "lucide-react";
-import { supabase, type Profile, type CrmLead } from "../../lib/supabase";
-
-interface PatientWithTherapist extends Profile {
-  patient_therapist?: Array<{
-    therapist: { full_name: string | null; email: string | null } | null;
-  }>;
-}
+import { useState, useEffect, useCallback } from "react";
+import {
+  LogOut,
+  Contact,
+  Loader2,
+  Users,
+  UserRound,
+  UserPlus,
+  X,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+import { supabase, type Profile, type CrmLead, type PlanType } from "../../lib/supabase";
+import {
+  getAdminDirectory,
+  assignPatientToTherapist,
+  unassignPatient,
+  setUserPlan,
+  setUserStatus,
+  createUser,
+  PLAN_LABELS,
+  type AdminDirectory,
+  type DirectoryPatient,
+  type DirectoryTherapist,
+} from "../../lib/api";
 
 interface Props {
   profile: Profile;
@@ -15,12 +31,41 @@ interface Props {
 
 type TabType = "leads" | "therapists" | "patients";
 
+const PLAN_OPTIONS: PlanType[] = ["free", "esencial", "integral", "premium"];
+
 export function AdminDashboard({ profile, onLogout }: Props) {
-  const [activeTab, setActiveTab] = useState<TabType>("leads");
+  const [activeTab, setActiveTab] = useState<TabType>("patients");
   const [leads, setLeads] = useState<CrmLead[]>([]);
-  const [therapists, setTherapists] = useState<Profile[]>([]);
-  const [patients, setPatients] = useState<PatientWithTherapist[]>([]);
+  const [directory, setDirectory] = useState<AdminDirectory>({ therapists: [], patients: [] });
   const [loading, setLoading] = useState(true);
+  const [feedback, setFeedback] = useState<{ type: "ok" | "error"; msg: string } | null>(null);
+  const [busyRow, setBusyRow] = useState<string | null>(null);
+
+  // ── Modal "Nuevo usuario" ──────────────────────────────────────────────
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newUser, setNewUser] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+    role: "patient" as "patient" | "therapist",
+    plan_type: "free" as PlanType,
+  });
+
+  const notify = (type: "ok" | "error", msg: string) => {
+    setFeedback({ type, msg });
+    setTimeout(() => setFeedback(null), 4000);
+  };
+
+  const refreshDirectory = useCallback(async () => {
+    try {
+      const dir = await getAdminDirectory();
+      setDirectory(dir);
+    } catch (err) {
+      console.error("[AdminDashboard] Error cargando directorio:", err);
+      notify("error", "No pudimos cargar el directorio. Intenta de nuevo.");
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -32,92 +77,201 @@ export function AdminDashboard({ profile, onLogout }: Props) {
           .order("created_at", { ascending: false });
         if (error) console.error("[AdminDashboard] Error cargando leads:", error.message);
         if (data) setLeads(data);
-      } else if (activeTab === "therapists") {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("role", "therapist");
-        if (error) console.error("[AdminDashboard] Error cargando terapeutas:", error.message);
-        if (data) setTherapists(data);
-      } else if (activeTab === "patients") {
-        // Nota: se hace en dos consultas separadas (en vez de un embed anidado
-        // patient_therapist!patient_id -> profiles!therapist_id) porque ese embed
-        // depende de nombres exactos de FK en una tabla sin migración versionada
-        // en el repo, y fallaba silenciosamente dejando la pestaña vacía.
-        const { data: patientsData, error: patientsError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("role", "patient")
-          .order("updated_at", { ascending: false });
-
-        if (patientsError) {
-          console.error(
-            "[AdminDashboard] Error cargando pacientes:",
-            patientsError.message,
-            patientsError,
-          );
-          setPatients([]);
-        } else if (patientsData) {
-          const patientIds = patientsData.map((p) => p.id);
-          let assignmentsByPatient: Record<
-            string,
-            { full_name: string | null; email: string | null }
-          > = {};
-
-          if (patientIds.length > 0) {
-            const { data: assignments, error: assignmentsError } = await supabase
-              .from("patient_therapist")
-              .select("patient_id, therapist:profiles!therapist_id(full_name, email)")
-              .in("patient_id", patientIds);
-
-            if (assignmentsError) {
-              console.error(
-                "[AdminDashboard] Error cargando asignaciones paciente-terapeuta:",
-                assignmentsError.message,
-                assignmentsError,
-              );
-            } else if (assignments) {
-              assignmentsByPatient = Object.fromEntries(
-                assignments.map((a: any) => [a.patient_id, a.therapist]),
-              );
-            }
-          }
-
-          setPatients(
-            patientsData.map((p) => ({
-              ...p,
-              patient_therapist: assignmentsByPatient[p.id]
-                ? [{ therapist: assignmentsByPatient[p.id] }]
-                : [],
-            })) as PatientWithTherapist[],
-          );
-        }
+      } else {
+        await refreshDirectory();
       }
       setLoading(false);
     }
     fetchData();
-  }, [activeTab]);
+  }, [activeTab, refreshDirectory]);
 
-  async function handleDeactivateTherapist(therapistId: string) {
-    const confirmed = window.confirm("¿Seguro que deseas desactivar este terapeuta?");
-    if (!confirmed) return;
-    const { error } = await supabase
-      .from("profiles")
-      .update({ subscription_status: "inactive" })
-      .eq("id", therapistId);
-    if (!error) {
-      setTherapists((prev) =>
-        prev.map((t) =>
-          t.id === therapistId ? { ...t, subscription_status: "inactive" } : t
-        )
+  // ── Acciones ───────────────────────────────────────────────────────────
+  async function handleAssign(patientId: string, therapistId: string) {
+    setBusyRow(patientId);
+    try {
+      if (therapistId === "") {
+        await unassignPatient(patientId);
+        notify("ok", "Asignación retirada correctamente.");
+      } else {
+        await assignPatientToTherapist(patientId, therapistId);
+        notify("ok", "Paciente asignado correctamente.");
+      }
+      await refreshDirectory();
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Error al asignar.");
+    } finally {
+      setBusyRow(null);
+    }
+  }
+
+  async function handlePlanChange(patientId: string, plan: PlanType) {
+    setBusyRow(patientId);
+    try {
+      await setUserPlan(patientId, plan, plan === "free" ? "inactive" : "active");
+      notify("ok", `Plan actualizado a ${PLAN_LABELS[plan]}.`);
+      await refreshDirectory();
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Error al cambiar el plan.");
+    } finally {
+      setBusyRow(null);
+    }
+  }
+
+  async function handleToggleTherapist(therapist: DirectoryTherapist) {
+    const isInactive = therapist.subscription_status === "inactive";
+    if (!isInactive) {
+      const confirmed = window.confirm(
+        `¿Seguro que deseas desactivar a ${therapist.full_name ?? "este terapeuta"}?`,
       );
+      if (!confirmed) return;
+    }
+    setBusyRow(therapist.id);
+    try {
+      await setUserStatus(therapist.id, isInactive ? "active" : "inactive");
+      notify("ok", isInactive ? "Terapeuta activado." : "Terapeuta desactivado.");
+      await refreshDirectory();
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "Error al actualizar el estado.");
+    } finally {
+      setBusyRow(null);
+    }
+  }
+
+  async function handleCreateUser(e: React.FormEvent) {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      await createUser({
+        email: newUser.email.trim(),
+        password: newUser.password,
+        full_name: newUser.full_name.trim(),
+        role: newUser.role,
+        plan_type: newUser.role === "patient" ? newUser.plan_type : "free",
+      });
+      notify("ok", `Cuenta creada para ${newUser.full_name}.`);
+      setShowCreateModal(false);
+      setNewUser({ full_name: "", email: "", password: "", role: "patient", plan_type: "free" });
+      await refreshDirectory();
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "No pudimos crear la cuenta.");
+    } finally {
+      setCreating(false);
     }
   }
 
   const displayName = profile.full_name ?? "Administrador";
+  const tabs: { key: TabType; label: string; icon: React.ReactNode }[] = [
+    { key: "patients", label: "Pacientes", icon: <UserRound size={18} /> },
+    { key: "therapists", label: "Terapeutas", icon: <Users size={18} /> },
+    { key: "leads", label: "Leads (CRM)", icon: <Contact size={18} /> },
+  ];
 
   return (
     <>
+      {/* ── Modal: crear usuario ── */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl animate-in zoom-in-95">
+            <button
+              onClick={() => setShowCreateModal(false)}
+              className="absolute right-5 top-5 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            >
+              <X size={18} />
+            </button>
+            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <UserPlus size={20} className="text-primary" /> Nuevo usuario
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              La cuenta queda activa de inmediato con la contraseña temporal que definas aquí.
+            </p>
+
+            <form onSubmit={handleCreateUser} className="mt-6 space-y-4">
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Nombre completo</label>
+                <input
+                  required
+                  value={newUser.full_name}
+                  onChange={(e) => setNewUser({ ...newUser, full_name: e.target.value })}
+                  placeholder="Ej. Laura Gómez"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Correo electrónico</label>
+                <input
+                  required
+                  type="email"
+                  value={newUser.email}
+                  onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                  placeholder="usuario@correo.com"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-700">Contraseña temporal</label>
+                <input
+                  required
+                  minLength={8}
+                  value={newUser.password}
+                  onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                  placeholder="Mínimo 8 caracteres"
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
+                />
+                <p className="mt-1 text-xs text-slate-400">
+                  Compártela con la persona; podrá cambiarla desde "Olvidaste tu contraseña".
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Rol</label>
+                  <select
+                    value={newUser.role}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, role: e.target.value as "patient" | "therapist" })
+                    }
+                    className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
+                  >
+                    <option value="patient">Paciente</option>
+                    <option value="therapist">Terapeuta</option>
+                  </select>
+                </div>
+                {newUser.role === "patient" && (
+                  <div>
+                    <label className="text-sm font-semibold text-slate-700">Plan inicial</label>
+                    <select
+                      value={newUser.plan_type}
+                      onChange={(e) =>
+                        setNewUser({ ...newUser, plan_type: e.target.value as PlanType })
+                      }
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm focus:border-primary focus:outline-none"
+                    >
+                      {PLAN_OPTIONS.map((p) => (
+                        <option key={p} value={p}>
+                          {PLAN_LABELS[p]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={creating}
+                className="mt-2 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-60 flex items-center justify-center gap-2"
+              >
+                {creating ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" /> Creando cuenta...
+                  </>
+                ) : (
+                  "Crear cuenta"
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <section className="gradient-soft border-b border-white/30 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
           <div className="flex items-center justify-between glass-card p-6 rounded-3xl border border-white/40 shadow-sm">
@@ -128,48 +282,52 @@ export function AdminDashboard({ profile, onLogout }: Props) {
                 Administrador
               </span>
             </div>
-            <button
-              onClick={onLogout}
-              className="rounded-xl border border-white/50 bg-white/40 backdrop-blur px-4 py-2 text-sm font-bold text-primary hover:bg-white/60 transition-colors shadow-sm flex items-center gap-2"
-            >
-              <LogOut size={16} /> Cerrar sesión
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-2"
+              >
+                <UserPlus size={16} /> Nuevo usuario
+              </button>
+              <button
+                onClick={onLogout}
+                className="rounded-xl border border-white/50 bg-white/40 backdrop-blur px-4 py-2 text-sm font-bold text-primary hover:bg-white/60 transition-colors shadow-sm flex items-center gap-2"
+              >
+                <LogOut size={16} /> Cerrar sesión
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
+        {feedback && (
+          <div
+            className={`mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium animate-in fade-in slide-in-from-top-2 ${
+              feedback.type === "ok"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                : "bg-red-50 border-red-200 text-red-700"
+            }`}
+          >
+            {feedback.type === "ok" ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
+            {feedback.msg}
+          </div>
+        )}
+
         <div className="mb-8 flex flex-wrap gap-3">
-          <button
-            onClick={() => setActiveTab("leads")}
-            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all shadow-sm ${
-              activeTab === "leads"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "glass border border-white/40 text-primary hover:border-primary/50 hover:bg-primary/5"
-            }`}
-          >
-            <Contact size={18} /> Leads (CRM)
-          </button>
-          <button
-            onClick={() => setActiveTab("therapists")}
-            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all shadow-sm ${
-              activeTab === "therapists"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "glass border border-white/40 text-primary hover:border-primary/50 hover:bg-primary/5"
-            }`}
-          >
-            <Users size={18} /> Terapeutas
-          </button>
-          <button
-            onClick={() => setActiveTab("patients")}
-            className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all shadow-sm ${
-              activeTab === "patients"
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "glass border border-white/40 text-primary hover:border-primary/50 hover:bg-primary/5"
-            }`}
-          >
-            <UserRound size={18} /> Pacientes
-          </button>
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all shadow-sm ${
+                activeTab === tab.key
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "glass border border-white/40 text-primary hover:border-primary/50 hover:bg-primary/5"
+              }`}
+            >
+              {tab.icon} {tab.label}
+            </button>
+          ))}
         </div>
 
         <div className="space-y-6">
@@ -182,7 +340,7 @@ export function AdminDashboard({ profile, onLogout }: Props) {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                {/* ── TABS RENDERING ── */}
+                {/* ── LEADS ── */}
                 {activeTab === "leads" &&
                   (leads.length > 0 ? (
                     <table className="w-full text-sm text-left">
@@ -225,47 +383,66 @@ export function AdminDashboard({ profile, onLogout }: Props) {
                     </div>
                   ))}
 
+                {/* ── TERAPEUTAS ── */}
                 {activeTab === "therapists" &&
-                  (therapists.length > 0 ? (
+                  (directory.therapists.length > 0 ? (
                     <table className="w-full text-sm text-left">
                       <thead className="bg-primary/5 text-primary border-b border-white/60">
                         <tr>
                           <th className="px-6 py-4 font-semibold">Nombre</th>
-                          <th className="px-6 py-4 font-semibold">Email (ID)</th>
+                          <th className="px-6 py-4 font-semibold">Email</th>
+                          <th className="px-6 py-4 font-semibold">Pacientes</th>
                           <th className="px-6 py-4 font-semibold">Estado</th>
                           <th className="px-6 py-4 font-semibold text-right">Acciones</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {therapists.map((therapist, index) => (
+                        {directory.therapists.map((therapist, index) => (
                           <tr
                             key={therapist.id}
-                            className={`border-b border-white/30 hover:bg-white/40 transition-colors ${index === therapists.length - 1 ? "border-none" : ""}`}
+                            className={`border-b border-white/30 hover:bg-white/40 transition-colors ${index === directory.therapists.length - 1 ? "border-none" : ""}`}
                           >
                             <td className="px-6 py-4 font-semibold text-primary">
                               {therapist.full_name || "Sin nombre"}
                             </td>
-                            <td className="px-6 py-4 text-slate-600 truncate max-w-[200px]">
-                              {therapist.id.slice(0, 8)}...
+                            <td className="px-6 py-4 text-slate-600">{therapist.email || "—"}</td>
+                            <td className="px-6 py-4 text-slate-600">
+                              <span className="inline-flex items-center gap-1.5">
+                                <UserRound size={14} className="text-slate-400" />
+                                {therapist.patient_count}
+                              </span>
                             </td>
                             <td className="px-6 py-4">
-                              <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold border ${
-                                therapist.subscription_status === "inactive"
-                                  ? "bg-slate-100 border-slate-200 text-slate-600"
-                                  : "bg-emerald-100 border-emerald-200 text-emerald-700"
-                              }`}>
-                                {therapist.subscription_status === "inactive" ? "Inactivo" : "Activo"}
+                              <span
+                                className={`inline-block rounded-full px-3 py-1 text-xs font-semibold border ${
+                                  therapist.subscription_status === "inactive"
+                                    ? "bg-slate-100 border-slate-200 text-slate-600"
+                                    : "bg-emerald-100 border-emerald-200 text-emerald-700"
+                                }`}
+                              >
+                                {therapist.subscription_status === "inactive"
+                                  ? "Inactivo"
+                                  : "Activo"}
                               </span>
                             </td>
                             <td className="px-6 py-4 text-right">
-                              {therapist.subscription_status !== "inactive" && (
-                                <button
-                                  onClick={() => handleDeactivateTherapist(therapist.id)}
-                                  className="text-xs font-bold text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-200"
-                                >
-                                  Desactivar
-                                </button>
-                              )}
+                              <button
+                                onClick={() => handleToggleTherapist(therapist)}
+                                disabled={busyRow === therapist.id}
+                                className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors border border-transparent disabled:opacity-50 ${
+                                  therapist.subscription_status === "inactive"
+                                    ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 hover:border-emerald-200"
+                                    : "text-red-500 hover:text-red-700 hover:bg-red-50 hover:border-red-200"
+                                }`}
+                              >
+                                {busyRow === therapist.id ? (
+                                  <Loader2 size={14} className="animate-spin" />
+                                ) : therapist.subscription_status === "inactive" ? (
+                                  "Activar"
+                                ) : (
+                                  "Desactivar"
+                                )}
+                              </button>
                             </td>
                           </tr>
                         ))}
@@ -274,58 +451,100 @@ export function AdminDashboard({ profile, onLogout }: Props) {
                   ) : (
                     <div className="p-12 text-center">
                       <p className="text-sm text-muted-foreground">
-                        No hay terapeutas registrados.
+                        No hay terapeutas registrados. Crea el primero con "Nuevo usuario".
                       </p>
                     </div>
                   ))}
 
+                {/* ── PACIENTES ── */}
                 {activeTab === "patients" &&
-                  (patients.length > 0 ? (
+                  (directory.patients.length > 0 ? (
                     <table className="w-full text-sm text-left">
                       <thead className="bg-primary/5 text-primary border-b border-white/60">
                         <tr>
                           <th className="px-6 py-4 font-semibold">Nombre</th>
+                          <th className="px-6 py-4 font-semibold">Email</th>
                           <th className="px-6 py-4 font-semibold">Plan</th>
-                          <th className="px-6 py-4 font-semibold">Último Acceso</th>
-                          <th className="px-6 py-4 font-semibold">Terapeuta Asignado</th>
+                          <th className="px-6 py-4 font-semibold">Estado</th>
+                          <th className="px-6 py-4 font-semibold">Terapeuta asignado</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {patients.map((pat, index) => {
-                          // Extraemos terapeuta desde el join (array por la estructura relacional)
-                          const therapistAssigned =
-                            pat.patient_therapist?.[0]?.therapist?.full_name || "No asignado";
-                          return (
-                            <tr
-                              key={pat.id}
-                              className={`border-b border-white/30 hover:bg-white/40 transition-colors ${index === patients.length - 1 ? "border-none" : ""}`}
-                            >
-                              <td className="px-6 py-4 font-semibold text-primary">
-                                {pat.full_name || "Sin nombre"}
-                              </td>
-                              <td className="px-6 py-4">
-                                <span
-                                  className={`inline-block capitalize rounded-full px-3 py-1 text-xs font-semibold ${pat.plan_type === "premium" ? "bg-amber-100 text-amber-700 border-amber-200" : "bg-slate-100 text-slate-700 border-slate-200"} border`}
+                        {directory.patients.map((pat: DirectoryPatient, index) => (
+                          <tr
+                            key={pat.id}
+                            className={`border-b border-white/30 hover:bg-white/40 transition-colors ${index === directory.patients.length - 1 ? "border-none" : ""}`}
+                          >
+                            <td className="px-6 py-4 font-semibold text-primary">
+                              {pat.full_name || "Sin nombre"}
+                            </td>
+                            <td className="px-6 py-4 text-slate-600">{pat.email || "—"}</td>
+                            <td className="px-6 py-4">
+                              <select
+                                value={pat.plan_type}
+                                disabled={busyRow === pat.id}
+                                onChange={(e) =>
+                                  handlePlanChange(pat.id, e.target.value as PlanType)
+                                }
+                                className={`rounded-lg border px-2 py-1.5 text-xs font-semibold capitalize focus:outline-none focus:border-primary disabled:opacity-50 ${
+                                  pat.plan_type === "premium"
+                                    ? "bg-amber-50 border-amber-200 text-amber-700"
+                                    : pat.plan_type === "integral"
+                                      ? "bg-primary/5 border-primary/20 text-primary"
+                                      : pat.plan_type === "esencial"
+                                        ? "bg-blue-50 border-blue-200 text-blue-700"
+                                        : "bg-slate-50 border-slate-200 text-slate-600"
+                                }`}
+                              >
+                                {PLAN_OPTIONS.map((p) => (
+                                  <option key={p} value={p}>
+                                    {p}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span
+                                className={`inline-block rounded-full px-3 py-1 text-xs font-semibold border ${
+                                  pat.subscription_status === "active"
+                                    ? "bg-emerald-100 border-emerald-200 text-emerald-700"
+                                    : "bg-amber-100 border-amber-200 text-amber-700"
+                                }`}
+                              >
+                                {pat.subscription_status === "active" ? "Activo" : "Inactivo"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                <select
+                                  value={pat.therapist_id ?? ""}
+                                  disabled={busyRow === pat.id}
+                                  onChange={(e) => handleAssign(pat.id, e.target.value)}
+                                  className="rounded-lg border border-slate-200 bg-white/70 px-2 py-1.5 text-xs font-medium text-slate-700 focus:outline-none focus:border-primary disabled:opacity-50 min-w-[180px]"
                                 >
-                                  {pat.plan_type}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 text-slate-600">
-                                {pat.updated_at
-                                  ? new Date(pat.updated_at).toLocaleDateString("es-CO", { dateStyle: "short" })
-                                  : "—"}
-                              </td>
-                              <td className="px-6 py-4 text-slate-600 font-medium">
-                                {therapistAssigned}
-                              </td>
-                            </tr>
-                          );
-                        })}
+                                  <option value="">— Sin asignar —</option>
+                                  {directory.therapists
+                                    .filter((t) => t.subscription_status !== "inactive")
+                                    .map((t) => (
+                                      <option key={t.id} value={t.id}>
+                                        {t.full_name || t.email}
+                                      </option>
+                                    ))}
+                                </select>
+                                {busyRow === pat.id && (
+                                  <Loader2 size={14} className="animate-spin text-primary" />
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   ) : (
                     <div className="p-12 text-center">
-                      <p className="text-sm text-muted-foreground">No hay pacientes registrados.</p>
+                      <p className="text-sm text-muted-foreground">
+                        No hay pacientes registrados. Crea el primero con "Nuevo usuario".
+                      </p>
                     </div>
                   ))}
               </div>

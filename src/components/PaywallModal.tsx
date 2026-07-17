@@ -1,13 +1,20 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { Link } from "@tanstack/react-router";
 import { Lock, Sparkles, X } from "lucide-react";
+import { PLAN_LABELS } from "../lib/api";
+import type { PlanType } from "../lib/supabase";
 
 interface PaywallModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Plan mínimo que desbloquea este contenido (para personalizar el mensaje). */
+  requiredPlan?: PlanType;
 }
 
-export function PaywallModal({ isOpen, onOpenChange }: PaywallModalProps) {
+export function PaywallModal({ isOpen, onOpenChange, requiredPlan }: PaywallModalProps) {
+  const planLabel =
+    requiredPlan && requiredPlan !== "free" ? PLAN_LABELS[requiredPlan] : "Plan Esencial";
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Portal>
@@ -28,7 +35,8 @@ export function PaywallModal({ isOpen, onOpenChange }: PaywallModalProps) {
 
             <Dialog.Description className="text-base text-slate-500 leading-relaxed max-w-[90%] mx-auto">
               Esta guía contiene protocolos clínicos avanzados, ejercicios de terapia cognitiva y
-              herramientas descargables exclusivas para nuestros suscriptores.
+              herramientas descargables. Está disponible desde el{" "}
+              <strong className="text-primary">{planLabel}</strong> en adelante.
             </Dialog.Description>
           </div>
 

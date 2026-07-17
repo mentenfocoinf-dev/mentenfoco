@@ -6,6 +6,7 @@ interface MultiSelectProps {
   selected: string[];
   onChange: (selected: string[]) => void;
   placeholder?: string;
+  disabled?: boolean;
 }
 
 export function MultiSelect({
@@ -13,6 +14,7 @@ export function MultiSelect({
   selected,
   onChange,
   placeholder = "Seleccionar opciones...",
+  disabled = false,
 }: MultiSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -43,8 +45,10 @@ export function MultiSelect({
   return (
     <div className="relative w-full" ref={containerRef}>
       <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="min-h-[44px] w-full cursor-pointer rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-2 text-sm focus:border-primary focus:outline-none shadow-sm flex items-center justify-between transition-all"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        className={`min-h-[44px] w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-2 text-sm focus:border-primary focus:outline-none shadow-sm flex items-center justify-between transition-all ${
+          disabled ? "cursor-not-allowed opacity-60 bg-slate-100" : "cursor-pointer"
+        }`}
       >
         <div className="flex flex-wrap gap-1.5 items-center flex-1">
           {selected.length === 0 ? (
@@ -56,11 +60,13 @@ export function MultiSelect({
                 className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary border border-primary/20"
               >
                 {item}
-                <X
-                  size={12}
-                  className="cursor-pointer hover:text-primary/70 transition-colors"
-                  onClick={(e) => removeOption(e, item)}
-                />
+                {!disabled && (
+                  <X
+                    size={12}
+                    className="cursor-pointer hover:text-primary/70 transition-colors"
+                    onClick={(e) => removeOption(e, item)}
+                  />
+                )}
               </span>
             ))
           )}

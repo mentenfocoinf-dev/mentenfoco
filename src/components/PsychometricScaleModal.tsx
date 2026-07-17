@@ -110,9 +110,10 @@ export function PsychometricScaleModal({ scaleType, patientId, onClose, onSaved 
                 <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-left flex gap-3">
                   <AlertTriangle size={20} className="text-red-600 shrink-0 mt-0.5" />
                   <p className="text-sm text-red-800">
-                    Tu respuesta indica que puede haber riesgo para tu seguridad. Ya avisamos a tu
-                    equipo clínico. Si en este momento estás en peligro, llamá a la línea de emergencia
-                    (106) o acudí al servicio de urgencias más cercano.
+                    Tu respuesta indica que puede haber riesgo para tu seguridad. Ya enviamos una alerta
+                    directa a tu terapeuta asignado, quien se pondrá en contacto contigo lo antes
+                    posible. Si en este momento estás en peligro, acude al servicio de urgencias más
+                    cercano.
                   </p>
                 </div>
               )}

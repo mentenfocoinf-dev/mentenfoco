@@ -42,7 +42,7 @@ export function CognitiveScreeningForm({ therapistId, patients }: Props) {
 
     const score = Number(totalScore);
     if (!patientId || totalScore === "" || Number.isNaN(score) || score < 0 || score > 30) {
-      setErrorMsg("Seleccioná un paciente e ingresá un puntaje válido entre 0 y 30.");
+      setErrorMsg("Selecciona un paciente e ingresa un puntaje válido entre 0 y 30.");
       return;
     }
 

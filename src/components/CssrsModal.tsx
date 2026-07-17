@@ -190,9 +190,10 @@ export function CssrsModal({ patientId, onClose, onSaved }: Props) {
                 <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-left flex gap-3">
                   <AlertTriangle size={20} className="text-red-600 shrink-0 mt-0.5" />
                   <p className="text-sm text-red-800">
-                    Tus respuestas indican que puede haber riesgo para tu seguridad. Ya avisamos a tu
-                    equipo clínico. Si en este momento estás en peligro, llamá a la línea de emergencia
-                    (106) o acudí al servicio de urgencias más cercano.
+                    Tus respuestas indican que puede haber riesgo para tu seguridad. Ya enviamos una
+                    alerta directa a tu terapeuta asignado, quien se pondrá en contacto contigo lo antes
+                    posible. Si en este momento estás en peligro, acude al servicio de urgencias más
+                    cercano.
                   </p>
                 </div>
               )}
@@ -210,7 +211,7 @@ export function CssrsModal({ patientId, onClose, onSaved }: Props) {
           ) : (
             <div className="space-y-5">
               <p className="text-sm font-medium text-slate-600">
-                Estas preguntas son de rutina y ayudan a tu equipo clínico a cuidarte mejor. Respondé
+                Estas preguntas son de rutina y ayudan a tu equipo clínico a cuidarte mejor. Responde
                 con honestidad — no hay respuesta "correcta".
               </p>
 

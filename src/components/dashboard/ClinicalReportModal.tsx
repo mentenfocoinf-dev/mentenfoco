@@ -2,16 +2,29 @@ import { useState, useEffect } from "react";
 import {
   X,
   FileText,
-  Send,
   Loader2,
   Lock,
   Save,
-  AlertTriangle,
   Search,
   BookOpen,
+  ClipboardCheck,
+  History,
+  Info,
 } from "lucide-react";
 import { MultiSelect } from "../MultiSelect";
-import { supabase } from "../../lib/supabase";
+import {
+  getLatestNote,
+  getSignedNotesHistory,
+  saveClinicalNote,
+  getTherapistProfile,
+  searchCie11,
+  getCie11Catalog,
+  getLatestEvaluationsByScale,
+  getPatientAnamnesis,
+  type Cie11Entry,
+  type ClinicalNote,
+  type PsychometricEvaluation,
+} from "../../lib/api";
 
 interface ClinicalReportModalProps {
   isOpen: boolean;
@@ -42,14 +55,14 @@ const CHIEF_COMPLAINTS = [
   "Crecimiento Personal",
 ];
 
-const MENTAL_STATUS_OPTIONS = {
+const MENTAL_STATUS_OPTIONS: Record<string, string[]> = {
   Apariencia: ["Adecuada", "Descuido personal", "Extravagante"],
   Actitud: ["Colaboradora", "Suspicaz", "Defensiva", "Hostil", "Indiferente"],
   Conciencia: ["Alerta", "Somnoliento", "Estuporoso"],
   Orientación: ["Orientado (Global)", "Desorientado en tiempo", "Desorientado en espacio"],
   Atención: ["Euproséxico (Normal)", "Hipoproséxico (Distraído)", "Hiperproséxico"],
   Lenguaje: ["Tono y fluidez normal", "Bradilalia (Lento)", "Taquilalia (Rápido)", "Mutismo"],
-  Afecto: ["Eutímico", "Deprimido", "Ansioso", "Irritable", "Labil", "Aplanado"],
+  Afecto: ["Eutímico", "Deprimido", "Ansioso", "Irritable", "Lábil", "Aplanado"],
   Pensamiento: [
     "Lógico/Coherente",
     "Fuga de ideas",
@@ -59,6 +72,15 @@ const MENTAL_STATUS_OPTIONS = {
   ],
   Sensopercepción: ["Sin alteraciones", "Alucinaciones auditivas", "Alucinaciones visuales"],
   Juicio: ["Conservado", "Debilitado", "Alterado"],
+};
+
+const SCALE_LABELS: Record<string, string> = {
+  phq9: "PHQ-9 · Depresión",
+  gad7: "GAD-7 · Ansiedad",
+  cssrs: "C-SSRS · Riesgo suicida",
+  audit_c: "AUDIT-C · Alcohol",
+  moca: "MoCA · Cognitivo",
+  mmse: "MMSE · Cognitivo",
 };
 
 export function ClinicalReportModal({
@@ -75,19 +97,25 @@ export function ClinicalReportModal({
   const [noteId, setNoteId] = useState<string | null>(null);
   const [isSigned, setIsSigned] = useState(false);
   const [soapData, setSoapData] = useState({ s: "", o: "", a: "", p: "" });
+  const [mentalExam, setMentalExam] = useState<Record<string, string>>({});
 
-  // CIE-11 Predictive Search State
+  // Contexto clínico del paciente
+  const [evaluations, setEvaluations] = useState<Record<string, PsychometricEvaluation>>({});
+  const [anamnesisInfo, setAnamnesisInfo] = useState<{
+    completed_at: string | null;
+    audit_c_score: number | null;
+  } | null>(null);
+  const [history, setHistory] = useState<ClinicalNote[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // CIE-11
   const [diagnostic, setDiagnostic] = useState("");
   const [diagnosticSearch, setDiagnosticSearch] = useState("");
-  const [cie11Results, setCie11Results] = useState<{ code: string; description: string }[]>([]);
+  const [cie11Results, setCie11Results] = useState<Cie11Entry[]>([]);
   const [isSearchingCie11, setIsSearchingCie11] = useState(false);
   const [showCie11Dropdown, setShowCie11Dropdown] = useState(false);
-
-  // CIE-11 Catalog State
   const [showCatalog, setShowCatalog] = useState(false);
-  const [catalogData, setCatalogData] = useState<
-    Record<string, { code: string; description: string }[]>
-  >({});
+  const [catalogData, setCatalogData] = useState<Record<string, Cie11Entry[]>>({});
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(false);
 
   const [therapistProfile, setTherapistProfile] = useState<{
@@ -106,58 +134,37 @@ export function ClinicalReportModal({
     }
     setIsLoadingCatalog(true);
     setShowCatalog(true);
-    const { data } = await supabase.from("cie11_directory").select("*").order("category");
-    if (data) {
-      const grouped = data.reduce((acc: any, curr: any) => {
-        const cat = curr.category || "Otras condiciones clínicas";
-        if (!acc[cat]) acc[cat] = [];
-        acc[cat].push(curr);
-        return acc;
-      }, {});
-      setCatalogData(grouped);
-    }
+    setCatalogData(await getCie11Catalog());
     setIsLoadingCatalog(false);
   };
 
   useEffect(() => {
     if (!isOpen) return;
-    async function fetchNote() {
+    async function fetchAll() {
       setIsLoading(true);
-      // Fetch Therapist Profile
-      const { data: therapistData } = await supabase
-        .from("profiles")
-        .select("full_name, professional_card")
-        .eq("id", therapistId)
-        .single();
 
-      if (therapistData) {
-        setTherapistProfile(therapistData as any);
-      }
+      const [therapist, note, evals, anamnesis, signedHistory] = await Promise.all([
+        getTherapistProfile(therapistId),
+        getLatestNote(patientId, therapistId),
+        getLatestEvaluationsByScale(patientId),
+        getPatientAnamnesis(patientId),
+        getSignedNotesHistory(patientId, therapistId),
+      ]);
 
-      // Fetch Note
-      const { data, error } = await supabase
-        .from("clinical_notes")
-        .select("*")
-        .eq("patient_id", patientId)
-        .eq("therapist_id", therapistId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
+      if (therapist) setTherapistProfile(therapist);
+      setEvaluations(evals);
+      setAnamnesisInfo(anamnesis);
+      setHistory(signedHistory.filter((n) => !note || n.id !== note.id));
 
-      if (data) {
-        setNoteId(data.id);
-        setIsSigned(data.is_signed);
-        if (data.soap_data) {
-          setSoapData({
-            s: data.soap_data.s || "",
-            o: data.soap_data.o || "",
-            a: data.soap_data.a || "",
-            p: data.soap_data.p || "",
-          });
-          setSelectedComplaints(data.soap_data.complaints || []);
-          setDiagnostic(data.soap_data.diagnostic || "");
-          setDiagnosticSearch(data.soap_data.diagnostic || "");
-        }
+      if (note) {
+        setNoteId(note.id);
+        setIsSigned(note.is_signed);
+        const sd = note.soap_data;
+        setSoapData({ s: sd?.s ?? "", o: sd?.o ?? "", a: sd?.a ?? "", p: sd?.p ?? "" });
+        setSelectedComplaints(sd?.complaints ?? []);
+        setDiagnostic(sd?.diagnostic ?? "");
+        setDiagnosticSearch(sd?.diagnostic ?? "");
+        setMentalExam(sd?.mental_exam ?? {});
       } else {
         setNoteId(null);
         setIsSigned(false);
@@ -165,29 +172,22 @@ export function ClinicalReportModal({
         setSelectedComplaints([]);
         setDiagnostic("");
         setDiagnosticSearch("");
+        setMentalExam({});
       }
       setIsLoading(false);
     }
-    fetchNote();
+    fetchAll();
   }, [isOpen, patientId, therapistId]);
 
-  // CIE-11 Search Effect
+  // Búsqueda predictiva CIE-11 (con debounce)
   useEffect(() => {
     if (diagnosticSearch.length >= 3 && diagnosticSearch !== diagnostic) {
-      const fetchCie11 = async () => {
+      const timeoutId = setTimeout(async () => {
         setIsSearchingCie11(true);
-        const { data } = await supabase
-          .from("cie11_directory")
-          .select("code, description")
-          .or(`code.ilike.%${diagnosticSearch}%,description.ilike.%${diagnosticSearch}%`)
-          .limit(15);
-
-        if (data) setCie11Results(data);
+        setCie11Results(await searchCie11(diagnosticSearch));
         setIsSearchingCie11(false);
         setShowCie11Dropdown(true);
-      };
-
-      const timeoutId = setTimeout(fetchCie11, 400); // debounce
+      }, 400);
       return () => clearTimeout(timeoutId);
     } else {
       setCie11Results([]);
@@ -208,41 +208,47 @@ export function ClinicalReportModal({
     }
 
     setIsSubmitting(true);
-
-    const payload = {
-      patient_id: patientId,
-      therapist_id: therapistId,
-      soap_data: {
-        complaints: selectedComplaints,
-        s: soapData.s,
-        o: soapData.o,
-        a: soapData.a,
-        p: soapData.p,
-        diagnostic: diagnostic,
-      },
-      is_signed: sign,
-      signed_at: sign ? new Date().toISOString() : null,
-    };
-
-    if (noteId) {
-      await supabase.from("clinical_notes").update(payload).eq("id", noteId);
-    } else {
-      await supabase.from("clinical_notes").insert(payload);
+    try {
+      await saveClinicalNote({
+        noteId,
+        patientId,
+        therapistId,
+        soapData: {
+          ...soapData,
+          complaints: selectedComplaints,
+          diagnostic,
+          mental_exam: mentalExam,
+        },
+        sign,
+      });
+      onClose();
+    } catch (err) {
+      alert(
+        `No pudimos guardar el informe: ${err instanceof Error ? err.message : "error desconocido"}`,
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitting(false);
-    onClose();
   };
+
+  const selectCie11 = (entry: Cie11Entry) => {
+    const fullString = `${entry.code} - ${entry.description}`;
+    setDiagnostic(fullString);
+    setDiagnosticSearch(fullString);
+    setShowCie11Dropdown(false);
+    setShowCatalog(false);
+  };
+
+  const examCompleted = Object.values(mentalExam).filter(Boolean).length;
+  const examTotal = Object.keys(MENTAL_STATUS_OPTIONS).length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      {/* Backdrop */}
       <div
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
 
-      {/* Modal Content */}
       <div className="relative flex h-[90vh] w-full max-w-5xl flex-col rounded-3xl bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
@@ -252,7 +258,7 @@ export function ClinicalReportModal({
             </div>
             <div>
               <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                Informe Clínico Inteligente
+                Informe Clínico
                 {isSigned && (
                   <span className="flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
                     <Lock size={12} /> Firmado e Inmutable
@@ -264,21 +270,80 @@ export function ClinicalReportModal({
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
-          >
-            <X size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            {history.length > 0 && (
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold transition-colors border ${
+                  showHistory
+                    ? "bg-primary/10 text-primary border-primary/20"
+                    : "text-slate-500 border-slate-200 hover:bg-slate-50"
+                }`}
+              >
+                <History size={14} /> Notas firmadas ({history.length})
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* Form Body */}
+        {/* Body */}
         <div className="flex-1 overflow-y-auto p-6 scroll-smooth">
           {isLoading ? (
             <div className="flex h-full items-center justify-center">
               <div className="flex items-center gap-2 text-slate-500 animate-pulse">
                 <Loader2 className="animate-spin" size={20} /> Cargando historia clínica...
               </div>
+            </div>
+          ) : showHistory ? (
+            /* ── Vista: historial de notas firmadas ── */
+            <div className="mx-auto max-w-4xl space-y-4">
+              <h3 className="text-lg font-bold text-slate-900">Historial de notas firmadas</h3>
+              {history.map((n) => (
+                <div key={n.id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-slate-500">
+                      Firmada el{" "}
+                      {n.signed_at ? new Date(n.signed_at).toLocaleString() : "fecha no disponible"}
+                    </span>
+                    <span className="flex items-center gap-1 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
+                      <Lock size={10} /> Inmutable
+                    </span>
+                  </div>
+                  {n.soap_data?.diagnostic && (
+                    <p className="text-sm font-semibold text-primary mb-2">
+                      Dx: {n.soap_data.diagnostic}
+                    </p>
+                  )}
+                  <div className="grid gap-2 text-sm text-slate-600">
+                    {n.soap_data?.s && (
+                      <p>
+                        <strong className="text-slate-800">S:</strong> {n.soap_data.s}
+                      </p>
+                    )}
+                    {n.soap_data?.o && (
+                      <p>
+                        <strong className="text-slate-800">O:</strong> {n.soap_data.o}
+                      </p>
+                    )}
+                    {n.soap_data?.a && (
+                      <p>
+                        <strong className="text-slate-800">A:</strong> {n.soap_data.a}
+                      </p>
+                    )}
+                    {n.soap_data?.p && (
+                      <p>
+                        <strong className="text-slate-800">P:</strong> {n.soap_data.p}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <form
@@ -287,17 +352,61 @@ export function ClinicalReportModal({
                 e.preventDefault();
                 handleSave(false);
               }}
-              className="mx-auto max-w-4xl space-y-12"
+              className="mx-auto max-w-4xl space-y-10"
             >
+              {/* 0. Contexto del paciente (solo lectura) */}
+              <section className="rounded-2xl border border-primary/15 bg-primary/5 p-5">
+                <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-primary">
+                  <ClipboardCheck size={16} /> Contexto del paciente
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {Object.entries(evaluations).length > 0 ? (
+                    Object.entries(evaluations).map(([scale, ev]) => (
+                      <div
+                        key={scale}
+                        className="rounded-xl border border-white bg-white/80 px-4 py-2.5 shadow-sm"
+                      >
+                        <p className="text-xs font-bold text-slate-700">
+                          {SCALE_LABELS[scale] ?? scale.toUpperCase()}
+                        </p>
+                        <p className="text-xs text-slate-500">
+                          {scale === "cssrs"
+                            ? `Riesgo: ${ev.severity_level ?? "—"}`
+                            : `${ev.total_score} pts · ${ev.severity_level ?? "—"}`}{" "}
+                          · {new Date(ev.evaluated_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-slate-500">
+                      El paciente aún no tiene evaluaciones psicométricas registradas.
+                    </p>
+                  )}
+                  <div className="rounded-xl border border-white bg-white/80 px-4 py-2.5 shadow-sm">
+                    <p className="text-xs font-bold text-slate-700">Anamnesis</p>
+                    <p className="text-xs text-slate-500">
+                      {anamnesisInfo?.completed_at
+                        ? `Completada el ${new Date(anamnesisInfo.completed_at).toLocaleDateString()}${
+                            anamnesisInfo.audit_c_score != null
+                              ? ` · AUDIT-C: ${anamnesisInfo.audit_c_score}`
+                              : ""
+                          }`
+                        : "Pendiente por diligenciar"}
+                    </p>
+                  </div>
+                </div>
+              </section>
+
               {/* 1. Motivo de Consulta */}
               <section>
-                <h3 className="mb-4 text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
+                <h3 className="mb-1 text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
                   1. Motivo de Consulta
                 </h3>
+                <p className="mb-4 text-xs text-slate-500 flex items-center gap-1.5">
+                  <Info size={13} /> Selecciona una o varias etiquetas que resuman por qué consulta
+                  el paciente.
+                </p>
                 <div className="max-w-2xl">
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Etiquetas Clínicas
-                  </label>
                   <MultiSelect
                     options={CHIEF_COMPLAINTS}
                     selected={selectedComplaints}
@@ -314,9 +423,22 @@ export function ClinicalReportModal({
 
               {/* 2. Examen del Estado Mental */}
               <section>
-                <h3 className="mb-4 text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
-                  2. Examen del Estado Mental
-                </h3>
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2 mb-1">
+                  <h3 className="text-lg font-bold text-slate-900">2. Examen del Estado Mental</h3>
+                  <span
+                    className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                      examCompleted === examTotal
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-slate-100 text-slate-500"
+                    }`}
+                  >
+                    {examCompleted}/{examTotal}
+                  </span>
+                </div>
+                <p className="mb-4 text-xs text-slate-500 flex items-center gap-1.5">
+                  <Info size={13} /> Registra lo observado en cada área. Puedes dejar áreas sin
+                  seleccionar si no aplican a esta sesión.
+                </p>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {Object.entries(MENTAL_STATUS_OPTIONS).map(([category, options]) => (
                     <div key={category}>
@@ -325,7 +447,15 @@ export function ClinicalReportModal({
                       </label>
                       <select
                         disabled={isSigned}
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2.5 text-sm text-slate-700 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all hover:bg-white shadow-sm disabled:opacity-60 disabled:bg-slate-100"
+                        value={mentalExam[category] ?? ""}
+                        onChange={(e) =>
+                          setMentalExam({ ...mentalExam, [category]: e.target.value })
+                        }
+                        className={`w-full rounded-xl border px-3 py-2.5 text-sm focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all hover:bg-white shadow-sm disabled:opacity-60 disabled:bg-slate-100 ${
+                          mentalExam[category]
+                            ? "border-primary/30 bg-primary/5 text-slate-800 font-medium"
+                            : "border-slate-200 bg-slate-50/50 text-slate-700"
+                        }`}
                       >
                         <option value="">Seleccionar...</option>
                         {options.map((opt) => (
@@ -341,87 +471,82 @@ export function ClinicalReportModal({
 
               {/* 3. Evolución (Modelo SOAP) */}
               <section>
-                <h3 className="mb-4 text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
+                <h3 className="mb-1 text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
                   3. Evolución (Modelo SOAP)
                 </h3>
+                <p className="mb-4 text-xs text-slate-500 flex items-center gap-1.5">
+                  <Info size={13} /> Describe la sesión en los cuatro componentes. Escribe con
+                  lenguaje claro: esta nota hace parte de la historia clínica.
+                </p>
                 <div className="space-y-6">
-                  <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
-                      <span className="flex h-6 w-6 items-center justify-center rounded bg-blue-100 text-blue-700">
-                        S
-                      </span>
-                      Subjetivo
-                    </label>
-                    <textarea
-                      rows={3}
-                      disabled={isSigned}
-                      value={soapData.s}
-                      onChange={(e) => setSoapData({ ...soapData, s: e.target.value })}
-                      className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm text-slate-700 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-slate-400 shadow-sm disabled:opacity-60 disabled:bg-slate-100"
-                      placeholder="Registre las frases textuales más relevantes del paciente sobre su estado, síntomas y percepción de la semana..."
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
-                      <span className="flex h-6 w-6 items-center justify-center rounded bg-emerald-100 text-emerald-700">
-                        O
-                      </span>
-                      Objetivo
-                    </label>
-                    <textarea
-                      rows={3}
-                      disabled={isSigned}
-                      value={soapData.o}
-                      onChange={(e) => setSoapData({ ...soapData, o: e.target.value })}
-                      className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm text-slate-700 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-slate-400 shadow-sm disabled:opacity-60 disabled:bg-slate-100"
-                      placeholder="Describa lo observado clínicamente en la sesión: lenguaje corporal, afecto visible, nivel de colaboración y reactividad..."
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
-                      <span className="flex h-6 w-6 items-center justify-center rounded bg-amber-100 text-amber-700">
-                        A
-                      </span>
-                      Análisis
-                    </label>
-                    <textarea
-                      rows={3}
-                      disabled={isSigned}
-                      value={soapData.a}
-                      onChange={(e) => setSoapData({ ...soapData, a: e.target.value })}
-                      className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm text-slate-700 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-slate-400 shadow-sm disabled:opacity-60 disabled:bg-slate-100"
-                      placeholder="Interpretación clínica del avance, impresión diagnóstica, resistencias observadas y conceptualización del caso..."
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
-                      <span className="flex h-6 w-6 items-center justify-center rounded bg-purple-100 text-purple-700">
-                        P
-                      </span>
-                      Plan
-                    </label>
-                    <textarea
-                      rows={3}
-                      disabled={isSigned}
-                      value={soapData.p}
-                      onChange={(e) => setSoapData({ ...soapData, p: e.target.value })}
-                      className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm text-slate-700 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-slate-400 shadow-sm disabled:opacity-60 disabled:bg-slate-100"
-                      placeholder="Tareas asignadas, enfoque terapéutico para la próxima sesión y recomendaciones específicas..."
-                    />
-                  </div>
+                  {(
+                    [
+                      {
+                        key: "s" as const,
+                        letter: "S",
+                        title: "Subjetivo",
+                        color: "bg-blue-100 text-blue-700",
+                        placeholder:
+                          "Registre las frases textuales más relevantes del paciente sobre su estado, síntomas y percepción de la semana...",
+                      },
+                      {
+                        key: "o" as const,
+                        letter: "O",
+                        title: "Objetivo",
+                        color: "bg-emerald-100 text-emerald-700",
+                        placeholder:
+                          "Describa lo observado clínicamente en la sesión: lenguaje corporal, afecto visible, nivel de colaboración y reactividad...",
+                      },
+                      {
+                        key: "a" as const,
+                        letter: "A",
+                        title: "Análisis",
+                        color: "bg-amber-100 text-amber-700",
+                        placeholder:
+                          "Interpretación clínica del avance, impresión diagnóstica, resistencias observadas y conceptualización del caso...",
+                      },
+                      {
+                        key: "p" as const,
+                        letter: "P",
+                        title: "Plan",
+                        color: "bg-purple-100 text-purple-700",
+                        placeholder:
+                          "Tareas asignadas, enfoque terapéutico para la próxima sesión y recomendaciones específicas...",
+                      },
+                    ] as const
+                  ).map((f) => (
+                    <div key={f.key}>
+                      <label className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800">
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded ${f.color}`}
+                        >
+                          {f.letter}
+                        </span>
+                        {f.title}
+                      </label>
+                      <textarea
+                        rows={3}
+                        disabled={isSigned}
+                        value={soapData[f.key]}
+                        onChange={(e) => setSoapData({ ...soapData, [f.key]: e.target.value })}
+                        className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm text-slate-700 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all placeholder:text-slate-400 shadow-sm disabled:opacity-60 disabled:bg-slate-100"
+                        placeholder={f.placeholder}
+                      />
+                    </div>
+                  ))}
                 </div>
               </section>
 
               {/* 4. Impresión Diagnóstica */}
               <section>
-                <h3 className="mb-4 text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
+                <h3 className="mb-1 text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">
                   4. Impresión Diagnóstica (CIE-11)
                 </h3>
+                <p className="mb-4 text-xs text-slate-500 flex items-center gap-1.5">
+                  <Info size={13} /> Busca por nombre o código, o explora el catálogo completo por
+                  categorías.
+                </p>
                 <div className="max-w-2xl relative">
-                  <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Búsqueda Predictiva de Diagnóstico
-                  </label>
-
                   <div className="flex gap-2">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -432,7 +557,7 @@ export function ClinicalReportModal({
                         onChange={(e) => {
                           setDiagnosticSearch(e.target.value);
                           if (diagnostic && e.target.value !== diagnostic) {
-                            setDiagnostic(""); // reset exact match if user types
+                            setDiagnostic("");
                           }
                         }}
                         placeholder={
@@ -458,7 +583,6 @@ export function ClinicalReportModal({
                     </button>
                   </div>
 
-                  {/* Dropdown Results */}
                   {showCie11Dropdown && cie11Results.length > 0 && !isSigned && (
                     <div className="absolute z-10 mt-1 w-[calc(100%-190px)] rounded-xl border border-slate-200 bg-white shadow-xl overflow-hidden max-h-60 overflow-y-auto">
                       {cie11Results.map((result) => (
@@ -466,13 +590,7 @@ export function ClinicalReportModal({
                           key={result.code}
                           type="button"
                           className="flex w-full text-left px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 border-b border-slate-100 last:border-0 transition-colors"
-                          onClick={() => {
-                            const fullString = `${result.code} - ${result.description}`;
-                            setDiagnostic(fullString);
-                            setDiagnosticSearch(fullString);
-                            setShowCie11Dropdown(false);
-                            setShowCatalog(false);
-                          }}
+                          onClick={() => selectCie11(result)}
                         >
                           <span className="font-bold text-primary shrink-0 mr-3 w-12">
                             {result.code}
@@ -492,7 +610,6 @@ export function ClinicalReportModal({
                       </div>
                     )}
 
-                  {/* Catalog Accordion */}
                   {showCatalog && !isSigned && (
                     <div className="mt-4 border border-slate-200 rounded-xl bg-white overflow-hidden shadow-sm animate-in slide-in-from-top-2 duration-200">
                       <div className="p-3 bg-slate-50 border-b border-slate-200 font-semibold text-sm text-slate-700">
@@ -532,12 +649,7 @@ export function ClinicalReportModal({
                                   <button
                                     key={item.code}
                                     type="button"
-                                    onClick={() => {
-                                      const fullString = `${item.code} - ${item.description}`;
-                                      setDiagnostic(fullString);
-                                      setDiagnosticSearch(fullString);
-                                      setShowCatalog(false);
-                                    }}
+                                    onClick={() => selectCie11(item)}
                                     className="flex w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-white hover:shadow-sm rounded-md transition-all border border-transparent hover:border-slate-200"
                                   >
                                     <span className="font-bold text-primary shrink-0 mr-3 w-12">
@@ -559,9 +671,8 @@ export function ClinicalReportModal({
           )}
         </div>
 
-        {/* Footer Actions & Metadata */}
+        {/* Footer */}
         <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/80 px-6 py-4 backdrop-blur">
-          {/* Metadata Clínico */}
           <div className="flex items-center gap-2 text-sm text-slate-500">
             {therapistProfile && (
               <>
@@ -587,7 +698,7 @@ export function ClinicalReportModal({
             >
               Cerrar
             </button>
-            {!isSigned && (
+            {!isSigned && !showHistory && (
               <>
                 <button
                   type="button"
