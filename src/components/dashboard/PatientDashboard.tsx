@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Video,
   Clock,
+  MessageCircle,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -29,6 +30,7 @@ import { supabase, type Profile } from "../../lib/supabase";
 import { PsychometricScaleModal } from "../PsychometricScaleModal";
 import { CssrsModal } from "../CssrsModal";
 import { PatientMessages } from "../messaging/PatientMessages";
+import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
 import {
   PLAN_LABELS,
   PLAN_OFFERS,
@@ -41,6 +43,7 @@ import {
   getPatientEvaluations,
   getPatientAnamnesis,
   getPatientSessions,
+  getPatientUnreadCount,
   type PsychometricEvaluation,
   type TherapySession,
 } from "../../lib/api";
@@ -83,6 +86,11 @@ export function PatientDashboard({ profile, onLogout }: Props) {
   const [evaluationHistory, setEvaluationHistory] = useState<PsychometricEvaluation[]>([]);
   const [anamnesis, setAnamnesis] = useState<AnamnesisSummary | null>(null);
   const [sessions, setSessions] = useState<TherapySession[]>([]);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  function scrollToMessages() {
+    document.getElementById("mensajeria")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   async function fetchRecentEvaluations() {
     setRecentEvaluations(await getLatestEvaluationsByScale(profile.id));
@@ -107,6 +115,10 @@ export function PatientDashboard({ profile, onLogout }: Props) {
     }
     fetchData();
 
+    getPatientUnreadCount(profile.id)
+      .then(setUnreadMessages)
+      .catch((err) => console.error("[PatientDashboard] Error cargando no leídos:", err));
+
     // Suscripción en tiempo real a alertas de alta prioridad
     const channel = supabase
       .channel("clinical_alerts_channel")
@@ -126,8 +138,29 @@ export function PatientDashboard({ profile, onLogout }: Props) {
       )
       .subscribe();
 
+    // Realtime: mensajes nuevos dirigidos a este paciente, para el badge global del header
+    // (independiente de la suscripción propia de PatientMessages/ChatThread).
+    const unreadChannel = supabase
+      .channel(`patient_unread_badge_${profile.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `patient_id=eq.${profile.id}`,
+        },
+        (payload) => {
+          if (payload.new.sender_id !== profile.id) {
+            setUnreadMessages((prev) => prev + 1);
+          }
+        },
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(channel);
+      supabase.removeChannel(unreadChannel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile.id]);
@@ -210,12 +243,25 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                 {planLabel}
               </span>
             </div>
-            <button
-              onClick={onLogout}
-              className="rounded-xl border border-white/50 bg-white/40 backdrop-blur px-4 py-2 text-sm font-bold text-primary hover:bg-white/60 transition-colors shadow-sm flex items-center gap-2"
-            >
-              <LogOut size={16} /> Cerrar sesión
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={scrollToMessages}
+                className="relative rounded-xl border border-white/50 bg-white/40 backdrop-blur px-4 py-2 text-sm font-bold text-primary hover:bg-white/60 transition-colors shadow-sm flex items-center gap-2"
+              >
+                <MessageCircle size={16} /> Mensajes
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-2 -right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unreadMessages}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={onLogout}
+                className="rounded-xl border border-white/50 bg-white/40 backdrop-blur px-4 py-2 text-sm font-bold text-primary hover:bg-white/60 transition-colors shadow-sm flex items-center gap-2"
+              >
+                <LogOut size={16} /> Cerrar sesión
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -293,6 +339,20 @@ export function PatientDashboard({ profile, onLogout }: Props) {
               <p className="text-sm text-muted-foreground mb-4">
                 Estas son las sesiones que tu terapeuta ha programado contigo.
               </p>
+
+              <div className="mb-5">
+                <WeeklyAgenda
+                  items={sessions.map((s) => ({
+                    id: s.id,
+                    scheduled_at: s.scheduled_at,
+                    duration_minutes: s.duration_minutes,
+                    status: s.status,
+                    label: "Tu sesión",
+                    video_call_link: s.video_call_link,
+                  }))}
+                />
+              </div>
+
               {upcomingSessions.length > 0 ? (
                 <div className="space-y-3">
                   {upcomingSessions.slice(0, 5).map((s) => (
@@ -603,7 +663,9 @@ export function PatientDashboard({ profile, onLogout }: Props) {
             </div>
 
             {/* Mensajes con tu terapeuta */}
-            <PatientMessages patientId={profile.id} />
+            <div id="mensajeria" className="scroll-mt-24">
+              <PatientMessages patientId={profile.id} onRead={() => setUnreadMessages(0)} />
+            </div>
           </div>
 
           {/* Panel derecho: recomendaciones dinámicas */}

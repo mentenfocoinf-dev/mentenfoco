@@ -11,11 +11,13 @@ import {
   X,
   Calendar,
   Video,
+  MessageCircle,
 } from "lucide-react";
 import { supabase, type Profile } from "../../lib/supabase";
 import { ClinicalReportModal } from "./ClinicalReportModal";
 import { CognitiveScreeningForm } from "../CognitiveScreeningForm";
 import { TherapistMessages } from "../messaging/TherapistMessages";
+import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
 import {
   getTherapistPatients,
   getPrescriptionsCatalog,
@@ -25,8 +27,10 @@ import {
   createSession,
   updateSessionStatus,
   updateSessionVideoLink,
+  getTherapistUnreadCount,
   type TherapistSessionRow,
   type SessionStatus,
+  type TherapistConversation,
 } from "../../lib/api";
 
 const SESSION_STATUS_OPTIONS: { value: SessionStatus; label: string }[] = [
@@ -83,6 +87,17 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
   const [scheduleError, setScheduleError] = useState("");
   const [videoLinkDrafts, setVideoLinkDrafts] = useState<Record<string, string>>({});
 
+  // Badge global de mensajes no leídos (visible en el header, fuera de la tarjeta de mensajería).
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  function handleConversationsChange(conversations: TherapistConversation[]) {
+    setUnreadMessages(conversations.reduce((sum, c) => sum + c.unread_count, 0));
+  }
+
+  function scrollToMessages() {
+    document.getElementById("mensajeria")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   useEffect(() => {
     async function fetchDashboardData() {
       try {
@@ -101,6 +116,33 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     }
     fetchDashboardData();
     fetchSessions();
+    getTherapistUnreadCount(profile.id)
+      .then(setUnreadMessages)
+      .catch((err) => console.error("[TherapistDashboard] Error cargando no leídos:", err));
+
+    // Realtime: cualquier mensaje nuevo dirigido a este terapeuta actualiza el contador global,
+    // incluso si la tarjeta de mensajería (que ya tiene su propia suscripción) aún no se montó.
+    const unreadChannel = supabase
+      .channel(`therapist_unread_badge_${profile.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `therapist_id=eq.${profile.id}`,
+        },
+        (payload) => {
+          if (payload.new.sender_id !== profile.id) {
+            setUnreadMessages((prev) => prev + 1);
+          }
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(unreadChannel);
+    };
   }, [profile.id]);
 
   async function fetchSessions() {
@@ -345,12 +387,25 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                 Terapeuta
               </span>
             </div>
-            <button
-              onClick={onLogout}
-              className="rounded-xl border border-white/50 bg-white/40 backdrop-blur px-4 py-2 text-sm font-bold text-primary hover:bg-white/60 transition-colors shadow-sm flex items-center gap-2"
-            >
-              <LogOut size={16} /> Cerrar sesión
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={scrollToMessages}
+                className="relative rounded-xl border border-white/50 bg-white/40 backdrop-blur px-4 py-2 text-sm font-bold text-primary hover:bg-white/60 transition-colors shadow-sm flex items-center gap-2"
+              >
+                <MessageCircle size={16} /> Mensajes
+                {unreadMessages > 0 && (
+                  <span className="absolute -top-2 -right-2 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                    {unreadMessages}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={onLogout}
+                className="rounded-xl border border-white/50 bg-white/40 backdrop-blur px-4 py-2 text-sm font-bold text-primary hover:bg-white/60 transition-colors shadow-sm flex items-center gap-2"
+              >
+                <LogOut size={16} /> Cerrar sesión
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -539,6 +594,22 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
           {/* Lista de sesiones */}
           <div className="card-neon-hover rounded-3xl glass-card p-6 border border-white/40">
             <h3 className="text-sm font-bold text-primary mb-4">Sesiones programadas</h3>
+
+            {!sessionsLoading && sessions.length > 0 && (
+              <div className="mb-5">
+                <WeeklyAgenda
+                  items={sessions.map((s) => ({
+                    id: s.id,
+                    scheduled_at: s.scheduled_at,
+                    duration_minutes: s.duration_minutes,
+                    status: s.status,
+                    label: s.patient?.full_name || s.patient?.email || "Paciente",
+                    video_call_link: s.video_call_link,
+                  }))}
+                />
+              </div>
+            )}
+
             {sessionsLoading ? (
               <p className="text-sm text-muted-foreground animate-pulse">Cargando agenda...</p>
             ) : sessions.length > 0 ? (
@@ -695,8 +766,8 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-4 md:px-6">
-        <TherapistMessages therapistId={profile.id} />
+      <section id="mensajeria" className="mx-auto max-w-7xl px-4 pb-4 md:px-6 scroll-mt-24">
+        <TherapistMessages therapistId={profile.id} onConversationsChange={handleConversationsChange} />
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-4 md:px-6">

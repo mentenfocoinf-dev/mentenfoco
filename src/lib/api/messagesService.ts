@@ -106,6 +106,29 @@ export async function markConversationAsRead(
   if (error) throw new Error(error.message);
 }
 
+// ── Contadores de no leídos (para el badge global fuera de la pantalla de mensajes) ─────────────
+export async function getPatientUnreadCount(patientId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("messages")
+    .select("*", { count: "exact", head: true })
+    .eq("patient_id", patientId)
+    .neq("sender_id", patientId)
+    .is("read_at", null);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
+export async function getTherapistUnreadCount(therapistId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("messages")
+    .select("*", { count: "exact", head: true })
+    .eq("therapist_id", therapistId)
+    .neq("sender_id", therapistId)
+    .is("read_at", null);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
 // ── Bandeja del terapeuta ────────────────────────────────────────────────────
 // Resumen por paciente (último mensaje + no leídos). Se trae la lista de mensajes
 // del terapeuta con el nombre del paciente embebido y se reduce en el cliente.

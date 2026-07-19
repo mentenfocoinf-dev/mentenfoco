@@ -4,16 +4,25 @@ import { supabase } from "../../lib/supabase";
 import { getTherapistConversations, type TherapistConversation } from "../../lib/api";
 import { ChatThread } from "./ChatThread";
 
+interface Props {
+  therapistId: string;
+  // Notifica al dashboard cada vez que se recarga la bandeja, para que el badge global del
+  // header (fuera de esta tarjeta) se mantenga sincronizado sin duplicar la consulta.
+  onConversationsChange?: (conversations: TherapistConversation[]) => void;
+}
+
 // Bandeja de mensajería del terapeuta: lista de conversaciones (último mensaje + no leídos)
 // y, al abrir una, el hilo en un modal.
-export function TherapistMessages({ therapistId }: { therapistId: string }) {
+export function TherapistMessages({ therapistId, onConversationsChange }: Props) {
   const [conversations, setConversations] = useState<TherapistConversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState<TherapistConversation | null>(null);
 
   async function load() {
     try {
-      setConversations(await getTherapistConversations(therapistId));
+      const data = await getTherapistConversations(therapistId);
+      setConversations(data);
+      onConversationsChange?.(data);
     } catch (err) {
       console.error("[TherapistMessages] Error cargando conversaciones:", err);
     } finally {
@@ -123,6 +132,7 @@ export function TherapistMessages({ therapistId }: { therapistId: string }) {
                 currentUserId={therapistId}
                 otherName={active.patient_name}
                 heightClass="h-96"
+                onRead={load}
               />
             </div>
           </div>

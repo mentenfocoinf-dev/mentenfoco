@@ -15,6 +15,10 @@ interface Props {
   // Nombre del interlocutor (para el vacío/placeholder), opcional.
   otherName?: string;
   heightClass?: string;
+  // Se dispara cuando el hilo marca como leídos los mensajes entrantes. Sirve para que el badge
+  // de no leídos del dashboard se ponga en cero: sin esto el contador queda "fantasma", mostrando
+  // mensajes que este mismo hilo ya marcó como leídos.
+  onRead?: () => void;
 }
 
 // Hilo de conversación reutilizable (paciente o terapeuta). La conversación es el par
@@ -25,12 +29,20 @@ export function ChatThread({
   currentUserId,
   otherName,
   heightClass = "h-80",
+  onRead,
 }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Guardamos onRead en un ref: si lo pusiéramos en las dependencias del efecto, un callback
+  // inline del padre recrearía la suscripción de realtime en cada render.
+  const onReadRef = useRef(onRead);
+  useEffect(() => {
+    onReadRef.current = onRead;
+  }, [onRead]);
 
   useEffect(() => {
     let cancelled = false;
@@ -41,7 +53,9 @@ export function ChatThread({
         const data = await getConversation(patientId, therapistId);
         if (cancelled) return;
         setMessages(data);
-        markConversationAsRead(patientId, therapistId, currentUserId).catch(() => {});
+        markConversationAsRead(patientId, therapistId, currentUserId)
+          .then(() => onReadRef.current?.())
+          .catch(() => {});
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -64,7 +78,9 @@ export function ChatThread({
           if (m.therapist_id !== therapistId) return;
           setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
           if (m.sender_id !== currentUserId) {
-            markConversationAsRead(patientId, therapistId, currentUserId).catch(() => {});
+            markConversationAsRead(patientId, therapistId, currentUserId)
+              .then(() => onReadRef.current?.())
+              .catch(() => {});
           }
         },
       )

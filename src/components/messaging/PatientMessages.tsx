@@ -5,7 +5,15 @@ import { ChatThread } from "./ChatThread";
 
 // Tarjeta de mensajería para el dashboard del paciente. Resuelve el terapeuta asignado
 // y muestra el hilo; si aún no hay terapeuta, muestra un estado vacío claro.
-export function PatientMessages({ patientId }: { patientId: string }) {
+export function PatientMessages({
+  patientId,
+  onRead,
+}: {
+  patientId: string;
+  // Se propaga al hilo para que el badge de no leídos del header vuelva a cero cuando el chat
+  // marca los mensajes entrantes como leídos.
+  onRead?: () => void;
+}) {
   const [therapistId, setTherapistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -43,6 +51,7 @@ export function PatientMessages({ patientId }: { patientId: string }) {
           therapistId={therapistId}
           currentUserId={patientId}
           otherName="tu terapeuta"
+          onRead={onRead}
         />
       ) : (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white/40 p-4">
