@@ -96,7 +96,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profileData.session_token = localSessionToken;
       }
 
-      // 2. Onboarding Forced Redirection (SOLO para pacientes)
+      // 2. Cambio de contraseña obligatorio (cuentas creadas por signup autoservicio).
+      // Va antes del onboarding: mientras el usuario siga con la contraseña temporal
+      // que le llegó por correo, no debe poder navegar a ninguna otra ruta del portal.
+      if (profileData.must_change_password === true) {
+        if (window.location.pathname !== "/nueva-contrasena") {
+          window.location.href = "/nueva-contrasena";
+          return;
+        }
+        // Ya está en la pantalla correcta: publica el perfil para que la ruta
+        // pueda leer la sesión, pero no sigue al chequeo de onboarding.
+        setProfile(profileData);
+        return;
+      }
+
+      // 3. Onboarding Forced Redirection (SOLO para pacientes)
       if (profileData.role === "patient" && profileData.onboarding_completed === false) {
         const currentPath = window.location.pathname;
         if (currentPath !== "/anamnesis" && currentPath !== "/compra-exitosa") {

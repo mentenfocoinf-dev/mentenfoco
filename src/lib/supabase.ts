@@ -28,6 +28,13 @@ export interface Profile {
   professional_card?: string | null;
   session_token?: string | null;
   onboarding_completed?: boolean;
+  // Campos del signup autoservicio de cuenta gratuita (20260720_signup_gratis.sql)
+  phone?: string | null;
+  must_change_password?: boolean;
+  terms_accepted_at?: string | null;
+  terms_version?: string | null;
+  marketing_consent?: boolean;
+  signup_source?: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreNosotrosRouteImport } from './routes/sobre-nosotros'
+import { Route as NuevaContrasenaRouteImport } from './routes/nueva-contrasena'
 import { Route as MembresiaRouteImport } from './routes/membresia'
 import { Route as IngresaRouteImport } from './routes/ingresa'
 import { Route as GuiaRouteImport } from './routes/guia'
@@ -23,6 +24,11 @@ import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
 const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
   id: '/sobre-nosotros',
   path: '/sobre-nosotros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NuevaContrasenaRoute = NuevaContrasenaRouteImport.update({
+  id: '/nueva-contrasena',
+  path: '/nueva-contrasena',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembresiaRoute = MembresiaRouteImport.update({
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
   '/membresia': typeof MembresiaRoute
+  '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
   '/membresia': typeof MembresiaRoute
+  '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
   '/membresia': typeof MembresiaRoute
+  '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/guia'
     | '/ingresa'
     | '/membresia'
+    | '/nueva-contrasena'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/guia'
     | '/ingresa'
     | '/membresia'
+    | '/nueva-contrasena'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/guia'
     | '/ingresa'
     | '/membresia'
+    | '/nueva-contrasena'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   GuiaRoute: typeof GuiaRoute
   IngresaRoute: typeof IngresaRoute
   MembresiaRoute: typeof MembresiaRoute
+  NuevaContrasenaRoute: typeof NuevaContrasenaRoute
   SobreNosotrosRoute: typeof SobreNosotrosRoute
   GuiasGuiaIdRoute: typeof GuiasGuiaIdRoute
 }
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/sobre-nosotros'
       fullPath: '/sobre-nosotros'
       preLoaderRoute: typeof SobreNosotrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nueva-contrasena': {
+      id: '/nueva-contrasena'
+      path: '/nueva-contrasena'
+      fullPath: '/nueva-contrasena'
+      preLoaderRoute: typeof NuevaContrasenaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/membresia': {
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuiaRoute: GuiaRoute,
   IngresaRoute: IngresaRoute,
   MembresiaRoute: MembresiaRoute,
+  NuevaContrasenaRoute: NuevaContrasenaRoute,
   SobreNosotrosRoute: SobreNosotrosRoute,
   GuiasGuiaIdRoute: GuiasGuiaIdRoute,
 }

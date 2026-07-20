@@ -3,6 +3,7 @@ import { lazy, Suspense, useState } from "react";
 import { Users, Loader2, CheckCircle } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { signIn, signOut, requestPasswordReset } from "../lib/api";
+import { SignupModal } from "../components/SignupModal";
 
 // Lazy loading de dashboards — solo se carga el que corresponde al rol del usuario
 const PatientDashboard = lazy(() =>
@@ -49,6 +50,7 @@ function Ingresa() {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [forgotEmail, setForgotEmail] = useState("");
+  const [signupOpen, setSignupOpen] = useState(false);
 
   // ── Login ─────────────────────────────────────────────────────────────
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -184,9 +186,19 @@ function Ingresa() {
                 </button>
               </form>
 
-              <p className="mt-6 text-center text-sm text-muted-foreground">
-                El acceso es exclusivo para usuarios con membresía o pacientes activos.
-              </p>
+              <div className="mt-6 border-t border-white/50 pt-6 text-center">
+                <p className="text-sm text-muted-foreground">¿Aún no tienes cuenta?</p>
+                <button
+                  type="button"
+                  onClick={() => setSignupOpen(true)}
+                  className="mt-3 w-full rounded-xl border border-primary/30 bg-white/50 px-4 py-3 text-sm font-bold text-primary transition-transform hover:scale-[1.02] hover:bg-white/80"
+                >
+                  Crear cuenta gratis
+                </button>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Acceso sin costo a una selección de guías de bienestar.
+                </p>
+              </div>
             </>
           )}
 
@@ -264,6 +276,8 @@ function Ingresa() {
             </div>
           )}
         </div>
+
+        <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} />
       </section>
     );
   }
