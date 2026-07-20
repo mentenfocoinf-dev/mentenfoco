@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Mente en Foco",
+    "slug": "mente-en-foco-mobile",
+    "scheme": "menteenfoco",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#f4f6fb"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.mentenfoco.mobile"
+    },
+    "android": {
+      "package": "com.mentenfoco.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#f4f6fb"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset"
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}

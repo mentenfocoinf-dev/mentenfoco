@@ -38,3 +38,6 @@ supabase/.temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Expo (estado local del CLI)
+mobile/.expo/
