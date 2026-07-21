@@ -22,11 +22,12 @@ export async function requestPasswordReset(email: string) {
 
 // ── Inicio de sesión con proveedores externos ───────────────────────────────
 
-export type OAuthProvider = "google" | "facebook";
+// Solo Google: el acceso con redes sociales generalistas se descartó por ser
+// esta una plataforma estrictamente clínica.
+export type OAuthProvider = "google";
 
 const PROVIDER_LABELS: Record<OAuthProvider, string> = {
   google: "Google",
-  facebook: "Facebook",
 };
 
 /**

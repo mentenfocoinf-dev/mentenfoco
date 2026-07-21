@@ -46,27 +46,35 @@ type View = "login" | "forgot" | "forgot-sent";
 const inputClass =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none transition-colors";
 
+// Imagen de fondo del panel de acceso. Se pidió `public/images/pasareladepago`,
+// que no existe en el repositorio en ningún formato; se usa portal.jpg como
+// sustituto. Basta con cambiar esta constante al subir el archivo definitivo.
+const BRAND_PANEL_IMAGE = "/images/portal.jpg";
+
 /**
  * Panel decorativo izquierdo. Solo se muestra desde lg: en pantallas pequeñas el
  * formulario ocupa todo el ancho, que es lo que se espera en móvil.
  */
 function BrandPanel() {
   return (
-    <div className="relative hidden overflow-hidden rounded-2xl bg-primary lg:flex lg:w-[45%] lg:flex-col lg:justify-between">
-      {/* Halos de color: reemplazan la imagen de fondo del diseño de referencia
-          manteniendo la paleta de la marca en vez de introducir un morado ajeno. */}
-      <div
+    <div className="relative hidden overflow-hidden rounded-2xl bg-primary lg:flex lg:w-[45%] lg:flex-col lg:justify-end">
+      <img
+        src={BRAND_PANEL_IMAGE}
+        alt=""
         aria-hidden="true"
-        className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-sky-400/30 blur-3xl"
+        className="absolute inset-0 h-full w-full object-cover"
       />
+      {/* Velo oscuro: garantiza contraste del texto sobre cualquier imagen. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-32 -right-16 h-96 w-96 rounded-full bg-cyan-300/20 blur-3xl"
+        className="absolute inset-0 bg-gradient-to-t from-primary via-primary/70 to-primary/20"
       />
 
-      <div className="relative p-8">
-        <img src="/Logo.png" alt="Mente en Foco" className="h-10 w-auto brightness-0 invert" />
-      </div>
+      <img
+        src="/Logo.png"
+        alt="Mente en Foco"
+        className="absolute left-8 top-8 h-10 w-auto brightness-0 invert drop-shadow-md"
+      />
 
       <div className="relative p-8">
         <p className="text-sm font-medium text-white/70">Tu espacio de acompañamiento</p>
@@ -168,8 +176,7 @@ function Ingresa() {
             {/* ── Login ── */}
             {view === "login" && (
               <>
-                <img src="/Logo.png" alt="Mente en Foco" className="h-9 w-auto" />
-                <h1 className="mt-6 text-2xl font-bold text-slate-900">Portal de Usuarios</h1>
+                <h1 className="text-2xl font-bold text-slate-900">Portal de Usuarios</h1>
                 <p className="mt-2 text-sm text-slate-500">
                   Accede a tu cuenta para gestionar tus sesiones y recursos clínicos.
                 </p>
@@ -254,8 +261,7 @@ function Ingresa() {
             {/* ── Recuperar contraseña ── */}
             {view === "forgot" && (
               <>
-                <img src="/Logo.png" alt="Mente en Foco" className="h-9 w-auto" />
-                <h1 className="mt-6 text-2xl font-bold text-slate-900">Recuperar contraseña</h1>
+                <h1 className="text-2xl font-bold text-slate-900">Recuperar contraseña</h1>
                 <p className="mt-2 text-sm text-slate-500">
                   Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
                 </p>
