@@ -15,6 +15,7 @@ import {
   Video,
   Clock,
   MessageCircle,
+  Stethoscope,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import {
@@ -31,6 +32,8 @@ import { PsychometricScaleModal } from "../PsychometricScaleModal";
 import { CssrsModal } from "../CssrsModal";
 import { PatientMessages } from "../messaging/PatientMessages";
 import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
+import { PlanUpgradeModal } from "./PlanUpgradeModal";
+import { ServiceRequestModal } from "./ServiceRequestModal";
 import {
   PLAN_LABELS,
   PLAN_OFFERS,
@@ -93,6 +96,8 @@ export function PatientDashboard({ profile, onLogout }: Props) {
     allowed: true,
     availableOn: null,
   });
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [serviceRequestOpen, setServiceRequestOpen] = useState(false);
 
   const isFreePlan = profile.plan_type === "free";
 
@@ -451,12 +456,12 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                       </li>
                     ))}
                   </ul>
-                  <Link
-                    to="/membresia"
-                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+                  <button
+                    onClick={() => setUpgradeOpen(true)}
+                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25"
                   >
                     Mejorar mi plan <ArrowRight size={14} />
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
@@ -833,10 +838,43 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                   />
                 </div>
               </Link>
+
+              {/* Servicios adicionales: fuera de lo que cubre el plan. */}
+              <button
+                onClick={() => setServiceRequestOpen(true)}
+                className="group w-full rounded-3xl border border-primary/20 bg-primary p-5 text-left shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="shrink-0 rounded-xl border border-white/20 bg-white/10 p-3 text-white">
+                    <Stethoscope size={20} strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-white">Solicitar servicio adicional</p>
+                    <p className="text-xs text-white/70">
+                      Consulta extra, valoración neuropsicológica o pruebas.
+                    </p>
+                  </div>
+                  <ArrowRight
+                    size={16}
+                    className="ml-auto text-white transition-transform group-hover:translate-x-1"
+                  />
+                </div>
+              </button>
             </div>
           </div>
         </div>
       </section>
+
+      {upgradeOpen && (
+        <PlanUpgradeModal profile={profile} onClose={() => setUpgradeOpen(false)} />
+      )}
+
+      {serviceRequestOpen && (
+        <ServiceRequestModal
+          patientId={profile.id}
+          onClose={() => setServiceRequestOpen(false)}
+        />
+      )}
 
       {(activeScale === "phq9" || activeScale === "gad7") && (
         <PsychometricScaleModal
