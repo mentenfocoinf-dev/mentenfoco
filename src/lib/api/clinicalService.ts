@@ -134,6 +134,51 @@ export async function getLatestEvaluationsByScale(patientId: string) {
   return latest;
 }
 
+// ── Límite de evaluaciones del plan gratuito ────────────────────────────────
+
+/** Escalas de bienestar sujetas al límite. C-SSRS queda fuera a propósito:
+ *  mide riesgo suicida y debe estar siempre disponible. */
+export const LIMITED_SCALES = ["phq9", "gad7"] as const;
+
+const FREE_PLAN_COOLDOWN_DAYS = 30;
+
+export interface EvaluationAvailability {
+  /** false cuando el plan gratuito ya usó su evaluación del período. */
+  allowed: boolean;
+  /** Fecha en la que se libera la siguiente. null si ya está disponible. */
+  availableOn: Date | null;
+}
+
+/**
+ * Calcula si un paciente puede hacer una evaluación de bienestar.
+ * Refleja la misma regla del trigger free_plan_evaluation_limit: el servidor
+ * sigue siendo la autoridad, esto solo evita ofrecer un botón que va a fallar.
+ */
+export async function getEvaluationAvailability(
+  patientId: string,
+  isFreePlan: boolean,
+): Promise<EvaluationAvailability> {
+  if (!isFreePlan) return { allowed: true, availableOn: null };
+
+  const { data } = await supabase
+    .from("psychometric_evaluations")
+    .select("evaluated_at")
+    .eq("patient_id", patientId)
+    .in("scale_type", LIMITED_SCALES)
+    .order("evaluated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!data?.evaluated_at) return { allowed: true, availableOn: null };
+
+  const availableOn = new Date(data.evaluated_at);
+  availableOn.setDate(availableOn.getDate() + FREE_PLAN_COOLDOWN_DAYS);
+
+  return availableOn > new Date()
+    ? { allowed: false, availableOn }
+    : { allowed: true, availableOn: null };
+}
+
 // ── Anamnesis ───────────────────────────────────────────────────────────────
 export async function getPatientAnamnesis(patientId: string) {
   const { data } = await supabase

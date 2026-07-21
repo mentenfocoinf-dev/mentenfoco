@@ -44,6 +44,8 @@ import {
   getPatientAnamnesis,
   getPatientSessions,
   getPatientUnreadCount,
+  getEvaluationAvailability,
+  type EvaluationAvailability,
   type PsychometricEvaluation,
   type TherapySession,
 } from "../../lib/api";
@@ -87,6 +89,12 @@ export function PatientDashboard({ profile, onLogout }: Props) {
   const [anamnesis, setAnamnesis] = useState<AnamnesisSummary | null>(null);
   const [sessions, setSessions] = useState<TherapySession[]>([]);
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [evalAvailability, setEvalAvailability] = useState<EvaluationAvailability>({
+    allowed: true,
+    availableOn: null,
+  });
+
+  const isFreePlan = profile.plan_type === "free";
 
   function scrollToMessages() {
     document.getElementById("mensajeria")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -95,6 +103,7 @@ export function PatientDashboard({ profile, onLogout }: Props) {
   async function fetchRecentEvaluations() {
     setRecentEvaluations(await getLatestEvaluationsByScale(profile.id));
     setEvaluationHistory(await getPatientEvaluations(profile.id));
+    setEvalAvailability(await getEvaluationAvailability(profile.id, isFreePlan));
   }
 
   useEffect(() => {
@@ -460,6 +469,12 @@ export function PatientDashboard({ profile, onLogout }: Props) {
               <p className="text-sm text-muted-foreground mb-4">
                 Cuestionarios breves y validados clínicamente que ayudan a tu terapeuta a hacer
                 seguimiento de tu evolución.
+                {isFreePlan && (
+                  <span className="mt-1 block text-xs">
+                    Tu plan gratuito incluye una evaluación de bienestar al mes. La evaluación de
+                    seguridad está siempre disponible.
+                  </span>
+                )}
               </p>
               <div className="grid gap-3 sm:grid-cols-3">
                 {(
@@ -470,10 +485,13 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                   ] as const
                 ).map(({ key: scaleKey, label }) => {
                   const recent = recentEvaluations[scaleKey];
+                  // C-SSRS nunca se bloquea: es la escala de seguridad.
+                  const isLimited = scaleKey !== "cssrs";
+                  const blocked = isLimited && !evalAvailability.allowed;
                   return (
                     <div
                       key={scaleKey}
-                      className="rounded-2xl border border-white/50 bg-white/50 p-4 backdrop-blur"
+                      className="rounded-2xl border border-white/50 bg-white/50 p-4 backdrop-blur transition-all hover:border-primary/30 hover:shadow-md"
                     >
                       <p className="text-sm font-bold text-slate-800">{label}</p>
                       {recent ? (
@@ -488,10 +506,25 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                       )}
                       <button
                         onClick={() => setActiveScale(scaleKey)}
-                        className="mt-3 w-full rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
+                        disabled={blocked}
+                        className="mt-3 w-full rounded-lg border border-primary/30 bg-primary/10 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/20 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-100 disabled:text-slate-400"
                       >
-                        {recent ? "Volver a evaluar" : "Empezar evaluación"}
+                        {blocked
+                          ? "No disponible aún"
+                          : recent
+                            ? "Volver a evaluar"
+                            : "Empezar evaluación"}
                       </button>
+                      {blocked && evalAvailability.availableOn && (
+                        <p className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1.5 text-[11px] font-semibold text-amber-700">
+                          <Lock size={11} />
+                          Disponible el{" "}
+                          {evalAvailability.availableOn.toLocaleDateString("es-CO", {
+                            day: "numeric",
+                            month: "long",
+                          })}
+                        </p>
+                      )}
                     </div>
                   );
                 })}

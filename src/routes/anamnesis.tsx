@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
-import { FileText, Loader2, ArrowRight, HeartPulse, ShieldAlert, Users, Pill, Brain, Plus, Trash2 } from "lucide-react";
+import { FileText, Loader2, ArrowRight, HeartPulse, ShieldAlert, Users, Pill, Brain, Plus, Trash2, CheckCircle } from "lucide-react";
 import { MultiSelect } from "../components/MultiSelect";
 
 export const Route = createFileRoute("/anamnesis")({
@@ -94,6 +94,7 @@ function Anamnesis() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
 
   const [name, setName] = useState("");
   const [motivoConsulta, setMotivoConsulta] = useState("");
@@ -113,13 +114,11 @@ function Anamnesis() {
   const [familiarNoto, setFamiliarNoto] = useState(false);
   const [interfiereActividades, setInterfiereActividades] = useState(false);
 
-  // Si ya completó el onboarding, no debería estar aquí
-  if (profile?.onboarding_completed) {
-    navigate({ to: "/ingresa", replace: true });
-    return null;
-  }
-
-  // Si es terapeuta o admin, redirigir de vuelta al dashboard
+  // La anamnesis es la captura de datos clínicos principal y está abierta a
+  // cualquier paciente, incluido el plan gratuito, haya completado o no el
+  // onboarding: el guardado usa upsert sobre patient_id, así que volver a
+  // enviarla actualiza la ficha en vez de duplicarla.
+  // Terapeutas y admin sí se devuelven al panel: no tienen ficha propia.
   if (profile?.role === "therapist" || profile?.role === "admin") {
     navigate({ to: "/ingresa", replace: true });
     return null;
@@ -206,12 +205,38 @@ function Anamnesis() {
 
       if (anamnesisError) throw anamnesisError;
 
-      window.location.href = "/ingresa";
+      // Pantalla de confirmación en vez de un salto seco al panel: el usuario
+      // acaba de entregar información sensible y necesita ver que se guardó.
+      setSaved(true);
+      setLoading(false);
     } catch (err) {
       console.error("[Anamnesis] Error al guardar:", err);
       setErrorMsg("Error al guardar. Intenta de nuevo.");
       setLoading(false);
     }
+  }
+
+  if (saved) {
+    return (
+      <div className="flex min-h-[80vh] flex-col items-center justify-center px-4 py-16">
+        <div className="w-full max-w-lg rounded-3xl glass bg-white/60 p-10 text-center shadow-xl">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <CheckCircle size={32} strokeWidth={1.5} />
+          </div>
+          <h1 className="mt-6 text-2xl font-bold text-slate-900">Tu ficha quedó registrada</h1>
+          <p className="mt-3 text-sm leading-relaxed text-slate-600">
+            Gracias por compartir esta información. Tu terapeuta podrá revisarla antes de la primera
+            sesión. Puedes actualizarla cuando quieras desde tu espacio.
+          </p>
+          <button
+            onClick={() => { window.location.href = "/ingresa"; }}
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+          >
+            Ir a mi espacio <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
