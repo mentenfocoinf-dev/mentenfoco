@@ -8,13 +8,13 @@ import {
   BookOpen,
   FileText,
   AlertTriangle,
-  X,
   Calendar,
   Video,
   MessageCircle,
 } from "lucide-react";
 import { supabase, type Profile } from "../../lib/supabase";
 import { ClinicalReportModal } from "./ClinicalReportModal";
+import { CrisisAlertResolutionModal } from "./CrisisAlertResolutionModal";
 import { CognitiveScreeningForm } from "../CognitiveScreeningForm";
 import { TherapistMessages } from "../messaging/TherapistMessages";
 import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
@@ -57,6 +57,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
   const [patients, setPatients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [crisisAlerts, setCrisisAlerts] = useState<CrisisAlert[]>([]);
+  const [alertToResolve, setAlertToResolve] = useState<CrisisAlert | null>(null);
 
   // Modal State
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
@@ -242,11 +243,11 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     };
   }
 
-  function dismissCrisisAlert(alertId: string) {
-    // Nota: esto solo la quita de la vista local. clinical_alerts no tiene todavía una columna de
-    // "resuelto/reconocido" documentada — cuando se agregue, este dismiss debería además hacer un
-    // UPDATE del status en la base de datos.
+  // La alerta sale de la bandeja solo después de que el modal persistió la resolución
+  // (resolved_at/resolved_by/resolution_action). Sin ese registro no se puede cerrar.
+  function handleAlertResolved(alertId: string) {
     setCrisisAlerts((prev) => prev.filter((a) => a.id !== alertId));
+    setAlertToResolve(null);
   }
 
   // Realtime: escucha nuevas alertas de crisis para cualquiera de los pacientes asignados a este
@@ -332,6 +333,16 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         />
       )}
 
+      {alertToResolve && (
+        <CrisisAlertResolutionModal
+          alertId={alertToResolve.id}
+          patientName={alertToResolve.patient_name}
+          therapistId={profile.id}
+          onClose={() => setAlertToResolve(null)}
+          onResolved={handleAlertResolved}
+        />
+      )}
+
       {crisisAlerts.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 pt-6 md:px-6">
           <div className="space-y-3">
@@ -364,11 +375,10 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                     Ver informe clínico
                   </button>
                   <button
-                    onClick={() => dismissCrisisAlert(alert.id)}
-                    className="rounded-lg p-2 text-red-400 hover:bg-red-100 hover:text-red-600 transition-colors"
-                    aria-label="Descartar alerta"
+                    onClick={() => setAlertToResolve(alert)}
+                    className="rounded-lg border border-red-300 px-3 py-2 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
                   >
-                    <X size={16} />
+                    Registrar atención
                   </button>
                 </div>
               </div>

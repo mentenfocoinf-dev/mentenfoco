@@ -199,13 +199,75 @@ export async function getTherapistPatients(therapistId: string) {
 }
 
 // ── Alertas de crisis ───────────────────────────────────────────────────────
+
+/** Acciones con las que un terapeuta puede cerrar una alerta de crisis. */
+export type AlertResolutionAction =
+  | "contacted_patient"
+  | "session_scheduled"
+  | "referred_psychiatry"
+  | "emergency_services"
+  | "no_action_needed";
+
+export const ALERT_RESOLUTION_LABELS: Record<AlertResolutionAction, string> = {
+  contacted_patient: "Contacté al paciente",
+  session_scheduled: "Agendé sesión de urgencia",
+  referred_psychiatry: "Remití a psiquiatría",
+  emergency_services: "Activé servicios de emergencia",
+  no_action_needed: "Revisado, no requiere intervención",
+};
+
+/** Alertas pendientes (aún sin atender) de los pacientes indicados. */
 export async function getHighPriorityAlerts(patientIds: string[]) {
   if (patientIds.length === 0) return [];
   const { data } = await supabase
     .from("clinical_alerts")
     .select("id, patient_id, status, created_at")
     .eq("status", "high_priority")
+    .is("resolved_at", null)
     .in("patient_id", patientIds)
     .order("created_at", { ascending: false });
   return data ?? [];
+}
+
+/**
+ * Registra la atención de una alerta de crisis. No borra ni modifica `status`:
+ * la alerta queda en la historia clínica con la gravedad con la que nació y con
+ * el rastro de quién la atendió y cómo.
+ */
+export async function resolveCrisisAlert(params: {
+  alertId: string;
+  therapistId: string;
+  action: AlertResolutionAction;
+  notes?: string;
+}) {
+  const { error } = await supabase
+    .from("clinical_alerts")
+    .update({
+      resolved_at: new Date().toISOString(),
+      resolved_by: params.therapistId,
+      resolution_action: params.action,
+      resolution_notes: params.notes?.trim() || null,
+    })
+    .eq("id", params.alertId);
+  if (error) throw new Error(error.message);
+}
+
+export interface ResolvedAlert {
+  id: string;
+  patient_id: string;
+  created_at: string;
+  resolved_at: string;
+  resolution_action: AlertResolutionAction;
+  resolution_notes: string | null;
+}
+
+/** Historial de alertas ya atendidas de un paciente (para el informe clínico). */
+export async function getResolvedAlerts(patientId: string) {
+  const { data } = await supabase
+    .from("clinical_alerts")
+    .select("id, patient_id, created_at, resolved_at, resolution_action, resolution_notes")
+    .eq("patient_id", patientId)
+    .not("resolved_at", "is", null)
+    .order("resolved_at", { ascending: false });
+  return (data ?? []) as ResolvedAlert[];
 }
