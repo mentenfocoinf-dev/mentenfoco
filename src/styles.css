@@ -221,25 +221,47 @@
   }
 }
 
-@keyframes neon-hover-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 15px 2px rgba(56, 189, 248, 0.4);
-    border-color: rgba(56, 189, 248, 0.6);
-  }
-  50% {
-    box-shadow: 0 0 35px 8px rgba(56, 189, 248, 0.9);
-    border-color: rgba(56, 189, 248, 1);
-  }
-}
-
+/* Halo de iluminación al pasar el cursor.
+   Antes era una animación en bucle (neon-hover-pulse) que latía sin parar
+   mientras el cursor estuviera encima: demasiado ruidosa para un producto
+   clínico. Ahora es una sola transición suave que se enciende y se queda. */
 .card-neon-hover {
   border: 2px solid transparent;
-  transition: all 0.3s ease-in-out;
+  transition:
+    box-shadow 0.35s ease,
+    border-color 0.35s ease,
+    transform 0.35s ease;
 }
 
 .card-neon-hover:hover {
-  animation: neon-hover-pulse 1.5s infinite;
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.15),
+    0 14px 34px -10px rgba(56, 189, 248, 0.45);
+}
+
+/* Variante ligera para bloques pequeños (tarjetas internas, ítems de lista)
+   donde el borde de 2px del halo completo resultaría pesado. */
+.glow-hover {
+  transition:
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.3s ease;
+}
+
+.glow-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px -10px rgba(56, 189, 248, 0.5);
+}
+
+/* El desplazamiento vertical se anula para quien pide menos movimiento;
+   el halo se conserva porque no implica animación de posición. */
+@media (prefers-reduced-motion: reduce) {
+  .card-neon-hover:hover,
+  .glow-hover:hover {
+    transform: none;
+  }
 }
 
 .hide-scrollbar {

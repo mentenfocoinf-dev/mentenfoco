@@ -8,3 +8,4 @@ export * from "./guidesService";
 export * from "./sessionsService";
 export * from "./messagesService";
 export * from "./serviceRequestsService";
+export * from "./moodService";

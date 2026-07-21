@@ -34,6 +34,8 @@ import { PatientMessages } from "../messaging/PatientMessages";
 import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
 import { PlanUpgradeModal } from "./PlanUpgradeModal";
 import { ServiceRequestModal } from "./ServiceRequestModal";
+import { DailyQuoteCard } from "./DailyQuoteCard";
+import { MoodTrackerCard } from "./MoodTrackerCard";
 import {
   PLAN_LABELS,
   PLAN_OFFERS,
@@ -496,7 +498,7 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                   return (
                     <div
                       key={scaleKey}
-                      className="rounded-2xl border border-white/50 bg-white/50 p-4 backdrop-blur transition-all hover:border-primary/30 hover:shadow-md"
+                      className="glow-hover rounded-2xl border border-white/50 bg-white/50 p-4 backdrop-blur hover:border-primary/30"
                     >
                       <p className="text-sm font-bold text-slate-800">{label}</p>
                       {recent ? (
@@ -818,7 +820,7 @@ export function PatientDashboard({ profile, onLogout }: Props) {
               {/* Acceso rápido a guías */}
               <Link
                 to="/guia"
-                className="block rounded-3xl glass-card p-5 border border-white/40 hover:border-primary/40 transition-colors group"
+                className="glow-hover group block rounded-3xl glass-card p-5 border border-white/40 hover:border-primary/40"
               >
                 <div className="flex items-center gap-3">
                   <div className="text-primary bg-primary/10 p-3 rounded-xl border border-primary/20 shrink-0">
@@ -860,6 +862,9 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                   />
                 </div>
               </button>
+
+              <MoodTrackerCard patientId={profile.id} />
+              <DailyQuoteCard />
             </div>
           </div>
         </div>
