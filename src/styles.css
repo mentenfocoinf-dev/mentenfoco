@@ -172,6 +172,97 @@
       radial-gradient(circle at top right, var(--primary-soft) 0%, transparent 80%),
       radial-gradient(circle at bottom left, var(--muted) 0%, oklch(1 0 0) 100%);
   }
+
+  /* Mosaico de olas del portal de ingreso.
+     Se aplica SOLO a la sección de la pantalla de ingreso: cabecera y pie
+     conservan su fondo propio. El patrón se construye con gradientes radiales
+     superpuestos que se repiten en bloques de 100x50px. */
+  .fondo-olas {
+    background-color: #ffffff;
+    background-image:
+      /* Olas superiores desfasadas */
+      radial-gradient(
+        circle at 100% 150%,
+        #ffffff 24%,
+        #6093c6 24%,
+        #6093c6 28%,
+        #ffffff 28%,
+        #ffffff 36%,
+        #6093c6 36%,
+        #6093c6 40%,
+        transparent 40%,
+        transparent
+      ),
+      radial-gradient(
+        circle at 0 150%,
+        #ffffff 24%,
+        #6093c6 24%,
+        #6093c6 28%,
+        #ffffff 28%,
+        #ffffff 36%,
+        #6093c6 36%,
+        #6093c6 40%,
+        transparent 40%,
+        transparent
+      ),
+      /* Olas centrales principales */
+      radial-gradient(
+        circle at 50% 100%,
+        #6093c6 10%,
+        #ffffff 10%,
+        #ffffff 23%,
+        #6093c6 23%,
+        #6093c6 30%,
+        #ffffff 30%,
+        #ffffff 43%,
+        #6093c6 43%,
+        #6093c6 50%,
+        #ffffff 50%,
+        #ffffff 63%,
+        #6093c6 63%,
+        #6093c6 71%,
+        transparent 71%,
+        transparent
+      ),
+      /* Olas inferiores para rellenar los espacios laterales */
+      radial-gradient(
+        circle at 100% 50%,
+        #6093c6 5%,
+        #ffffff 5%,
+        #ffffff 15%,
+        #6093c6 15%,
+        #6093c6 20%,
+        #ffffff 20%,
+        #ffffff 29%,
+        #6093c6 29%,
+        #6093c6 34%,
+        #ffffff 34%,
+        #ffffff 44%,
+        #6093c6 44%,
+        #6093c6 49%,
+        transparent 49%,
+        transparent
+      ),
+      radial-gradient(
+        circle at 0 50%,
+        #6093c6 5%,
+        #ffffff 5%,
+        #ffffff 15%,
+        #6093c6 15%,
+        #6093c6 20%,
+        #ffffff 20%,
+        #ffffff 29%,
+        #6093c6 29%,
+        #6093c6 34%,
+        #ffffff 34%,
+        #ffffff 44%,
+        #6093c6 44%,
+        #6093c6 49%,
+        transparent 49%,
+        transparent
+      );
+    background-size: 100px 50px;
+  }
   .glass {
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(16px);

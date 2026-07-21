@@ -174,7 +174,7 @@ function Ingresa() {
   // ── Vista: Formulario de Login / Forgot Password ──────────────────────
   if (!profile) {
     return (
-      <section className="gradient-soft flex min-h-[85vh] w-full items-center justify-center px-4 py-10 md:px-6">
+      <section className="fondo-olas flex min-h-[85vh] w-full items-center justify-center px-4 py-10 md:px-6">
         <div className="glass-card flex w-full max-w-4xl gap-0 rounded-3xl p-3 shadow-xl lg:gap-3">
           <BrandPanel />
 
