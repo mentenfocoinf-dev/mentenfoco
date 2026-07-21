@@ -1,9 +1,10 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { lazy, Suspense, useState } from "react";
-import { Users, Loader2, CheckCircle, ChevronLeft } from "lucide-react";
+import { Loader2, CheckCircle, ChevronLeft, ShieldCheck, Sparkle } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { signIn, signOut, requestPasswordReset } from "../lib/api";
 import { SignupModal } from "../components/SignupModal";
+import { SocialAuthButtons } from "../components/SocialAuthButtons";
 
 // Lazy loading de dashboards — solo se carga el que corresponde al rol del usuario
 const PatientDashboard = lazy(() =>
@@ -41,6 +42,56 @@ export const Route = createFileRoute("/ingresa")({
 });
 
 type View = "login" | "forgot" | "forgot-sent";
+
+const inputClass =
+  "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none transition-colors";
+
+/**
+ * Panel decorativo izquierdo. Solo se muestra desde lg: en pantallas pequeñas el
+ * formulario ocupa todo el ancho, que es lo que se espera en móvil.
+ */
+function BrandPanel() {
+  return (
+    <div className="relative hidden overflow-hidden rounded-2xl bg-primary lg:flex lg:w-[45%] lg:flex-col lg:justify-between">
+      {/* Halos de color: reemplazan la imagen de fondo del diseño de referencia
+          manteniendo la paleta de la marca en vez de introducir un morado ajeno. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-24 -top-24 h-80 w-80 rounded-full bg-sky-400/30 blur-3xl"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-32 -right-16 h-96 w-96 rounded-full bg-cyan-300/20 blur-3xl"
+      />
+
+      <div className="relative p-8">
+        <img src="/Logo.png" alt="Mente en Foco" className="h-10 w-auto brightness-0 invert" />
+      </div>
+
+      <div className="relative p-8">
+        <p className="text-sm font-medium text-white/70">Tu espacio de acompañamiento</p>
+        <h2 className="mt-2 text-3xl font-bold leading-tight text-white">
+          Un lugar seguro para cuidar tu salud mental
+        </h2>
+        <p className="mt-4 max-w-sm text-sm leading-relaxed text-white/70">
+          Gestiona tus sesiones, sigue tu progreso y accede a recursos clínicos acompañado por
+          profesionales.
+        </p>
+
+        <div className="mt-8 flex items-center gap-6 text-xs text-white/60">
+          <span className="flex items-center gap-2">
+            <ShieldCheck size={14} />
+            Datos protegidos
+          </span>
+          <span className="flex items-center gap-2">
+            <Sparkle size={14} />
+            Atención profesional
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Ingresa() {
   const router = useRouter();
@@ -109,173 +160,174 @@ function Ingresa() {
   // ── Vista: Formulario de Login / Forgot Password ──────────────────────
   if (!profile) {
     return (
-      <section className="mx-auto flex min-h-[80vh] w-full items-center justify-center px-4 py-16 md:px-6">
-        <div className="card-neon-hover w-full max-w-md rounded-3xl glass bg-white/40 p-10 shadow-xl transition-all">
+      <section className="gradient-soft flex min-h-[85vh] w-full items-center justify-center px-4 py-10 md:px-6">
+        <div className="glass-card flex w-full max-w-4xl gap-0 rounded-3xl p-3 shadow-xl lg:gap-3">
+          <BrandPanel />
 
-          {/* ── Login ── */}
-          {view === "login" && (
-            <>
-              <div className="text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 shadow-inner text-primary border border-primary/20">
-                  <Users size={32} strokeWidth={1.5} />
-                </div>
-                <h1 className="mt-6 text-3xl font-bold text-primary drop-shadow-sm">
-                  Portal de Usuarios
-                </h1>
-                <p className="mt-3 text-sm text-muted-foreground">
+          <div className="flex w-full flex-col justify-center px-6 py-8 sm:px-10 lg:w-[55%]">
+            {/* ── Login ── */}
+            {view === "login" && (
+              <>
+                <img src="/Logo.png" alt="Mente en Foco" className="h-9 w-auto" />
+                <h1 className="mt-6 text-2xl font-bold text-slate-900">Portal de Usuarios</h1>
+                <p className="mt-2 text-sm text-slate-500">
                   Accede a tu cuenta para gestionar tus sesiones y recursos clínicos.
                 </p>
-              </div>
 
-              {errorMsg && (
-                <p role="alert" className="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-center text-red-600">
-                  {errorMsg}
-                </p>
-              )}
+                {errorMsg && (
+                  <p
+                    role="alert"
+                    className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600"
+                  >
+                    {errorMsg}
+                  </p>
+                )}
 
-              <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
-                <div>
-                  <label htmlFor="login-email" className="text-sm font-semibold text-primary">
-                    Correo electrónico
-                  </label>
-                  <input
-                    id="login-email"
-                    name="user"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    placeholder="ej. usuario@correo.com"
-                    className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="login-pass" className="text-sm font-semibold text-primary">
-                    Contraseña
-                  </label>
-                  <input
-                    id="login-pass"
-                    name="pass"
-                    type="password"
-                    required
-                    autoComplete="current-password"
-                    placeholder="••••••••"
-                    className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm"
-                  />
-                </div>
+                <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
+                  <div>
+                    <label htmlFor="login-email" className="text-sm font-semibold text-slate-900">
+                      Correo electrónico
+                    </label>
+                    <input
+                      id="login-email"
+                      name="user"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      placeholder="ej. usuario@correo.com"
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="login-pass" className="text-sm font-semibold text-slate-900">
+                      Contraseña
+                    </label>
+                    <input
+                      id="login-pass"
+                      name="pass"
+                      type="password"
+                      required
+                      autoComplete="current-password"
+                      placeholder="••••••••"
+                      className={inputClass}
+                    />
+                  </div>
 
-                <div className="flex justify-end">
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => { setView("forgot"); setErrorMsg(null); }}
+                      className="text-xs font-medium text-primary hover:underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.01] hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? (
+                      <><Loader2 size={16} className="animate-spin" /> Procesando…</>
+                    ) : (
+                      "Iniciar Sesión"
+                    )}
+                  </button>
+                </form>
+
+                <SocialAuthButtons onError={(m) => setErrorMsg(m || null)} disabled={loading} />
+
+                <p className="mt-6 text-center text-sm text-slate-500">
+                  ¿Aún no tienes cuenta?{" "}
                   <button
                     type="button"
-                    onClick={() => { setView("forgot"); setErrorMsg(null); }}
-                    className="text-xs text-primary hover:underline font-medium"
+                    onClick={() => setSignupOpen(true)}
+                    className="font-semibold text-primary hover:underline"
                   >
-                    ¿Olvidaste tu contraseña?
+                    Crear cuenta gratis
                   </button>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="mt-4 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-[1.02] shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <><Loader2 size={16} className="animate-spin" /> Procesando…</>
-                  ) : (
-                    "Iniciar Sesión"
-                  )}
-                </button>
-              </form>
-
-              <div className="mt-6 border-t border-white/50 pt-6 text-center">
-                <p className="text-sm text-muted-foreground">¿Aún no tienes cuenta?</p>
-                <button
-                  type="button"
-                  onClick={() => setSignupOpen(true)}
-                  className="mt-3 w-full rounded-xl border border-primary/30 bg-white/50 px-4 py-3 text-sm font-bold text-primary transition-transform hover:scale-[1.02] hover:bg-white/80"
-                >
-                  Crear cuenta gratis
-                </button>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  Acceso sin costo a una selección de guías de bienestar.
                 </p>
-              </div>
-            </>
-          )}
+              </>
+            )}
 
-          {/* ── Recuperar contraseña ── */}
-          {view === "forgot" && (
-            <>
-              <div className="text-center">
-                <h1 className="text-2xl font-bold text-primary">Recuperar contraseña</h1>
-                <p className="mt-3 text-sm text-muted-foreground">
+            {/* ── Recuperar contraseña ── */}
+            {view === "forgot" && (
+              <>
+                <img src="/Logo.png" alt="Mente en Foco" className="h-9 w-auto" />
+                <h1 className="mt-6 text-2xl font-bold text-slate-900">Recuperar contraseña</h1>
+                <p className="mt-2 text-sm text-slate-500">
                   Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
                 </p>
-              </div>
 
-              {errorMsg && (
-                <p role="alert" className="mt-4 rounded-lg bg-red-50 border border-red-200 px-4 py-2 text-sm text-center text-red-600">
-                  {errorMsg}
-                </p>
-              )}
+                {errorMsg && (
+                  <p
+                    role="alert"
+                    className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600"
+                  >
+                    {errorMsg}
+                  </p>
+                )}
 
-              <form className="mt-6 space-y-4" onSubmit={handleForgotPassword} noValidate>
-                <div>
-                  <label htmlFor="forgot-email" className="text-sm font-semibold text-primary">
-                    Correo electrónico
-                  </label>
-                  <input
-                    id="forgot-email"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="ej. usuario@correo.com"
-                    className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm"
-                  />
-                </div>
+                <form className="mt-6 space-y-4" onSubmit={handleForgotPassword} noValidate>
+                  <div>
+                    <label htmlFor="forgot-email" className="text-sm font-semibold text-slate-900">
+                      Correo electrónico
+                    </label>
+                    <input
+                      id="forgot-email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="ej. usuario@correo.com"
+                      className={inputClass}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading || !forgotEmail}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.01] hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {loading ? (
+                      <><Loader2 size={16} className="animate-spin" /> Enviando…</>
+                    ) : (
+                      "Enviar enlace de recuperación"
+                    )}
+                  </button>
+                </form>
+
                 <button
-                  type="submit"
-                  disabled={loading || !forgotEmail}
-                  className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-[1.02] shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  onClick={() => { setView("login"); setErrorMsg(null); setForgotEmail(""); }}
+                  className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-primary"
                 >
-                  {loading ? (
-                    <><Loader2 size={16} className="animate-spin" /> Enviando…</>
-                  ) : (
-                    "Enviar enlace de recuperación"
-                  )}
+                  <ChevronLeft size={14} />
+                  Volver al inicio de sesión
                 </button>
-              </form>
+              </>
+            )}
 
-              <button
-                onClick={() => { setView("login"); setErrorMsg(null); setForgotEmail(""); }}
-                className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-primary hover:underline"
-              >
-                <ChevronLeft size={14} />
-                Volver al inicio de sesión
-              </button>
-            </>
-          )}
-
-          {/* ── Confirmación envío ── */}
-          {view === "forgot-sent" && (
-            <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                <CheckCircle size={32} />
+            {/* ── Confirmación envío ── */}
+            {view === "forgot-sent" && (
+              <div className="text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                  <CheckCircle size={32} strokeWidth={1.5} />
+                </div>
+                <h2 className="mt-6 text-xl font-bold text-slate-900">Revisa tu correo</h2>
+                <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                  Si existe una cuenta asociada a <strong>{forgotEmail}</strong>, recibirás un
+                  enlace para restablecer tu contraseña en los próximos minutos.
+                </p>
+                <button
+                  onClick={() => { setView("login"); setErrorMsg(null); setForgotEmail(""); }}
+                  className="mt-6 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+                >
+                  Volver al inicio de sesión
+                </button>
               </div>
-              <h2 className="mt-6 text-xl font-bold text-slate-900">Revisa tu correo</h2>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                Si existe una cuenta asociada a <strong>{forgotEmail}</strong>, recibirás un enlace
-                para restablecer tu contraseña en los próximos minutos.
-              </p>
-              <button
-                onClick={() => { setView("login"); setErrorMsg(null); setForgotEmail(""); }}
-                className="mt-6 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                Volver al inicio de sesión
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <SignupModal open={signupOpen} onClose={() => setSignupOpen(false)} />
