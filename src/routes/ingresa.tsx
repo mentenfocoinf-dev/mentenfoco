@@ -46,10 +46,8 @@ type View = "login" | "forgot" | "forgot-sent";
 const inputClass =
   "mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none transition-colors";
 
-// Imagen de fondo del panel de acceso. Se pidió `public/images/pasareladepago`,
-// que no existe en el repositorio en ningún formato; se usa portal.jpg como
-// sustituto. Basta con cambiar esta constante al subir el archivo definitivo.
-const BRAND_PANEL_IMAGE = "/images/portal.jpg";
+// Imagen de fondo del panel de acceso.
+const BRAND_PANEL_IMAGE = "/images/pasareladepago.jpg";
 
 /**
  * Panel decorativo izquierdo. Solo se muestra desde lg: en pantallas pequeñas el
@@ -86,7 +84,15 @@ function BrandPanel() {
           profesionales.
         </p>
 
-        <div className="mt-8 flex items-center gap-6 text-xs text-white/60">
+        {/* Prueba social: mismo dato que ya publica la landing en su bloque de
+            estadísticas, reutilizado aquí porque el ingreso es el primer punto
+            de contacto real y es donde más pesa la confianza. */}
+        <div className="mt-8 border-t border-white/15 pt-5">
+          <p className="text-2xl font-bold text-white">+5,000</p>
+          <p className="text-xs text-white/60">pacientes atendidos</p>
+        </div>
+
+        <div className="mt-5 flex items-center gap-6 text-xs text-white/60">
           <span className="flex items-center gap-2">
             <ShieldCheck size={14} />
             Datos protegidos
