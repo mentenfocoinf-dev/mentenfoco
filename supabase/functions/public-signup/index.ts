@@ -15,7 +15,9 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const FROM_EMAIL = Deno.env.get("REMINDER_FROM_EMAIL") ?? "Mente en Foco <onboarding@resend.dev>";
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://mente-en-foco.com";
-const TERMS_VERSION = "2026-07-20-v1";
+// Debe coincidir con PRIVACY_POLICY_VERSION en src/components/PrivacyPolicyModal.tsx:
+// es la version del texto que el lead acepto y queda guardada en profiles.terms_version.
+const TERMS_VERSION = "2026-07-21-v3";
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
