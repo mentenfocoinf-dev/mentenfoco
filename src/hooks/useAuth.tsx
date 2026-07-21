@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase, type Profile } from "../lib/supabase";
+import { shouldRedirectToGate } from "../lib/api";
 
 // Logger condicional: solo activo en desarrollo
 const log = {
@@ -96,27 +97,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profileData.session_token = localSessionToken;
       }
 
-      // 2. Cambio de contraseña obligatorio (cuentas creadas por signup autoservicio).
-      // Va antes del onboarding: mientras el usuario siga con la contraseña temporal
-      // que le llegó por correo, no debe poder navegar a ninguna otra ruta del portal.
-      if (profileData.must_change_password === true) {
-        if (window.location.pathname !== "/nueva-contrasena") {
-          window.location.href = "/nueva-contrasena";
-          return;
-        }
-        // Ya está en la pantalla correcta: publica el perfil para que la ruta
-        // pueda leer la sesión, pero no sigue al chequeo de onboarding.
-        setProfile(profileData);
+      // 2. Pasos obligatorios antes del portal (contraseña temporal,
+      // consentimiento de datos, datos mínimos de facturación, anamnesis).
+      // El orden y las condiciones viven en resolveRequiredGate: aquí solo se
+      // aplica el resultado, para que no vuelva a haber varios flujos de
+      // "pantalla obligatoria" repartidos por el hook.
+      const gate = shouldRedirectToGate(profileData, window.location.pathname);
+      if (gate) {
+        window.location.href = gate;
         return;
-      }
-
-      // 3. Onboarding Forced Redirection (SOLO para pacientes)
-      if (profileData.role === "patient" && profileData.onboarding_completed === false) {
-        const currentPath = window.location.pathname;
-        if (currentPath !== "/anamnesis" && currentPath !== "/compra-exitosa") {
-          window.location.href = "/anamnesis";
-          return;
-        }
       }
 
       setProfile(profileData);

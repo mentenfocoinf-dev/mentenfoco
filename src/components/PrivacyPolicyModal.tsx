@@ -39,40 +39,14 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
-  if (!open) return null;
-
+/**
+ * Cuerpo del documento, sin contenedor. Se extrae aparte para que la pantalla
+ * de consentimiento post-OAuth (/consentimiento) muestre exactamente el mismo
+ * texto que el modal del registro, sin duplicarlo en dos sitios.
+ */
+export function PrivacyPolicyContent() {
   return (
-    <div
-      className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm animate-in fade-in duration-200"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="privacy-title"
-    >
-      <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-100 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <ShieldCheck size={18} />
-            </div>
-            <div>
-              <h2 id="privacy-title" className="text-base font-bold text-slate-900">
-                Política de tratamiento de datos personales
-              </h2>
-              <p className="text-xs text-slate-400">Registro de cuenta gratuita</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar"
-            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+    <>
           <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">
             Este documento describe cómo Mente en Foco recoge, usa y protege los datos personales
             que el Titular entrega al crear una cuenta gratuita.{" "}
@@ -220,12 +194,51 @@ export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
             </p>
           </Section>
 
-          <Section title="12. Vigencia y cambios">
-            <p>
-              Esta política rige desde su publicación. Cualquier modificación material será
-              informada al Titular por el correo asociado a su cuenta antes de su entrada en vigor.
-            </p>
-          </Section>
+      <Section title="12. Vigencia y cambios">
+        <p>
+          Esta política rige desde su publicación. Cualquier modificación material será informada al
+          Titular por el correo asociado a su cuenta antes de su entrada en vigor.
+        </p>
+      </Section>
+    </>
+  );
+}
+
+export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm animate-in fade-in duration-200"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="privacy-title"
+    >
+      <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-start justify-between border-b border-slate-100 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <ShieldCheck size={18} />
+            </div>
+            <div>
+              <h2 id="privacy-title" className="text-base font-bold text-slate-900">
+                Política de tratamiento de datos personales
+              </h2>
+              <p className="text-xs text-slate-400">Registro de cuenta gratuita</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <PrivacyPolicyContent />
         </div>
 
         <div className="border-t border-slate-100 px-6 py-3">

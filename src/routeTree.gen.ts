@@ -15,7 +15,9 @@ import { Route as MembresiaRouteImport } from './routes/membresia'
 import { Route as IngresaRouteImport } from './routes/ingresa'
 import { Route as GuiaRouteImport } from './routes/guia'
 import { Route as ContactanosRouteImport } from './routes/contactanos'
+import { Route as ConsentimientoRouteImport } from './routes/consentimiento'
 import { Route as CompraExitosaRouteImport } from './routes/compra-exitosa'
+import { Route as CompletarPerfilRouteImport } from './routes/completar-perfil'
 import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
 import { Route as AnamnesisRouteImport } from './routes/anamnesis'
 import { Route as IndexRouteImport } from './routes/index'
@@ -51,9 +53,19 @@ const ContactanosRoute = ContactanosRouteImport.update({
   path: '/contactanos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConsentimientoRoute = ConsentimientoRouteImport.update({
+  id: '/consentimiento',
+  path: '/consentimiento',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompraExitosaRoute = CompraExitosaRouteImport.update({
   id: '/compra-exitosa',
   path: '/compra-exitosa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompletarPerfilRoute = CompletarPerfilRouteImport.update({
+  id: '/completar-perfil',
+  path: '/completar-perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AsesoramientoRoute = AsesoramientoRouteImport.update({
@@ -81,7 +93,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/completar-perfil': typeof CompletarPerfilRoute
   '/compra-exitosa': typeof CompraExitosaRoute
+  '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -94,7 +108,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/completar-perfil': typeof CompletarPerfilRoute
   '/compra-exitosa': typeof CompraExitosaRoute
+  '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -108,7 +124,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/completar-perfil': typeof CompletarPerfilRoute
   '/compra-exitosa': typeof CompraExitosaRoute
+  '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -123,7 +141,9 @@ export interface FileRouteTypes {
     | '/'
     | '/anamnesis'
     | '/asesoramiento'
+    | '/completar-perfil'
     | '/compra-exitosa'
+    | '/consentimiento'
     | '/contactanos'
     | '/guia'
     | '/ingresa'
@@ -136,7 +156,9 @@ export interface FileRouteTypes {
     | '/'
     | '/anamnesis'
     | '/asesoramiento'
+    | '/completar-perfil'
     | '/compra-exitosa'
+    | '/consentimiento'
     | '/contactanos'
     | '/guia'
     | '/ingresa'
@@ -149,7 +171,9 @@ export interface FileRouteTypes {
     | '/'
     | '/anamnesis'
     | '/asesoramiento'
+    | '/completar-perfil'
     | '/compra-exitosa'
+    | '/consentimiento'
     | '/contactanos'
     | '/guia'
     | '/ingresa'
@@ -163,7 +187,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnamnesisRoute: typeof AnamnesisRoute
   AsesoramientoRoute: typeof AsesoramientoRoute
+  CompletarPerfilRoute: typeof CompletarPerfilRoute
   CompraExitosaRoute: typeof CompraExitosaRoute
+  ConsentimientoRoute: typeof ConsentimientoRoute
   ContactanosRoute: typeof ContactanosRoute
   GuiaRoute: typeof GuiaRoute
   IngresaRoute: typeof IngresaRoute
@@ -217,11 +243,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactanosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/consentimiento': {
+      id: '/consentimiento'
+      path: '/consentimiento'
+      fullPath: '/consentimiento'
+      preLoaderRoute: typeof ConsentimientoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compra-exitosa': {
       id: '/compra-exitosa'
       path: '/compra-exitosa'
       fullPath: '/compra-exitosa'
       preLoaderRoute: typeof CompraExitosaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/completar-perfil': {
+      id: '/completar-perfil'
+      path: '/completar-perfil'
+      fullPath: '/completar-perfil'
+      preLoaderRoute: typeof CompletarPerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/asesoramiento': {
@@ -259,7 +299,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnamnesisRoute: AnamnesisRoute,
   AsesoramientoRoute: AsesoramientoRoute,
+  CompletarPerfilRoute: CompletarPerfilRoute,
   CompraExitosaRoute: CompraExitosaRoute,
+  ConsentimientoRoute: ConsentimientoRoute,
   ContactanosRoute: ContactanosRoute,
   GuiaRoute: GuiaRoute,
   IngresaRoute: IngresaRoute,

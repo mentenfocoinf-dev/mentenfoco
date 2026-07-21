@@ -35,6 +35,10 @@ export interface Profile {
   terms_version?: string | null;
   marketing_consent?: boolean;
   signup_source?: string | null;
+  // Datos mínimos de operación (20260721_profile_completion_fields.sql)
+  cedula?: string | null;
+  emergency_contact_name?: string | null;
+  emergency_contact_phone?: string | null;
   created_at: string;
   updated_at: string;
 }
