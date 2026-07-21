@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { lazy, Suspense, useState } from "react";
-import { Users, Loader2, CheckCircle } from "lucide-react";
+import { Users, Loader2, CheckCircle, ChevronLeft } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { signIn, signOut, requestPasswordReset } from "../lib/api";
 import { SignupModal } from "../components/SignupModal";
@@ -249,9 +249,10 @@ function Ingresa() {
 
               <button
                 onClick={() => { setView("login"); setErrorMsg(null); setForgotEmail(""); }}
-                className="mt-4 w-full text-sm text-muted-foreground hover:text-primary text-center hover:underline"
+                className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-primary hover:underline"
               >
-                ← Volver al inicio de sesión
+                <ChevronLeft size={14} />
+                Volver al inicio de sesión
               </button>
             </>
           )}

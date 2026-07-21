@@ -15,6 +15,15 @@ const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const FROM_EMAIL = Deno.env.get("REMINDER_FROM_EMAIL") ?? "Mente en Foco <onboarding@resend.dev>";
 const SITE_URL = Deno.env.get("SITE_URL") ?? "https://mente-en-foco.com";
+
+// Fase de desarrollo: Resend opera en modo prueba y solo entrega a la direccion
+// verificada de la cuenta, asi que el correo falla para cualquier lead real y el
+// registro termina mostrando un error. Con DEV_MAIL_REDIRECT configurado, el
+// correo se envia a esa direccion en lugar de a la del lead, indicando en el
+// asunto quien era el destinatario real. El flujo queda limpio y las credenciales
+// llegan a un buzon existente.
+// Al configurar el dominio propio basta con borrar este secret.
+const DEV_MAIL_REDIRECT = Deno.env.get("DEV_MAIL_REDIRECT");
 // Debe coincidir con PRIVACY_POLICY_VERSION en src/components/PrivacyPolicyModal.tsx:
 // es la version del texto que el lead acepto y queda guardada en profiles.terms_version.
 const TERMS_VERSION = "2026-07-21-v3";
@@ -124,6 +133,11 @@ Deno.serve(async (req) => {
     }
 
     // Email con credenciales — mismo proveedor (Resend) que send-session-reminders.
+    const recipient = DEV_MAIL_REDIRECT ?? cleanEmail;
+    const subject = DEV_MAIL_REDIRECT
+      ? `[DEV · para ${cleanEmail}] Tus credenciales de acceso a Mente en Foco`
+      : "Tus credenciales de acceso a Mente en Foco";
+
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -132,8 +146,8 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: FROM_EMAIL,
-        to: [cleanEmail],
-        subject: "Tus credenciales de acceso a Mente en Foco",
+        to: [recipient],
+        subject,
         html: `
           <p>Hola ${escapeHtml(cleanName)},</p>
           <p>Tu cuenta gratuita en Mente en Foco ya está lista. Estos son tus datos de acceso:</p>

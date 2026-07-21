@@ -1,18 +1,20 @@
 // ============================================================================
 // Política de tratamiento de datos personales.
 //
-// Se abre desde el checkbox del SignupModal. Cubre los requisitos de aviso de
-// privacidad de la Ley 1581 de 2012 y el Decreto 1377 de 2013 (Colombia) y los
-// deberes de información de los artículos 13 y 14 del RGPD (UE), para el caso
-// en que un titular resida en el Espacio Económico Europeo.
+// Se abre desde el checkbox del SignupModal. Cubre los deberes de información
+// sobre responsable, finalidades, base legal, conservación, encargados,
+// transferencias internacionales y derechos del titular.
 //
-// ALCANCE: este documento cubre ÚNICAMENTE los datos de contacto recogidos en
-// el registro de la cuenta gratuita (nombre, correo, teléfono). Los datos de
-// salud del proceso terapéutico son datos sensibles y requieren un
-// consentimiento informado propio y separado, que no se otorga aquí.
+// ALCANCE: cubre ÚNICAMENTE los datos de contacto recogidos en el registro de
+// la cuenta gratuita (nombre, correo, teléfono). Los datos de salud del proceso
+// terapéutico son datos sensibles y requieren un consentimiento informado
+// propio y separado, que no se otorga aquí.
 //
 // Redactado como borrador de trabajo: debe ser revisado por un profesional
 // jurídico antes del lanzamiento público.
+//
+// TIPOGRAFÍA: texto legal en cuerpo pequeño y continuo, sin listas, siguiendo
+// la convención de letra menuda de las plataformas de manejo de datos.
 // ============================================================================
 import { ShieldCheck, X } from "lucide-react";
 
@@ -21,18 +23,18 @@ interface PrivacyPolicyModalProps {
   onClose: () => void;
 }
 
-/** Versión del texto legal. Debe coincidir con TERMS_VERSION de la Edge Function
- *  public-signup, que es lo que se guarda en profiles.terms_version. Si el texto
- *  cambia de forma material, ambos valores suben juntos. */
+/** Versión del texto legal. NO se muestra en pantalla: existe para que
+ *  profiles.terms_version deje constancia de qué texto aceptó cada titular.
+ *  Debe coincidir con TERMS_VERSION de la Edge Function public-signup. */
 export const PRIVACY_POLICY_VERSION = "2026-07-21-v3";
 
 const RESPONSIBLE_EMAIL = "mentenfocoinf@gmail.com";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-6">
-      <h3 className="text-sm font-bold text-slate-900">{title}</h3>
-      <div className="mt-2 space-y-2 text-sm leading-relaxed text-slate-600">{children}</div>
+    <section className="mt-4">
+      <h3 className="text-xs font-semibold text-slate-700">{title}</h3>
+      <div className="mt-1 space-y-1.5 text-xs leading-relaxed text-slate-500">{children}</div>
     </section>
   );
 }
@@ -48,18 +50,16 @@ export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
       aria-labelledby="privacy-title"
     >
       <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-slate-100 p-6">
+        <div className="flex items-start justify-between border-b border-slate-100 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <ShieldCheck size={20} />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <ShieldCheck size={18} />
             </div>
             <div>
-              <h2 id="privacy-title" className="text-lg font-bold text-slate-900">
+              <h2 id="privacy-title" className="text-base font-bold text-slate-900">
                 Política de tratamiento de datos personales
               </h2>
-              <p className="text-xs text-slate-500">
-                Versión {PRIVACY_POLICY_VERSION} · Registro de cuenta gratuita
-              </p>
+              <p className="text-xs text-slate-400">Registro de cuenta gratuita</p>
             </div>
           </div>
           <button
@@ -72,62 +72,60 @@ export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          <p className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm leading-relaxed text-slate-600">
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <p className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-500">
             Este documento describe cómo Mente en Foco recoge, usa y protege los datos personales
             que el Titular entrega al crear una cuenta gratuita.{" "}
-            <strong>
+            <span className="font-semibold text-slate-700">
               Mente en Foco aplica un mismo estándar de protección a todos sus usuarios, con
               independencia de su país de residencia
-            </strong>
+            </span>
             : los derechos, plazos y garantías descritos aquí se reconocen a cualquier Titular,
-            tomando como referencia el nivel de protección del Reglamento (UE) 2016/679 (RGPD),
-            hoy el más exigente en la materia.
+            tomando como referencia el nivel de protección del Reglamento (UE) 2016/679 (RGPD), hoy
+            el más exigente en la materia.
           </p>
 
           <Section title="1. Responsable del tratamiento">
             <p>
-              <strong>Mente en Foco</strong> es el responsable del tratamiento de los datos
-              personales descritos en esta política.
-            </p>
-            <p>
-              Mente en Foco es un servicio <strong>íntegramente digital</strong>: no atiende al
-              público en establecimientos físicos y toda la relación con el Titular —incluido el
-              ejercicio de sus derechos— se gestiona por medios electrónicos. El canal oficial de
-              atención es:{" "}
+              <span className="font-semibold text-slate-700">Mente en Foco</span> es el responsable
+              del tratamiento de los datos personales descritos en esta política. Es un servicio
+              íntegramente digital: no atiende al público en establecimientos físicos y toda la
+              relación con el Titular, incluido el ejercicio de sus derechos, se gestiona por medios
+              electrónicos. El canal oficial de atención es{" "}
               <a href={`mailto:${RESPONSIBLE_EMAIL}`} className="text-primary hover:underline">
                 {RESPONSIBLE_EMAIL}
               </a>
+              .
             </p>
           </Section>
 
           <Section title="2. Datos que se recogen en este registro">
             <p>
-              Al crear una cuenta gratuita se recogen únicamente datos de contacto:{" "}
-              <strong>nombre completo, correo electrónico y teléfono</strong> (este último,
-              opcional).
+              Al crear una cuenta gratuita se recogen únicamente datos de contacto: nombre completo,
+              correo electrónico y teléfono, este último de carácter opcional.
             </p>
             <p>
-              <strong>Esta autorización no cubre datos de salud.</strong> La información clínica que
-              pueda generarse dentro de un proceso terapéutico —evaluaciones, historia clínica,
-              diagnósticos— constituye un dato sensible de categoría especial y requiere un
-              consentimiento informado independiente, específico y otorgado por separado. La cuenta
-              gratuita no da acceso a servicios clínicos ni genera información de esta naturaleza.
+              <span className="font-semibold text-slate-700">
+                Esta autorización no cubre datos de salud.
+              </span>{" "}
+              La información clínica que pueda generarse dentro de un proceso terapéutico, como
+              evaluaciones, historia clínica o diagnósticos, constituye un dato sensible de
+              categoría especial y requiere un consentimiento informado independiente, específico y
+              otorgado por separado. La cuenta gratuita no da acceso a servicios clínicos ni genera
+              información de esta naturaleza.
             </p>
           </Section>
 
           <Section title="3. Finalidades del tratamiento">
-            <p>Los datos se tratan para las siguientes finalidades:</p>
-            <ul className="ml-5 list-disc space-y-1">
-              <li>Crear, identificar y administrar la cuenta gratuita del Titular.</li>
-              <li>Enviar las credenciales de acceso y comunicaciones operativas de la cuenta.</li>
-              <li>Dar acceso al contenido de bienestar de cortesía disponible para esta cuenta.</li>
-              <li>Atender solicitudes, consultas y reclamos del Titular.</li>
-              <li>
-                Únicamente si el Titular lo autoriza de forma separada, enviar información
-                comercial, novedades y contenido promocional sobre los servicios de Mente en Foco.
-              </li>
-            </ul>
+            <p>
+              Los datos se tratan para crear, identificar y administrar la cuenta gratuita del
+              Titular; enviar las credenciales de acceso y las comunicaciones operativas propias de
+              la cuenta; dar acceso al contenido de bienestar de cortesía disponible para esta
+              cuenta; y atender solicitudes, consultas y reclamos del Titular. Únicamente si el
+              Titular lo autoriza de forma separada, los datos se emplean además para enviar
+              información comercial, novedades y contenido promocional sobre los servicios de Mente
+              en Foco.
+            </p>
             <p>
               Los datos no se utilizan para decisiones automatizadas que produzcan efectos jurídicos
               sobre el Titular ni para elaboración de perfiles.
@@ -136,15 +134,11 @@ export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
 
           <Section title="4. Base legal">
             <p>
-              El tratamiento se fundamenta en la{" "}
-              <strong>autorización previa, expresa e informada</strong> del Titular. No se trata
-              ningún dato sin que el Titular la haya otorgado.
-            </p>
-            <p>
-              La autorización para comunicaciones comerciales es{" "}
-              <strong>independiente y voluntaria</strong>: negarla no impide crear la cuenta ni
-              acceder al contenido gratuito, y puede revocarse en cualquier momento sin que ello
-              afecte la licitud del tratamiento realizado antes de la revocatoria.
+              El tratamiento se fundamenta en la autorización previa, expresa e informada del
+              Titular. No se trata ningún dato sin que el Titular la haya otorgado. La autorización
+              para comunicaciones comerciales es independiente y voluntaria: negarla no impide crear
+              la cuenta ni acceder al contenido gratuito, y puede revocarse en cualquier momento sin
+              que ello afecte la licitud del tratamiento realizado antes de la revocatoria.
             </p>
           </Section>
 
@@ -161,48 +155,28 @@ export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
             <p>
               Para operar la plataforma, Mente en Foco se apoya en proveedores tecnológicos que
               actúan como encargados del tratamiento y que tratan los datos siguiendo sus
-              instrucciones:
+              instrucciones: Supabase, para el alojamiento de la base de datos y el servicio de
+              autenticación, y Resend, para el envío de los correos transaccionales de la cuenta.
             </p>
-            <ul className="ml-5 list-disc space-y-1">
-              <li>
-                <strong>Supabase</strong> — alojamiento de la base de datos y servicio de
-                autenticación.
-              </li>
-              <li>
-                <strong>Resend</strong> — envío de los correos transaccionales de la cuenta.
-              </li>
-            </ul>
             <p>
-              La infraestructura de estos proveedores se encuentra ubicada en{" "}
-              <strong>Estados Unidos</strong>, por lo que el tratamiento implica una transferencia
-              internacional de datos, que el Titular consiente al otorgar su autorización. Ambos
-              proveedores son operadores de alcance internacional sujetos a compromisos
-              contractuales de protección de datos.
+              La infraestructura de estos proveedores se encuentra ubicada en Estados Unidos, por lo
+              que el tratamiento implica una transferencia internacional de datos, que el Titular
+              consiente al otorgar su autorización. Ambos proveedores son operadores de alcance
+              internacional sujetos a compromisos contractuales de protección de datos.
             </p>
           </Section>
 
           <Section title="7. Derechos del Titular">
             <p>
-              Todo Titular, con independencia de su país de residencia, tiene derecho a:
+              Todo Titular, con independencia de su país de residencia, tiene derecho a conocer,
+              actualizar y rectificar sus datos personales; solicitar prueba de la autorización
+              otorgada; ser informado sobre el uso que se ha dado a sus datos; acceder de forma
+              gratuita a ellos; revocar la autorización y solicitar su supresión, cuando no exista
+              un deber legal o contractual que lo impida; solicitar la limitación del tratamiento y
+              oponerse a él; solicitar la portabilidad de sus datos, recibiéndolos en un formato
+              estructurado y de uso común; y presentar quejas ante la autoridad de protección de
+              datos de su país de residencia.
             </p>
-            <ul className="ml-5 list-disc space-y-1">
-              <li>Conocer, actualizar y rectificar sus datos personales.</li>
-              <li>Solicitar prueba de la autorización otorgada.</li>
-              <li>Ser informado sobre el uso que se ha dado a sus datos.</li>
-              <li>Acceder de forma gratuita a sus datos personales.</li>
-              <li>
-                Revocar la autorización y solicitar la supresión de sus datos, cuando no exista un
-                deber legal o contractual que lo impida.
-              </li>
-              <li>Solicitar la limitación del tratamiento y oponerse a él.</li>
-              <li>
-                Solicitar la portabilidad de sus datos, recibiéndolos en un formato estructurado y
-                de uso común.
-              </li>
-              <li>
-                Presentar quejas ante la autoridad de protección de datos de su país de residencia.
-              </li>
-            </ul>
           </Section>
 
           <Section title="8. Cómo ejercer estos derechos">
@@ -212,17 +186,11 @@ export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
                 {RESPONSIBLE_EMAIL}
               </a>
               , indicando su nombre, el derecho que desea ejercer y los datos de contacto asociados
-              a su cuenta.
-            </p>
-            <p>
-              Toda solicitud se responde en un plazo máximo de{" "}
-              <strong>diez (10) días hábiles</strong>. Cuando la complejidad de la solicitud lo
-              exija, el plazo puede prorrogarse informando previamente al Titular; en ningún caso la
-              respuesta excede el mes siguiente a la recepción de la solicitud.
-            </p>
-            <p>
-              La suscripción a comunicaciones comerciales puede cancelarse en cualquier momento
-              escribiendo al mismo contacto.
+              a su cuenta. Toda solicitud se responde en un plazo máximo de diez días hábiles.
+              Cuando la complejidad de la solicitud lo exija, el plazo puede prorrogarse informando
+              previamente al Titular; en ningún caso la respuesta excede el mes siguiente a la
+              recepción de la solicitud. La suscripción a comunicaciones comerciales puede
+              cancelarse en cualquier momento escribiendo al mismo contacto.
             </p>
           </Section>
 
@@ -254,18 +222,17 @@ export function PrivacyPolicyModal({ open, onClose }: PrivacyPolicyModalProps) {
 
           <Section title="12. Vigencia y cambios">
             <p>
-              Esta política rige desde su publicación e identifica su versión en el encabezado.
-              Cualquier modificación material será informada al Titular por el correo asociado a su
-              cuenta antes de su entrada en vigor.
+              Esta política rige desde su publicación. Cualquier modificación material será
+              informada al Titular por el correo asociado a su cuenta antes de su entrada en vigor.
             </p>
           </Section>
         </div>
 
-        <div className="border-t border-slate-100 p-4">
+        <div className="border-t border-slate-100 px-6 py-3">
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+            className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
           >
             Cerrar
           </button>
