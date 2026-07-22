@@ -60,6 +60,22 @@ export function buildCheckoutLink(
   return `${baseLink}?client_reference_id=${profile.id}&prefilled_email=${email}`;
 }
 
+/**
+ * Sesiones terapéuticas incluidas por mes en cada plan.
+ *
+ * PLAN_BENEFITS describe esto en prosa de venta ("4 sesiones terapéuticas al
+ * mes"); esta tabla es el mismo dato en forma estructurada, para poder
+ * contrastarlo contra las sesiones realmente tomadas. `null` = el plan no
+ * incluye sesiones. Si cambian los textos de PLAN_BENEFITS, estos números
+ * tienen que moverse con ellos.
+ */
+export const PLAN_SESSION_QUOTA: Record<PlanType, number | null> = {
+  free: null,
+  esencial: 1,
+  integral: 4,
+  premium: 8,
+};
+
 // ── Matriz de beneficios ────────────────────────────────────────────────────
 // Cada beneficio declara el plan mínimo que lo incluye. Con esto se pintan
 // tanto las tarjetas de venta como el detalle "qué incluye mi plan" del

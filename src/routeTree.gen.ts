@@ -21,6 +21,7 @@ import { Route as CompletarPerfilRouteImport } from './routes/completar-perfil'
 import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
 import { Route as AnamnesisRouteImport } from './routes/anamnesis'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PacientesPatientIdRouteImport } from './routes/pacientes.$patientId'
 import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
 
 const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
@@ -83,6 +84,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PacientesPatientIdRoute = PacientesPatientIdRouteImport.update({
+  id: '/pacientes/$patientId',
+  path: '/pacientes/$patientId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GuiasGuiaIdRoute = GuiasGuiaIdRouteImport.update({
   id: '/guias/$guiaId',
   path: '/guias/$guiaId',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
+  '/pacientes/$patientId': typeof PacientesPatientIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
+  '/pacientes/$patientId': typeof PacientesPatientIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
+  '/pacientes/$patientId': typeof PacientesPatientIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
+    | '/pacientes/$patientId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
+    | '/pacientes/$patientId'
   id:
     | '__root__'
     | '/'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
+    | '/pacientes/$patientId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   NuevaContrasenaRoute: typeof NuevaContrasenaRoute
   SobreNosotrosRoute: typeof SobreNosotrosRoute
   GuiasGuiaIdRoute: typeof GuiasGuiaIdRoute
+  PacientesPatientIdRoute: typeof PacientesPatientIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pacientes/$patientId': {
+      id: '/pacientes/$patientId'
+      path: '/pacientes/$patientId'
+      fullPath: '/pacientes/$patientId'
+      preLoaderRoute: typeof PacientesPatientIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/guias/$guiaId': {
       id: '/guias/$guiaId'
       path: '/guias/$guiaId'
@@ -309,6 +329,7 @@ const rootRouteChildren: RootRouteChildren = {
   NuevaContrasenaRoute: NuevaContrasenaRoute,
   SobreNosotrosRoute: SobreNosotrosRoute,
   GuiasGuiaIdRoute: GuiasGuiaIdRoute,
+  PacientesPatientIdRoute: PacientesPatientIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

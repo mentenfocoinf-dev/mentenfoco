@@ -10,3 +10,4 @@ export * from "./messagesService";
 export * from "./serviceRequestsService";
 export * from "./moodService";
 export * from "./onboardingGates";
+export * from "./patientOverviewService";

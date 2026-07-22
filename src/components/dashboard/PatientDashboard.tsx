@@ -18,15 +18,6 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { supabase, type Profile } from "../../lib/supabase";
 import { PsychometricScaleModal } from "../PsychometricScaleModal";
 import { CssrsModal } from "../CssrsModal";
@@ -36,6 +27,7 @@ import { PlanUpgradeModal } from "./PlanUpgradeModal";
 import { ServiceRequestModal } from "./ServiceRequestModal";
 import { DailyQuoteCard } from "./DailyQuoteCard";
 import { MoodTrackerCard } from "./MoodTrackerCard";
+import { TrendChart } from "./TrendChart";
 import {
   PLAN_LABELS,
   PLAN_OFFERS,
@@ -189,23 +181,6 @@ export function PatientDashboard({ profile, onLogout }: Props) {
 
   const included = benefitsForPlan(plan);
   const locked = lockedBenefitsForPlan(plan);
-
-  // Serie de tendencia PHQ-9 / GAD-7 (únicas escalas con puntaje numérico comparable en el tiempo).
-  const trendData = useMemo(() => {
-    // Agrupamos por día usando la etiqueta local solo para mostrar, y guardamos el timestamp real
-    // (ts) para ordenar cronológicamente. No se puede ordenar por la etiqueta d/m/aaaa: new Date()
-    // la interpreta como m/d/aaaa y falla, invirtiendo el eje temporal del gráfico.
-    const byDate = new Map<string, { date: string; ts: number; phq9?: number; gad7?: number }>();
-    for (const ev of evaluationHistory) {
-      if (ev.scale_type !== "phq9" && ev.scale_type !== "gad7") continue;
-      const d = new Date(ev.evaluated_at);
-      const dateKey = d.toLocaleDateString();
-      const entry = byDate.get(dateKey) ?? { date: dateKey, ts: d.getTime() };
-      entry[ev.scale_type as "phq9" | "gad7"] = ev.total_score;
-      byDate.set(dateKey, entry);
-    }
-    return Array.from(byDate.values()).sort((a, b) => a.ts - b.ts);
-  }, [evaluationHistory]);
 
   const anamnesisData = anamnesis?.data ?? null;
 
@@ -547,43 +522,10 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                 Evolución de tus puntajes PHQ-9 y GAD-7 a lo largo de tus evaluaciones.
               </p>
 
-              {trendData.length >= 2 ? (
-                <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="#94a3b8" />
-                      <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" allowDecimals={false} />
-                      <Tooltip
-                        contentStyle={{ borderRadius: 12, fontSize: 12, border: "1px solid #e2e8f0" }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="phq9"
-                        name="PHQ-9"
-                        stroke="#6366f1"
-                        strokeWidth={2}
-                        connectNulls
-                        dot={{ r: 3 }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="gad7"
-                        name="GAD-7"
-                        stroke="#f59e0b"
-                        strokeWidth={2}
-                        connectNulls
-                        dot={{ r: 3 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  Aún no hay suficientes evaluaciones PHQ-9 o GAD-7 para mostrar una tendencia.
-                  Completa al menos dos evaluaciones para ver tu progreso aquí.
-                </p>
-              )}
+              <TrendChart
+                evaluations={evaluationHistory}
+                emptyMessage="Aún no hay suficientes evaluaciones PHQ-9 o GAD-7 para mostrar una tendencia. Completa al menos dos evaluaciones para ver tu progreso aquí."
+              />
 
               {evaluationHistory.length > 0 && (
                 <details className="group mt-5 rounded-2xl border border-white/40 bg-white/40 [&_summary::-webkit-details-marker]:hidden">

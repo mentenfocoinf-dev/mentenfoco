@@ -11,9 +11,10 @@ import {
   Calendar,
   Video,
   MessageCircle,
+  ArrowRight,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase, type Profile } from "../../lib/supabase";
-import { ClinicalReportModal } from "./ClinicalReportModal";
 import { CrisisAlertResolutionModal } from "./CrisisAlertResolutionModal";
 import { CognitiveScreeningForm } from "../CognitiveScreeningForm";
 import { TherapistMessages } from "../messaging/TherapistMessages";
@@ -58,13 +59,6 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
   const [loading, setLoading] = useState(true);
   const [crisisAlerts, setCrisisAlerts] = useState<CrisisAlert[]>([]);
   const [alertToResolve, setAlertToResolve] = useState<CrisisAlert | null>(null);
-
-  // Modal State
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-  const [activeReportPatient, setActiveReportPatient] = useState<{
-    id: string;
-    name: string;
-  } | null>(null);
 
   // Prescriptions Catalog State
   const [prescriptionsCatalog, setPrescriptionsCatalog] = useState<any[]>([]);
@@ -281,11 +275,6 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     };
   }, [patients]);
 
-  const openReportModal = (patientId: string, patientName: string) => {
-    setActiveReportPatient({ id: patientId, name: patientName });
-    setIsReportModalOpen(true);
-  };
-
   async function handleAssignPlan(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -323,16 +312,6 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
 
   return (
     <>
-      {activeReportPatient && (
-        <ClinicalReportModal
-          isOpen={isReportModalOpen}
-          onClose={() => setIsReportModalOpen(false)}
-          patientName={activeReportPatient.name}
-          patientId={activeReportPatient.id}
-          therapistId={profile.id}
-        />
-      )}
-
       {alertToResolve && (
         <CrisisAlertResolutionModal
           alertId={alertToResolve.id}
@@ -368,12 +347,13 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
-                  <button
-                    onClick={() => openReportModal(alert.patient_id, alert.patient_name)}
+                  <Link
+                    to="/pacientes/$patientId"
+                    params={{ patientId: alert.patient_id }}
                     className="rounded-lg bg-red-600 px-3 py-2 text-xs font-bold text-white hover:bg-red-700 transition-colors"
                   >
-                    Ver informe clínico
-                  </button>
+                    Ver ficha del paciente
+                  </Link>
                   <button
                     onClick={() => setAlertToResolve(alert)}
                     className="rounded-lg border border-red-300 px-3 py-2 text-xs font-bold text-red-700 transition-colors hover:bg-red-100"
@@ -439,29 +419,36 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                     const pat = p.patient as any;
                     const patName = pat?.full_name || pat?.email;
                     return (
-                      <li
-                        key={p.patient_id}
-                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white/50 rounded-2xl border border-white/60 shadow-sm transition-transform hover:scale-[1.01]"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-bold text-primary">{patName}</p>
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider ${pat?.subscription_status === "active" ? "bg-emerald-100 border-emerald-200 text-emerald-700" : "bg-amber-100 border-amber-200 text-amber-700"}`}
-                            >
-                              {pat?.subscription_status === "active" ? "Activo" : "Inactivo"}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            Plan: <span className="font-semibold capitalize">{pat?.plan_type}</span>
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => openReportModal(p.patient_id, patName)}
-                          className="shrink-0 inline-flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors border border-primary/20"
+                      <li key={p.patient_id}>
+                        {/* Toda la tarjeta navega a la ficha: el botón de informe
+                            desapareció porque el informe pasó a ser uno de los
+                            tres tipos de documento que viven dentro de la ficha. */}
+                        <Link
+                          to="/pacientes/$patientId"
+                          params={{ patientId: p.patient_id }}
+                          className="glow-hover flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-white/50 rounded-2xl border border-white/60 shadow-sm group"
                         >
-                          <FileText size={14} /> Informe Clínico
-                        </button>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-primary">{patName}</p>
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-wider ${pat?.subscription_status === "active" ? "bg-emerald-100 border-emerald-200 text-emerald-700" : "bg-amber-100 border-amber-200 text-amber-700"}`}
+                              >
+                                {pat?.subscription_status === "active" ? "Activo" : "Inactivo"}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              Plan: <span className="font-semibold capitalize">{pat?.plan_type}</span>
+                            </p>
+                          </div>
+                          <span className="shrink-0 inline-flex items-center gap-1.5 text-xs font-bold text-primary">
+                            Ver ficha
+                            <ArrowRight
+                              size={14}
+                              className="transition-transform group-hover:translate-x-1"
+                            />
+                          </span>
+                        </Link>
                       </li>
                     );
                   })}
