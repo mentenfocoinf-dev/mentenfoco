@@ -38,9 +38,12 @@ function GuiaDetalle() {
   const { profile } = useAuth();
   const [paywallOpen, setPaywallOpen] = useState(false);
 
-  // Abrir paywall automáticamente si la guía es premium y el usuario no tiene acceso
+  // Abrir paywall automáticamente si el usuario no tiene acceso a esta guía.
+  // No se condiciona a meta.es_premium: hay guías con min_plan='free' que no son
+  // de vitrina y siguen bloqueadas para cuentas gratuitas/anónimas — antes esas
+  // caían al bloque de "guía no encontrada" en vez de mostrar el paywall.
   useEffect(() => {
-    if (!guia && meta?.es_premium) {
+    if (!guia && meta) {
       setPaywallOpen(true);
     }
   }, [guia, meta]);
@@ -84,14 +87,20 @@ function GuiaDetalle() {
     };
   }, [guia]);
 
-  // ── Caso: guía premium bloqueada por RLS ─────────────────────────────────
-  if (!guia && meta?.es_premium) {
+  // ── Caso: guía bloqueada para este viewer ────────────────────────────────
+  // Se llega aquí tanto por una guía realmente premium (min_plan='esencial')
+  // como por una guía estructuralmente 'free' que no es de vitrina y el viewer
+  // es una cuenta gratuita/anónima. En ambos casos el plan que de verdad
+  // desbloquea el contenido es el más económico de pago: si meta.min_plan viene
+  // en 'free' es porque el bloqueo es por vitrina, no por el plan de la guía.
+  if (!guia && meta) {
+    const requiredPlan = meta.min_plan === "free" ? "esencial" : meta.min_plan;
     return (
       <>
         <PaywallModal
           isOpen={paywallOpen}
           onOpenChange={setPaywallOpen}
-          requiredPlan={meta.min_plan}
+          requiredPlan={requiredPlan}
         />
         <section
           className="relative bg-cover bg-center bg-no-repeat py-20"
@@ -143,10 +152,8 @@ function GuiaDetalle() {
                 <h2 className="text-xl font-bold text-slate-900 mb-2">Contenido Premium</h2>
                 <p className="text-sm text-slate-600 mb-6 max-w-sm mx-auto">
                   Esta guía está disponible desde el{" "}
-                  <strong className="text-primary">
-                    {meta.min_plan ? PLAN_LABELS[meta.min_plan] : "Plan Esencial"}
-                  </strong>{" "}
-                  en adelante.
+                  <strong className="text-primary">{PLAN_LABELS[requiredPlan]}</strong> en
+                  adelante.
                 </p>
                 <button
                   onClick={() => setPaywallOpen(true)}

@@ -30,8 +30,13 @@ export interface GuideMeta {
  * Mientras RLS siga desactivado, este filtro es la única barrera real — por eso
  * vive en el servicio y no solo en la UI. La policy equivalente está escrita y
  * comentada en supabase/20260720_signup_gratis.sql para la fase de seguridad.
+ *
+ * Exportada porque la UI (guia.tsx) también la necesita: para este grupo de
+ * viewers, la guía que se puede LEER no es la que decide `min_plan !== 'free'`
+ * sino la que tiene `visible_en_plan_gratis = true` — hay guías con
+ * `min_plan='free'` que no son de vitrina, y siguen bloqueadas para ellos.
  */
-async function isFreeLeadAccount(): Promise<boolean> {
+export async function isFreeLeadAccount(): Promise<boolean> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -53,16 +58,20 @@ export interface GuideFull extends GuideMeta {
 }
 
 /**
- * Lista las guías (metadatos), incluidas las que el usuario no puede leer aún.
- * Las cuentas gratuitas de captura de leads solo ven la vitrina curada.
+ * Lista TODAS las guías (metadatos), incluidas las que el usuario no puede leer
+ * aún — es la vista de vitrina completa con candado, no un listado ya filtrado.
+ *
+ * `clinical_guides_meta` no expone `contenidoCompleto` y no tiene RLS propio que
+ * bloquee filas, así que traer las 20 no filtra nada sensible: el gateo real del
+ * contenido ocurre en getGuide(). `visible_en_plan_gratis` se sigue usando, pero
+ * solo ahí, para decidir si una cuenta gratuita puede leer el texto completo o
+ * debe ver el paywall.
  */
 export async function listGuides(): Promise<GuideMeta[]> {
-  const freeLead = await isFreeLeadAccount();
-
-  let query = supabase.from("clinical_guides_meta").select("*");
-  if (freeLead) query = query.eq("visible_en_plan_gratis", true);
-
-  const { data, error } = await query.order("titulo");
+  const { data, error } = await supabase
+    .from("clinical_guides_meta")
+    .select("*")
+    .order("titulo");
   if (error) {
     console.error("[guidesService] Error listando guías:", error.message);
     return [];
