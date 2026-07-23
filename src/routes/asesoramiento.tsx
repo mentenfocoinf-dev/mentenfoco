@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { PLAN_OFFERS, buildCheckoutLink } from "../lib/api";
+import { PLAN_OFFERS, DEFAULT_HIGHLIGHTED_OFFER, buildCheckoutLink } from "../lib/api";
 
 export const Route = createFileRoute("/asesoramiento")({
   head: () => ({
@@ -51,7 +51,12 @@ const PLAN_FEATURES: Record<string, string[]> = {
 };
 
 function Asesoramiento() {
-  const [selectedPlan, setSelectedPlan] = useState<string | null>("Integral");
+  // Deriva el nombre del plan destacado en vez de repetirlo aquí: un nombre
+  // hardcodeado ("Integral") dejó de coincidir con plan.name la última vez que
+  // se renombraron los planes, y ninguna tarjeta quedaba preseleccionada.
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(
+    DEFAULT_HIGHLIGHTED_OFFER.name,
+  );
   const { profile } = useAuth();
 
   return (

@@ -12,11 +12,15 @@ export const PLAN_RANK: Record<PlanType, number> = {
   premium: 3,
 };
 
+// Nombres cálidos de framing de proceso en vez de nomenclatura de SaaS
+// (Esencial/Integral/Premium) — decisión de negocio, ver
+// analisis-neuromarketing-planes-22-jul-2026.md. `free` se deja sin cambios:
+// no estaba en el pedido y "Plan Gratuito" ya cumple su función.
 export const PLAN_LABELS: Record<PlanType, string> = {
   free: "Plan Gratuito",
-  esencial: "Plan Esencial",
-  integral: "Plan Integral",
-  premium: "Plan Premium",
+  esencial: "Primeros Pasos",
+  integral: "Mi Equilibrio",
+  premium: "Mi Mundo en Foco",
 };
 
 export function planRank(plan?: PlanType | null): number {
@@ -183,7 +187,7 @@ export interface PlanOffer {
 export const PLAN_OFFERS: PlanOffer[] = [
   {
     plan: "esencial",
-    name: "Esencial",
+    name: "Primeros Pasos",
     price: "$180.000",
     period: "/mes",
     desc: "El paso inicial para cuidar de ti con la guía de un especialista.",
@@ -191,7 +195,7 @@ export const PLAN_OFFERS: PlanOffer[] = [
   },
   {
     plan: "integral",
-    name: "Integral",
+    name: "Mi Equilibrio",
     price: "$480.000",
     period: "/mes",
     desc: "Acompañamiento completo con varios especialistas trabajando para ti.",
@@ -200,7 +204,7 @@ export const PLAN_OFFERS: PlanOffer[] = [
   },
   {
     plan: "premium",
-    name: "Premium",
+    name: "Mi Mundo en Foco",
     price: "$950.000",
     period: "/mes",
     desc: "Cuidado integral y constante con todo nuestro equipo experto a tu lado.",
@@ -208,12 +212,15 @@ export const PLAN_OFFERS: PlanOffer[] = [
   },
 ];
 
+/** El plan que aparece pre-seleccionado en /asesoramiento al cargar la página. */
+export const DEFAULT_HIGHLIGHTED_OFFER = PLAN_OFFERS.find((o) => o.highlighted) ?? PLAN_OFFERS[0];
+
 // La membresía de contenido se mapea al eje único de planes:
 // mensual -> nivel Integral de contenido, anual -> nivel Premium (acceso total).
 export const MEMBERSHIP_TIERS = [
   {
     plan: "integral" as PlanType,
-    name: "Membresía Mensual",
+    name: "Mi Equilibrio, mes a mes",
     price: "$70.000",
     period: "/mes",
     note: "Cancela cuando quieras. Incluye el contenido del nivel Integral.",
@@ -221,7 +228,7 @@ export const MEMBERSHIP_TIERS = [
   },
   {
     plan: "premium" as PlanType,
-    name: "Membresía Anual",
+    name: "Mi Mundo en Foco, todo el año",
     price: "$700.000",
     period: "/año",
     note: "Ahorra 2 meses y desbloquea todo el contenido de la plataforma.",

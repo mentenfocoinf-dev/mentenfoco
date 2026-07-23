@@ -5,6 +5,7 @@ import { useAuth } from "../hooks/useAuth";
 import {
   MEMBERSHIP_TIERS,
   PLAN_BENEFITS,
+  PLAN_LABELS,
   PLAN_RANK,
   buildCheckoutLink,
 } from "../lib/api";
@@ -44,12 +45,15 @@ const benefits = [
   { title: "Descuentos exclusivos", desc: "20% en sesiones individuales y talleres." },
 ];
 
-// Columnas de la tabla comparativa de niveles de acceso
+// Columnas de la tabla comparativa de niveles de acceso. Los labels se leen de
+// PLAN_LABELS (no se repiten aquí) para que esta tabla y las tarjetas de plan
+// de /asesoramiento usen siempre el mismo nombre — quedaban desalineadas si se
+// hardcodeaban por separado y solo se renombraba una de las dos.
 const COMPARE_PLANS: { plan: PlanType; label: string }[] = [
-  { plan: "free", label: "Gratuito" },
-  { plan: "esencial", label: "Esencial" },
-  { plan: "integral", label: "Integral" },
-  { plan: "premium", label: "Premium" },
+  { plan: "free", label: PLAN_LABELS.free.replace("Plan ", "") },
+  { plan: "esencial", label: PLAN_LABELS.esencial },
+  { plan: "integral", label: PLAN_LABELS.integral },
+  { plan: "premium", label: PLAN_LABELS.premium },
 ];
 
 function Membresia() {
@@ -68,7 +72,7 @@ function Membresia() {
       <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
           <span className="inline-block rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 px-4 py-1.5 text-xs font-medium text-primary shadow-sm">
-            Membresía Mente en Foco+
+            Invierte en tu bienestar
           </span>
           <h1 className="mt-6 text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">
             Más recursos, mismo compromiso
@@ -80,7 +84,59 @@ function Membresia() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+      {/* ── Tabla comparativa: qué incluye cada nivel ──
+          Va antes del carrusel a propósito: es la comparación que responde
+          "¿cuál me conviene?" y antes obligaba a bajar mucho para verla. */}
+      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+        <h2 className="mb-2 text-center text-3xl font-bold text-primary">
+          Compara los niveles de acceso
+        </h2>
+        <p className="mb-8 text-center text-sm text-muted-foreground max-w-2xl mx-auto">
+          Cada nivel incluye todo lo del nivel anterior. La membresía mensual te da el nivel{" "}
+          {PLAN_LABELS.integral} de contenido y la anual desbloquea {PLAN_LABELS.premium}{" "}
+          completo.
+        </p>
+        <div className="overflow-x-auto rounded-3xl border border-white/60 glass-card shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/60 bg-primary/5">
+                <th className="px-5 py-4 text-left font-bold text-primary">Beneficio</th>
+                {COMPARE_PLANS.map((c) => (
+                  <th key={c.plan} className="px-4 py-4 text-center font-bold text-primary">
+                    {c.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {PLAN_BENEFITS.map((b, i) => (
+                <tr
+                  key={b.label}
+                  className={`border-b border-white/40 hover:bg-white/40 transition-colors ${
+                    i === PLAN_BENEFITS.length - 1 ? "border-none" : ""
+                  }`}
+                >
+                  <td className="px-5 py-3.5">
+                    <p className="font-semibold text-slate-800">{b.label}</p>
+                    <p className="text-xs text-muted-foreground">{b.detail}</p>
+                  </td>
+                  {COMPARE_PLANS.map((c) => (
+                    <td key={c.plan} className="px-4 py-3.5 text-center">
+                      {PLAN_RANK[b.minPlan] <= PLAN_RANK[c.plan] ? (
+                        <Check size={18} className="mx-auto text-emerald-500" />
+                      ) : (
+                        <Minus size={16} className="mx-auto text-slate-300" />
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-16 md:px-6">
         <h2 className="mb-10 text-center text-3xl font-bold text-primary">¿Qué incluye?</h2>
 
         <div className="relative w-full flex items-center">
@@ -130,59 +186,10 @@ function Membresia() {
         </div>
       </section>
 
-      {/* ── Tabla comparativa: qué incluye cada nivel ── */}
-      <section className="mx-auto max-w-6xl px-4 pb-16 md:px-6">
-        <h2 className="mb-2 text-center text-3xl font-bold text-primary">
-          Compara los niveles de acceso
-        </h2>
-        <p className="mb-8 text-center text-sm text-muted-foreground max-w-2xl mx-auto">
-          Cada nivel incluye todo lo del nivel anterior. La membresía mensual te da el nivel
-          Integral de contenido y la anual desbloquea el nivel Premium completo.
-        </p>
-        <div className="overflow-x-auto rounded-3xl border border-white/60 glass-card shadow-sm">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-white/60 bg-primary/5">
-                <th className="px-5 py-4 text-left font-bold text-primary">Beneficio</th>
-                {COMPARE_PLANS.map((c) => (
-                  <th key={c.plan} className="px-4 py-4 text-center font-bold text-primary">
-                    {c.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {PLAN_BENEFITS.map((b, i) => (
-                <tr
-                  key={b.label}
-                  className={`border-b border-white/40 hover:bg-white/40 transition-colors ${
-                    i === PLAN_BENEFITS.length - 1 ? "border-none" : ""
-                  }`}
-                >
-                  <td className="px-5 py-3.5">
-                    <p className="font-semibold text-slate-800">{b.label}</p>
-                    <p className="text-xs text-muted-foreground">{b.detail}</p>
-                  </td>
-                  {COMPARE_PLANS.map((c) => (
-                    <td key={c.plan} className="px-4 py-3.5 text-center">
-                      {PLAN_RANK[b.minPlan] <= PLAN_RANK[c.plan] ? (
-                        <Check size={18} className="mx-auto text-emerald-500" />
-                      ) : (
-                        <Minus size={16} className="mx-auto text-slate-300" />
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
       <section className="bg-primary/5 py-16">
         <div className="mx-auto max-w-4xl px-4 md:px-6 glass-card rounded-3xl py-16 border border-white/40 shadow-xl shadow-primary/5">
           <h2 className="text-center text-3xl font-bold text-primary drop-shadow-sm">
-            Elige tu plan
+            Elige cómo quieres avanzar
           </h2>
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             {MEMBERSHIP_TIERS.map((t) => (
@@ -217,7 +224,10 @@ function Membresia() {
                       : "border border-primary/20 bg-background/50 backdrop-blur text-primary hover:bg-primary/10"
                   }`}
                 >
-                  Suscribirme
+                  {/* PLAN_LABELS[t.plan], no t.name: t.name ya trae el sufijo
+                      "mes a mes"/"todo el año" y repetirlo en el botón alargaba
+                      el texto sin aportar ("Empezar con Mi Equilibrio, mes a mes"). */}
+                  Empezar con {PLAN_LABELS[t.plan]}
                 </button>
               </div>
             ))}

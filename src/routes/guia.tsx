@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Loader2, Lock } from "lucide-react";
 import { listGuides, isFreeLeadAccount, PLAN_LABELS, type GuideMeta } from "../lib/api";
+import { PaywallModal } from "../components/PaywallModal";
 import type { PlanType } from "../lib/supabase";
 
 export const Route = createFileRoute("/guia")({
@@ -45,6 +46,7 @@ function Guia() {
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
+  const [paywallGuide, setPaywallGuide] = useState<GuideMeta | null>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -201,13 +203,25 @@ function Guia() {
                     <span className="font-semibold text-muted-foreground">
                       Lectura de {g.tiempoLectura}
                     </span>
-                    <Link
-                      to="/guias/$guiaId"
-                      params={{ guiaId: g.id }}
-                      className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
-                    >
-                      Leer guía
-                    </Link>
+                    {locked ? (
+                      // El popup abre en esta misma vista: navegar primero y recién
+                      // ahí mostrar el paywall obligaba a cargar otra página para
+                      // enterarse de algo que ya se sabía en el listado.
+                      <button
+                        onClick={() => setPaywallGuide(g)}
+                        className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
+                      >
+                        Leer guía
+                      </button>
+                    ) : (
+                      <Link
+                        to="/guias/$guiaId"
+                        params={{ guiaId: g.id }}
+                        className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
+                      >
+                        Leer guía
+                      </Link>
+                    )}
                   </div>
                 </div>
               </article>
@@ -215,6 +229,12 @@ function Guia() {
           })}
         </div>
       </section>
+
+      <PaywallModal
+        isOpen={!!paywallGuide}
+        onOpenChange={() => setPaywallGuide(null)}
+        requiredPlan={paywallGuide ? lockInfo(paywallGuide).plan : undefined}
+      />
     </>
   );
 }

@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { Link } from "@tanstack/react-router";
-import { Lock, Sparkles, X } from "lucide-react";
+import { Lock, X } from "lucide-react";
 import { PLAN_LABELS } from "../lib/api";
 import type { PlanType } from "../lib/supabase";
 
@@ -13,7 +13,7 @@ interface PaywallModalProps {
 
 export function PaywallModal({ isOpen, onOpenChange, requiredPlan }: PaywallModalProps) {
   const planLabel =
-    requiredPlan && requiredPlan !== "free" ? PLAN_LABELS[requiredPlan] : "Plan Esencial";
+    requiredPlan && requiredPlan !== "free" ? PLAN_LABELS[requiredPlan] : PLAN_LABELS.esencial;
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
@@ -29,8 +29,8 @@ export function PaywallModal({ isOpen, onOpenChange, requiredPlan }: PaywallModa
               <Lock className="h-10 w-10 text-primary" />
             </div>
 
-            <Dialog.Title className="flex items-center gap-2 text-3xl font-bold tracking-tight text-slate-900">
-              Contenido <Sparkles className="h-6 w-6 text-amber-400" />
+            <Dialog.Title className="text-3xl font-bold tracking-tight text-slate-900">
+              Contenido
             </Dialog.Title>
 
             <Dialog.Description className="text-base text-slate-500 leading-relaxed max-w-[90%] mx-auto">
