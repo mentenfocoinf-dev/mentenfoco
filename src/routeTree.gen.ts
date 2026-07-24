@@ -10,23 +10,34 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreNosotrosRouteImport } from './routes/sobre-nosotros'
+import { Route as RecursosRouteImport } from './routes/recursos'
 import { Route as NuevaContrasenaRouteImport } from './routes/nueva-contrasena'
 import { Route as MembresiaRouteImport } from './routes/membresia'
+import { Route as LineasDeCrisisRouteImport } from './routes/lineas-de-crisis'
 import { Route as IngresaRouteImport } from './routes/ingresa'
 import { Route as GuiaRouteImport } from './routes/guia'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as EmpresasRouteImport } from './routes/empresas'
 import { Route as ContactanosRouteImport } from './routes/contactanos'
 import { Route as ConsentimientoRouteImport } from './routes/consentimiento'
 import { Route as CompraExitosaRouteImport } from './routes/compra-exitosa'
 import { Route as CompletarPerfilRouteImport } from './routes/completar-perfil'
+import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
 import { Route as AnamnesisRouteImport } from './routes/anamnesis'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ServiciosSlugRouteImport } from './routes/servicios.$slug'
 import { Route as PacientesPatientIdRouteImport } from './routes/pacientes.$patientId'
 import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
 
 const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
   id: '/sobre-nosotros',
   path: '/sobre-nosotros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecursosRoute = RecursosRouteImport.update({
+  id: '/recursos',
+  path: '/recursos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NuevaContrasenaRoute = NuevaContrasenaRouteImport.update({
@@ -39,6 +50,11 @@ const MembresiaRoute = MembresiaRouteImport.update({
   path: '/membresia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LineasDeCrisisRoute = LineasDeCrisisRouteImport.update({
+  id: '/lineas-de-crisis',
+  path: '/lineas-de-crisis',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IngresaRoute = IngresaRouteImport.update({
   id: '/ingresa',
   path: '/ingresa',
@@ -47,6 +63,16 @@ const IngresaRoute = IngresaRouteImport.update({
 const GuiaRoute = GuiaRouteImport.update({
   id: '/guia',
   path: '/guia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmpresasRoute = EmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactanosRoute = ContactanosRouteImport.update({
@@ -69,6 +95,11 @@ const CompletarPerfilRoute = CompletarPerfilRouteImport.update({
   path: '/completar-perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AsesoramientoRoute = AsesoramientoRouteImport.update({
   id: '/asesoramiento',
   path: '/asesoramiento',
@@ -82,6 +113,11 @@ const AnamnesisRoute = AnamnesisRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServiciosSlugRoute = ServiciosSlugRouteImport.update({
+  id: '/servicios/$slug',
+  path: '/servicios/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PacientesPatientIdRoute = PacientesPatientIdRouteImport.update({
@@ -99,50 +135,68 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/blog': typeof BlogRoute
   '/completar-perfil': typeof CompletarPerfilRoute
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
+  '/empresas': typeof EmpresasRoute
+  '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
+  '/lineas-de-crisis': typeof LineasDeCrisisRoute
   '/membresia': typeof MembresiaRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
+  '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
+  '/servicios/$slug': typeof ServiciosSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/blog': typeof BlogRoute
   '/completar-perfil': typeof CompletarPerfilRoute
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
+  '/empresas': typeof EmpresasRoute
+  '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
+  '/lineas-de-crisis': typeof LineasDeCrisisRoute
   '/membresia': typeof MembresiaRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
+  '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
+  '/servicios/$slug': typeof ServiciosSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/anamnesis': typeof AnamnesisRoute
   '/asesoramiento': typeof AsesoramientoRoute
+  '/blog': typeof BlogRoute
   '/completar-perfil': typeof CompletarPerfilRoute
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
+  '/empresas': typeof EmpresasRoute
+  '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
+  '/lineas-de-crisis': typeof LineasDeCrisisRoute
   '/membresia': typeof MembresiaRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
+  '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
+  '/servicios/$slug': typeof ServiciosSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -150,66 +204,90 @@ export interface FileRouteTypes {
     | '/'
     | '/anamnesis'
     | '/asesoramiento'
+    | '/blog'
     | '/completar-perfil'
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
+    | '/empresas'
+    | '/faq'
     | '/guia'
     | '/ingresa'
+    | '/lineas-de-crisis'
     | '/membresia'
     | '/nueva-contrasena'
+    | '/recursos'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
+    | '/servicios/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/anamnesis'
     | '/asesoramiento'
+    | '/blog'
     | '/completar-perfil'
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
+    | '/empresas'
+    | '/faq'
     | '/guia'
     | '/ingresa'
+    | '/lineas-de-crisis'
     | '/membresia'
     | '/nueva-contrasena'
+    | '/recursos'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
+    | '/servicios/$slug'
   id:
     | '__root__'
     | '/'
     | '/anamnesis'
     | '/asesoramiento'
+    | '/blog'
     | '/completar-perfil'
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
+    | '/empresas'
+    | '/faq'
     | '/guia'
     | '/ingresa'
+    | '/lineas-de-crisis'
     | '/membresia'
     | '/nueva-contrasena'
+    | '/recursos'
     | '/sobre-nosotros'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
+    | '/servicios/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnamnesisRoute: typeof AnamnesisRoute
   AsesoramientoRoute: typeof AsesoramientoRoute
+  BlogRoute: typeof BlogRoute
   CompletarPerfilRoute: typeof CompletarPerfilRoute
   CompraExitosaRoute: typeof CompraExitosaRoute
   ConsentimientoRoute: typeof ConsentimientoRoute
   ContactanosRoute: typeof ContactanosRoute
+  EmpresasRoute: typeof EmpresasRoute
+  FaqRoute: typeof FaqRoute
   GuiaRoute: typeof GuiaRoute
   IngresaRoute: typeof IngresaRoute
+  LineasDeCrisisRoute: typeof LineasDeCrisisRoute
   MembresiaRoute: typeof MembresiaRoute
   NuevaContrasenaRoute: typeof NuevaContrasenaRoute
+  RecursosRoute: typeof RecursosRoute
   SobreNosotrosRoute: typeof SobreNosotrosRoute
   GuiasGuiaIdRoute: typeof GuiasGuiaIdRoute
   PacientesPatientIdRoute: typeof PacientesPatientIdRoute
+  ServiciosSlugRoute: typeof ServiciosSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -219,6 +297,13 @@ declare module '@tanstack/react-router' {
       path: '/sobre-nosotros'
       fullPath: '/sobre-nosotros'
       preLoaderRoute: typeof SobreNosotrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recursos': {
+      id: '/recursos'
+      path: '/recursos'
+      fullPath: '/recursos'
+      preLoaderRoute: typeof RecursosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/nueva-contrasena': {
@@ -235,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MembresiaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lineas-de-crisis': {
+      id: '/lineas-de-crisis'
+      path: '/lineas-de-crisis'
+      fullPath: '/lineas-de-crisis'
+      preLoaderRoute: typeof LineasDeCrisisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ingresa': {
       id: '/ingresa'
       path: '/ingresa'
@@ -247,6 +339,20 @@ declare module '@tanstack/react-router' {
       path: '/guia'
       fullPath: '/guia'
       preLoaderRoute: typeof GuiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/empresas': {
+      id: '/empresas'
+      path: '/empresas'
+      fullPath: '/empresas'
+      preLoaderRoute: typeof EmpresasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contactanos': {
@@ -277,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompletarPerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/asesoramiento': {
       id: '/asesoramiento'
       path: '/asesoramiento'
@@ -296,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/servicios/$slug': {
+      id: '/servicios/$slug'
+      path: '/servicios/$slug'
+      fullPath: '/servicios/$slug'
+      preLoaderRoute: typeof ServiciosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pacientes/$patientId': {
@@ -319,17 +439,23 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnamnesisRoute: AnamnesisRoute,
   AsesoramientoRoute: AsesoramientoRoute,
+  BlogRoute: BlogRoute,
   CompletarPerfilRoute: CompletarPerfilRoute,
   CompraExitosaRoute: CompraExitosaRoute,
   ConsentimientoRoute: ConsentimientoRoute,
   ContactanosRoute: ContactanosRoute,
+  EmpresasRoute: EmpresasRoute,
+  FaqRoute: FaqRoute,
   GuiaRoute: GuiaRoute,
   IngresaRoute: IngresaRoute,
+  LineasDeCrisisRoute: LineasDeCrisisRoute,
   MembresiaRoute: MembresiaRoute,
   NuevaContrasenaRoute: NuevaContrasenaRoute,
+  RecursosRoute: RecursosRoute,
   SobreNosotrosRoute: SobreNosotrosRoute,
   GuiasGuiaIdRoute: GuiasGuiaIdRoute,
   PacientesPatientIdRoute: PacientesPatientIdRoute,
+  ServiciosSlugRoute: ServiciosSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

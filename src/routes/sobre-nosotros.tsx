@@ -152,6 +152,38 @@ function SobreNosotros() {
         </div>
       </section>
 
+      {/* ── Respaldo científico y estándar clínico ── */}
+      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+        <div className="rounded-3xl bg-primary text-primary-foreground p-10 md:p-14 shadow-xl">
+          <div className="max-w-3xl">
+            <span className="inline-block rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold">
+              Nuestro estándar
+            </span>
+            <h2 className="mt-5 text-3xl font-bold md:text-4xl">
+              Salud mental con rigor de centro clínico
+            </h2>
+            <p className="mt-4 text-primary-foreground/80 leading-relaxed">
+              Trabajamos desde la evidencia científica y con documentación clínica real: valoración
+              estructurada, historia clínica, informes profesionales y clasificación diagnóstica
+              internacional (CIE-11). No es solo acompañamiento emocional; es un proceso serio, con
+              seguimiento medible de tu evolución.
+            </p>
+          </div>
+          <div className="mt-8 grid gap-6 sm:grid-cols-3">
+            {[
+              { t: "Basado en evidencia", d: "Métodos con respaldo científico, no modas." },
+              { t: "Documentación real", d: "Historia clínica e informes con estándar profesional." },
+              { t: "Enfoque neuropsicológico", d: "Una mirada del funcionamiento cognitivo que pocos tienen." },
+            ].map((item) => (
+              <div key={item.t} className="rounded-2xl bg-white/10 p-6 border border-white/10">
+                <h3 className="font-bold">{item.t}</h3>
+                <p className="mt-1.5 text-sm text-primary-foreground/70">{item.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
         <h2 className="text-center text-3xl font-bold text-primary">Nuestros valores</h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

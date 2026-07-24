@@ -1,7 +1,47 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { Check, Minus } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
-import { PLAN_OFFERS, DEFAULT_HIGHLIGHTED_OFFER, buildCheckoutLink } from "../lib/api";
+import {
+  PLAN_OFFERS,
+  DEFAULT_HIGHLIGHTED_OFFER,
+  PLAN_BENEFITS,
+  PLAN_LABELS,
+  PLAN_RANK,
+  buildCheckoutLink,
+} from "../lib/api";
+import type { PlanType } from "../lib/supabase";
+
+// Columnas de la tabla comparativa. Labels desde PLAN_LABELS para no duplicar
+// nombres (misma fuente que /membresia).
+const COMPARE_PLANS: { plan: PlanType; label: string }[] = [
+  { plan: "free", label: PLAN_LABELS.free.replace("Plan ", "") },
+  { plan: "esencial", label: PLAN_LABELS.esencial },
+  { plan: "integral", label: PLAN_LABELS.integral },
+  { plan: "premium", label: PLAN_LABELS.premium },
+];
+
+const PROCESO = [
+  { n: "1", title: "Cuéntanos qué necesitas", desc: "Nos escribes y coordinamos tu valoración inicial." },
+  { n: "2", title: "Valoración inicial", desc: "Un profesional entiende tu caso y proponen juntos un plan." },
+  { n: "3", title: "Acompañamiento", desc: "Trabajas con tu especialista según el plan que elijas." },
+  { n: "4", title: "Seguimiento", desc: "Medimos tu evolución y ajustamos el camino contigo." },
+];
+
+const PLAN_FAQ = [
+  {
+    q: "¿Puedo cambiar de plan después?",
+    a: "Sí. Puedes subir de plan cuando quieras desde tu portal para desbloquear más sesiones y contenido.",
+  },
+  {
+    q: "¿Qué incluye cada plan exactamente?",
+    a: "La tabla comparativa de arriba muestra qué desbloquea cada nivel. Cada plan incluye todo lo del nivel anterior.",
+  },
+  {
+    q: "¿La cuenta gratuita da acceso a sesiones?",
+    a: "No. La cuenta gratuita te deja conocer la plataforma y ver una selección de guías. El acompañamiento con especialista está en los planes de pago.",
+  },
+];
 
 export const Route = createFileRoute("/asesoramiento")({
   head: () => ({
@@ -118,12 +158,99 @@ function Asesoramiento() {
           ))}
         </div>
         <p className="mt-8 text-center text-sm text-muted-foreground">
-          Cada plan incluye el nivel de contenido digital correspondiente.{" "}
-          <Link to="/membresia" className="font-bold text-primary hover:underline">
-            Compara todos los beneficios aquí
-          </Link>
-          .
+          Cada plan incluye el nivel de contenido digital correspondiente.
         </p>
+      </section>
+
+      {/* ── Cómo funciona el proceso ── */}
+      <section className="bg-primary/5 py-16">
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
+          <h2 className="text-center text-3xl font-bold text-primary drop-shadow-sm">
+            Cómo funciona el proceso
+          </h2>
+          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {PROCESO.map((s) => (
+              <div
+                key={s.n}
+                className="card-neon-hover rounded-3xl glass-card p-7 border border-white/40 text-center"
+              >
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20">
+                  {s.n}
+                </div>
+                <h3 className="mt-4 font-bold text-primary">{s.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Tabla comparativa (reutiliza PLAN_BENEFITS) ── */}
+      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+        <h2 className="mb-2 text-center text-3xl font-bold text-primary drop-shadow-sm">
+          Compara los niveles de acceso
+        </h2>
+        <p className="mb-8 text-center text-sm text-muted-foreground max-w-2xl mx-auto">
+          Cada nivel incluye todo lo del nivel anterior.
+        </p>
+        <div className="overflow-x-auto rounded-3xl border border-white/60 glass-card shadow-sm">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-white/60 bg-primary/5">
+                <th className="px-5 py-4 text-left font-bold text-primary">Beneficio</th>
+                {COMPARE_PLANS.map((c) => (
+                  <th key={c.plan} className="px-4 py-4 text-center font-bold text-primary">
+                    {c.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {PLAN_BENEFITS.map((b, i) => (
+                <tr
+                  key={b.label}
+                  className={`border-b border-white/40 hover:bg-white/40 transition-colors ${
+                    i === PLAN_BENEFITS.length - 1 ? "border-none" : ""
+                  }`}
+                >
+                  <td className="px-5 py-3.5">
+                    <p className="font-semibold text-slate-800">{b.label}</p>
+                    <p className="text-xs text-muted-foreground">{b.detail}</p>
+                  </td>
+                  {COMPARE_PLANS.map((c) => (
+                    <td key={c.plan} className="px-4 py-3.5 text-center">
+                      {PLAN_RANK[b.minPlan] <= PLAN_RANK[c.plan] ? (
+                        <Check size={18} className="mx-auto text-emerald-500" />
+                      ) : (
+                        <Minus size={16} className="mx-auto text-slate-300" />
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* ── FAQ de planes ── */}
+      <section className="mx-auto max-w-3xl px-4 pb-16 md:px-6">
+        <h2 className="mb-8 text-center text-3xl font-bold text-primary drop-shadow-sm">
+          Preguntas sobre los planes
+        </h2>
+        <div className="space-y-3">
+          {PLAN_FAQ.map((f) => (
+            <details
+              key={f.q}
+              className="group rounded-2xl border border-white/50 bg-white/50 [&_summary::-webkit-details-marker]:hidden"
+            >
+              <summary className="cursor-pointer px-5 py-4 text-sm font-semibold text-foreground">
+                {f.q}
+              </summary>
+              <p className="px-5 pb-4 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
+            </details>
+          ))}
+        </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-20 md:px-6">
