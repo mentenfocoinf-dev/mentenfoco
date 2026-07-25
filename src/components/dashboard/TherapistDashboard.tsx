@@ -14,7 +14,10 @@ import {
   MessageCircle,
   ArrowRight,
   BarChart3,
-  Settings,
+  UserCircle,
+  Award,
+  Clock,
+  Activity,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase, type Profile } from "../../lib/supabase";
@@ -313,23 +316,19 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     selectedPrescriptionIds.includes(p.id),
   );
 
+  // Alertas y Estadísticas dejaron de ser secciones propias: las alertas viven
+  // dentro de Inicio (con toda su lógica intacta) y los indicadores útiles de
+  // Estadísticas se integraron al resumen de Inicio para no duplicarlos.
   const NAV: ShellNavItem[] = [
-    { key: "inicio", label: "Inicio", icon: Home },
+    { key: "inicio", label: "Inicio", icon: Home, badge: crisisAlerts.length },
     { key: "pacientes", label: "Pacientes", icon: Users },
     { key: "agenda", label: "Agenda", icon: Calendar },
     { key: "historia", label: "Historia Clínica", icon: FileText },
     { key: "documentos", label: "Documentos Clínicos", icon: FolderOpen },
-    {
-      key: "alertas",
-      label: "Alertas",
-      icon: AlertTriangle,
-      badge: crisisAlerts.length,
-    },
     { key: "mensajes", label: "Mensajes", icon: MessageCircle, badge: unreadMessages },
-    { key: "estadisticas", label: "Estadísticas", icon: BarChart3 },
   ];
   const BOTTOM_NAV: ShellNavItem[] = [
-    { key: "configuracion", label: "Configuración", icon: Settings },
+    { key: "perfil", label: "Mi Perfil", icon: UserCircle },
   ];
   const TITLES: Record<string, string> = {
     inicio: `Hola, ${displayName.split(" ")[0]}`,
@@ -337,10 +336,8 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     agenda: "Agenda de sesiones",
     historia: "Historia clínica",
     documentos: "Documentos clínicos",
-    alertas: "Alertas de riesgo",
     mensajes: "Mensajes",
-    estadisticas: "Estadísticas",
-    configuracion: "Configuración",
+    perfil: "Mi perfil profesional",
   };
 
   // ── Bloques de contenido, reutilizados entre secciones ────────────────────
@@ -806,70 +803,100 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     count: sessions.filter((s) => s.status === opt.value).length,
   }));
 
-  const estadisticasCard = (
+  // ── Mi Perfil profesional ─────────────────────────────────────────────────
+  // Estructura visual del perfil que más adelante alimentará la recomendación
+  // de terapeutas a pacientes (filtros por especialidad, enfoque, modalidad,
+  // idioma…). Hoy `profiles` solo tiene full_name, avatar_url, email y
+  // professional_card: el resto de campos NO existen en la base todavía, así
+  // que se muestran vacíos y marcados como pendientes en vez de inventar datos.
+  // Cuando exista la migración, cada campo pasa a leerse/escribirse aquí mismo.
+  const PERFIL_PENDIENTE: { label: string; hint: string }[] = [
+    { label: "Descripción profesional", hint: "Presentación breve para tus pacientes." },
+    { label: "Especialidades", hint: "Ej. ansiedad, duelo, neuropsicología." },
+    { label: "Enfoques terapéuticos", hint: "Ej. TCC, sistémico, humanista." },
+    { label: "Población atendida", hint: "Ej. adultos, adolescentes, adultos mayores." },
+    { label: "Modalidad", hint: "Virtual, presencial o mixta." },
+    { label: "Idiomas", hint: "Idiomas en los que atiendes." },
+    { label: "Formación", hint: "Títulos, posgrados y certificaciones." },
+    { label: "Redes profesionales", hint: "Perfiles públicos o sitio web." },
+  ];
+
+  const perfilCard = (
     <div className="space-y-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: "Pacientes asignados", value: patients.length, icon: Users },
-          { label: "Sesiones registradas", value: sessions.length, icon: Calendar },
-          { label: "Alertas pendientes", value: crisisAlerts.length, icon: AlertTriangle },
-          { label: "Mensajes sin leer", value: unreadMessages, icon: MessageCircle },
-        ].map(({ label, value, icon: Icon }) => (
-          <div
-            key={label}
-            className="card-neon-hover rounded-3xl glass-card border border-white/40 p-5"
-          >
-            <div className="flex items-center gap-2 text-primary">
-              <Icon size={18} strokeWidth={1.75} />
-              <p className="text-xs font-semibold uppercase tracking-wider">{label}</p>
-            </div>
-            <p className="mt-3 text-3xl font-bold text-slate-900">{value}</p>
-          </div>
-        ))}
-      </div>
-
+      {/* Identidad: los únicos campos que hoy existen en profiles */}
       <div className="card-neon-hover rounded-3xl glass-card border border-white/40 p-6">
-        <h3 className="text-sm font-bold text-primary mb-4">Sesiones por estado</h3>
-        {sessions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Aún no hay sesiones registradas.</p>
-        ) : (
-          <ul className="space-y-2">
-            {sessionsByStatus.map(({ label, count }) => (
-              <li key={label} className="flex items-center justify-between gap-4 text-sm">
-                <span className="text-slate-700">{label}</span>
-                <span className="font-bold text-primary">{count}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  );
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+          <div className="relative shrink-0">
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={displayName}
+                className="h-24 w-24 rounded-2xl object-cover shadow-sm"
+              />
+            ) : (
+              <div className="flex h-24 w-24 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-3xl font-bold text-primary">
+                {displayName.slice(0, 1).toUpperCase()}
+              </div>
+            )}
+            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-slate-500">
+              Foto
+            </span>
+          </div>
 
-  const configuracionCard = (
-    <div className="max-w-2xl">
-      <div className="rounded-3xl glass-card border border-white/40 p-6">
-        <h2 className="text-lg font-bold text-primary mb-4">Tu cuenta</h2>
-        <dl className="space-y-3 text-sm">
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Nombre</dt>
-            <dd className="font-semibold text-slate-800">{profile.full_name ?? "—"}</dd>
-          </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Correo</dt>
-            <dd className="font-semibold text-slate-800">{profile.email ?? "—"}</dd>
-          </div>
-          <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Rol</dt>
-            <dd className="font-semibold text-slate-800">Terapeuta</dd>
-          </div>
-          {profile.professional_card && (
-            <div className="flex justify-between gap-4">
-              <dt className="text-muted-foreground">Tarjeta profesional</dt>
-              <dd className="font-semibold text-slate-800">{profile.professional_card}</dd>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl font-bold text-primary">{profile.full_name ?? displayName}</h2>
+            <p className="text-sm text-muted-foreground">{profile.email ?? "—"}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+                Terapeuta
+              </span>
+              {profile.professional_card ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+                  <Award size={12} /> T.P. {profile.professional_card}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
+                  <Award size={12} /> Tarjeta profesional sin registrar
+                </span>
+              )}
             </div>
-          )}
+          </div>
+        </div>
+      </div>
+
+      {/* Campos del perfil público, aún sin respaldo en base de datos */}
+      <div className="card-neon-hover rounded-3xl glass-card border border-white/40 p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-primary">Perfil público</h2>
+            <p className="mt-1 max-w-xl text-sm text-muted-foreground">
+              Esta información será la que vean los pacientes al buscar especialista, y la que use
+              el sistema para recomendarte según su motivo de consulta.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+            <Clock size={12} /> Edición próximamente
+          </span>
+        </div>
+
+        <dl className="mt-5 grid gap-3 sm:grid-cols-2">
+          {PERFIL_PENDIENTE.map(({ label, hint }) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-dashed border-slate-200 bg-white/50 p-4"
+            >
+              <dt className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</dt>
+              <dd className="mt-1 text-sm text-slate-400 italic">Sin definir</dd>
+              <p className="mt-1 text-xs text-slate-400">{hint}</p>
+            </div>
+          ))}
         </dl>
+
+        <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-xs leading-relaxed text-slate-500">
+          Estos campos todavía no existen en la base de datos, por eso aparecen vacíos y no son
+          editables aún. La estructura ya está lista para conectarlos cuando se cree la migración
+          del perfil profesional.
+        </p>
       </div>
     </div>
   );
@@ -879,8 +906,43 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     .sort((a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime())
     .slice(0, 4);
 
+  // Actividad reciente construida SOLO con datos ya cargados en memoria
+  // (sesiones y alertas). No se añaden consultas nuevas: las tareas asignadas y
+  // las escalas respondidas viven en tablas que este panel no carga hoy, así que
+  // no se representan aquí en vez de mostrarlas vacías o inventadas.
+  const actividadReciente = [
+    ...sessions
+      .filter(
+        (s) =>
+          new Date(s.scheduled_at).getTime() <= Date.now() &&
+          ["completada", "no_asistio", "cancelada"].includes(s.status),
+      )
+      .map((s) => ({
+        id: `session-${s.id}`,
+        at: s.scheduled_at,
+        status: s.status,
+        who: s.patient?.full_name || s.patient?.email || "Paciente",
+      })),
+    ...crisisAlerts.map((a) => ({
+      id: `alert-${a.id}`,
+      at: a.created_at,
+      status: "alerta",
+      who: a.patient_name,
+    })),
+  ]
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, 6);
+
+  const ACTIVITY_STYLE: Record<string, { label: string; className: string }> = {
+    completada: { label: "Sesión completada", className: "bg-emerald-100 text-emerald-700" },
+    no_asistio: { label: "No asistió", className: "bg-amber-100 text-amber-700" },
+    cancelada: { label: "Sesión cancelada", className: "bg-slate-100 text-slate-600" },
+    alerta: { label: "Alerta de riesgo", className: "bg-red-100 text-red-700" },
+  };
+
   const inicioSection = (
     <div className="space-y-6">
+      {/* 1. Alertas de riesgo — integradas aquí; mantienen resolución y ficha */}
       {crisisAlerts.length > 0 && (
         <div>
           <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-red-700">
@@ -890,6 +952,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         </div>
       )}
 
+      {/* 2. Métricas clave */}
       <div className="grid gap-4 sm:grid-cols-3">
         {[
           { label: "Pacientes", value: patients.length, icon: Users },
@@ -906,47 +969,114 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         ))}
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+        {/* 3. Próximas sesiones */}
+        <div className="card-neon-hover rounded-3xl glass-card border border-white/40 p-6">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-primary">
+            <Calendar size={20} /> Próximas sesiones
+          </h2>
+          {sessionsLoading ? (
+            <p className="text-sm text-muted-foreground animate-pulse">Cargando agenda...</p>
+          ) : proximasSesiones.length > 0 ? (
+            <ul className="space-y-3">
+              {proximasSesiones.map((s) => (
+                <li
+                  key={s.id}
+                  className="flex flex-col gap-2 rounded-2xl border border-white/50 bg-white/50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="text-sm font-bold text-slate-800">
+                      {s.patient?.full_name || s.patient?.email || "Paciente"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(s.scheduled_at).toLocaleString([], {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}{" "}
+                      · {s.duration_minutes} min
+                    </p>
+                  </div>
+                  {s.video_call_link && (
+                    <a
+                      href={s.video_call_link}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      <Video size={14} /> Videollamada
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-white/40 p-4 text-center">
+              <p className="text-sm text-muted-foreground">No tienes sesiones próximas.</p>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Actividad reciente */}
+        <div className="card-neon-hover rounded-3xl glass-card border border-white/40 p-6">
+          <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-primary">
+            <Activity size={20} /> Actividad reciente
+          </h2>
+          {actividadReciente.length > 0 ? (
+            <ul className="space-y-3">
+              {actividadReciente.map((item) => {
+                const style = ACTIVITY_STYLE[item.status] ?? {
+                  label: item.status,
+                  className: "bg-slate-100 text-slate-600",
+                };
+                return (
+                  <li
+                    key={item.id}
+                    className="flex items-center gap-3 rounded-2xl border border-white/50 bg-white/50 p-3"
+                  >
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${style.className}`}
+                    >
+                      {style.label}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800">
+                      {item.who}
+                    </span>
+                    <span className="shrink-0 text-xs text-slate-400">
+                      {new Date(item.at).toLocaleDateString("es-CO", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="rounded-2xl border border-dashed border-slate-200 bg-white/40 p-4 text-center">
+              <p className="text-sm text-muted-foreground">Todavía no hay actividad registrada.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 5. Indicadores que antes vivían en Estadísticas */}
       <div className="card-neon-hover rounded-3xl glass-card border border-white/40 p-6">
         <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-primary">
-          <Calendar size={20} /> Próximas sesiones
+          <BarChart3 size={20} /> Sesiones por estado
         </h2>
-        {sessionsLoading ? (
-          <p className="text-sm text-muted-foreground animate-pulse">Cargando agenda...</p>
-        ) : proximasSesiones.length > 0 ? (
-          <ul className="space-y-3">
-            {proximasSesiones.map((s) => (
-              <li
-                key={s.id}
-                className="flex flex-col gap-2 rounded-2xl border border-white/50 bg-white/50 p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div>
-                  <p className="text-sm font-bold text-slate-800">
-                    {s.patient?.full_name || s.patient?.email || "Paciente"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(s.scheduled_at).toLocaleString([], {
-                      dateStyle: "full",
-                      timeStyle: "short",
-                    })}{" "}
-                    · {s.duration_minutes} min
-                  </p>
-                </div>
-                {s.video_call_link && (
-                  <a
-                    href={s.video_call_link}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
-                  >
-                    <Video size={14} /> Videollamada
-                  </a>
-                )}
-              </li>
-            ))}
-          </ul>
+        {sessions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Aún no hay sesiones registradas.</p>
         ) : (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-white/40 p-4 text-center">
-            <p className="text-sm text-muted-foreground">No tienes sesiones próximas.</p>
+          <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {sessionsByStatus.map(({ label, count }) => (
+              <div
+                key={label}
+                className="rounded-2xl border border-white/50 bg-white/50 p-4 text-center"
+              >
+                <p className="text-2xl font-bold text-primary">{count}</p>
+                <p className="mt-1 text-xs text-slate-500">{label}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -980,15 +1110,13 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
       </div>
     ),
     documentos: documentosCard,
-    alertas: alertasBlock,
     mensajes: (
       <TherapistMessages
         therapistId={profile.id}
         onConversationsChange={handleConversationsChange}
       />
     ),
-    estadisticas: estadisticasCard,
-    configuracion: configuracionCard,
+    perfil: perfilCard,
   };
 
   return (
