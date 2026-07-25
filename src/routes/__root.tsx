@@ -1,4 +1,11 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import {
+  Outlet,
+  Link,
+  createRootRoute,
+  HeadContent,
+  Scripts,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { AuthProvider } from "../hooks/useAuth";
@@ -370,15 +377,26 @@ function Footer() {
 }
 
 function RootComponent() {
+  // El portal (/ingresa) usa su propio shell de app (barra lateral) y se muestra
+  // a pantalla completa, sin el header/footer de marketing — como Selia.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isPortal = pathname === "/ingresa";
+
   return (
     <AuthProvider>
-      <div className="flex min-h-screen flex-col bg-background">
-        <Header />
-        <main className="flex-1">
+      {isPortal ? (
+        <div className="min-h-screen bg-background">
           <Outlet />
-        </main>
-        <Footer />
-      </div>
+        </div>
+      ) : (
+        <div className="flex min-h-screen flex-col bg-background">
+          <Header />
+          <main className="flex-1">
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
+      )}
     </AuthProvider>
   );
 }
