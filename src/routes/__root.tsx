@@ -1,11 +1,4 @@
-import {
-  Outlet,
-  Link,
-  createRootRoute,
-  HeadContent,
-  Scripts,
-  useRouterState,
-} from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { AuthProvider } from "../hooks/useAuth";
@@ -377,26 +370,19 @@ function Footer() {
 }
 
 function RootComponent() {
-  // El portal (/ingresa) usa su propio shell de app (barra lateral) y se muestra
-  // a pantalla completa, sin el header/footer de marketing — como Selia.
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isPortal = pathname === "/ingresa";
-
+  // La Navbar y el Footer institucionales permanecen en TODAS las rutas, también
+  // en las autenticadas: Mente en Foco es una plataforma clínica con identidad
+  // institucional permanente. El sidebar del dashboard vive dentro de <main>,
+  // como layout interno del área autenticada (ver DashboardShell).
   return (
     <AuthProvider>
-      {isPortal ? (
-        <div className="min-h-screen bg-background">
+      <div className="flex min-h-screen flex-col bg-background">
+        <Header />
+        <main className="flex-1">
           <Outlet />
-        </div>
-      ) : (
-        <div className="flex min-h-screen flex-col bg-background">
-          <Header />
-          <main className="flex-1">
-            <Outlet />
-          </main>
-          <Footer />
-        </div>
-      )}
+        </main>
+        <Footer />
+      </div>
     </AuthProvider>
   );
 }
