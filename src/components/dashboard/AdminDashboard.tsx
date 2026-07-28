@@ -9,8 +9,13 @@ import {
   X,
   CheckCircle2,
   AlertCircle,
+  FileText,
+  Send,
+  Archive,
+  Eye,
 } from "lucide-react";
 import { supabase, type Profile, type CrmLead, type PlanType } from "../../lib/supabase";
+import { ContentEditorModal } from "../content/ContentEditorModal";
 import {
   getAdminDirectory,
   assignPatientToTherapist,
@@ -19,9 +24,18 @@ import {
   setUserStatus,
   createUser,
   PLAN_LABELS,
+  listAllContent,
+  approveContent,
+  requestContentChanges,
+  publishContent,
+  archiveContent,
+  CONTENT_STATUS_LABELS,
+  CONTENT_STATUS_CLASSES,
+  CONTENT_TYPE_LABELS,
   type AdminDirectory,
   type DirectoryPatient,
   type DirectoryTherapist,
+  type ContentItem,
 } from "../../lib/api";
 
 interface Props {
@@ -29,7 +43,7 @@ interface Props {
   onLogout: () => void;
 }
 
-type TabType = "leads" | "therapists" | "patients";
+type TabType = "leads" | "therapists" | "patients" | "contenido";
 
 const PLAN_OPTIONS: PlanType[] = ["free", "esencial", "integral", "premium"];
 
@@ -40,6 +54,19 @@ export function AdminDashboard({ profile, onLogout }: Props) {
   const [loading, setLoading] = useState(true);
   const [feedback, setFeedback] = useState<{ type: "ok" | "error"; msg: string } | null>(null);
   const [busyRow, setBusyRow] = useState<string | null>(null);
+
+  // ── Panel de revisión de contenido ─────────────────────────────────────
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  const [contentEditor, setContentEditor] = useState<{ open: boolean; item: ContentItem | null }>({
+    open: false,
+    item: null,
+  });
+  const [changesFor, setChangesFor] = useState<ContentItem | null>(null);
+  const [changeNotes, setChangeNotes] = useState("");
+
+  const refreshContent = useCallback(async () => {
+    setContentItems(await listAllContent());
+  }, []);
 
   // ── Modal "Nuevo usuario" ──────────────────────────────────────────────
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -77,13 +104,56 @@ export function AdminDashboard({ profile, onLogout }: Props) {
           .order("created_at", { ascending: false });
         if (error) console.error("[AdminDashboard] Error cargando leads:", error.message);
         if (data) setLeads(data);
+      } else if (activeTab === "contenido") {
+        await refreshContent();
       } else {
         await refreshDirectory();
       }
       setLoading(false);
     }
     fetchData();
-  }, [activeTab, refreshDirectory]);
+  }, [activeTab, refreshDirectory, refreshContent]);
+
+  // ── Acciones del panel de revisión ─────────────────────────────────────
+  async function handleContentAction(
+    item: ContentItem,
+    action: "aprobar" | "publicar" | "archivar",
+  ) {
+    setBusyRow(item.id);
+    try {
+      if (action === "aprobar") {
+        await approveContent(item.id, profile.id);
+        notify("ok", "Contenido aprobado.");
+      } else if (action === "publicar") {
+        await publishContent(item.id, profile.id);
+        notify("ok", "Contenido publicado.");
+      } else {
+        await archiveContent(item.id);
+        notify("ok", "Contenido archivado.");
+      }
+      await refreshContent();
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "No se pudo completar la acción.");
+    } finally {
+      setBusyRow(null);
+    }
+  }
+
+  async function handleRequestChanges() {
+    if (!changesFor || !changeNotes.trim()) return;
+    setBusyRow(changesFor.id);
+    try {
+      await requestContentChanges(changesFor.id, profile.id, changeNotes);
+      notify("ok", "Se enviaron los cambios solicitados al autor.");
+      setChangesFor(null);
+      setChangeNotes("");
+      await refreshContent();
+    } catch (err) {
+      notify("error", err instanceof Error ? err.message : "No se pudo enviar la solicitud.");
+    } finally {
+      setBusyRow(null);
+    }
+  }
 
   // ── Acciones ───────────────────────────────────────────────────────────
   async function handleAssign(patientId: string, therapistId: string) {
@@ -164,7 +234,10 @@ export function AdminDashboard({ profile, onLogout }: Props) {
     { key: "patients", label: "Pacientes", icon: <UserRound size={18} /> },
     { key: "therapists", label: "Terapeutas", icon: <Users size={18} /> },
     { key: "leads", label: "Leads (CRM)", icon: <Contact size={18} /> },
+    { key: "contenido", label: "Contenido", icon: <FileText size={18} /> },
   ];
+
+  const reviewQueue = contentItems.filter((i) => i.status === "en_revision");
 
   return (
     <>
@@ -340,6 +413,157 @@ export function AdminDashboard({ profile, onLogout }: Props) {
               </div>
             ) : (
               <div className="overflow-x-auto">
+                {/* ── CONTENIDO: cola de revisión + catálogo ── */}
+                {activeTab === "contenido" && (
+                  <div className="space-y-8 p-6">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="max-w-xl">
+                        <h2 className="text-lg font-bold text-primary">Revisión de contenido</h2>
+                        <p className="mt-1 text-sm text-slate-600">
+                          Los terapeutas proponen; tú apruebas y publicas. Eres el único rol con
+                          potestad de publicación.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setContentEditor({ open: true, item: null })}
+                        className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+                      >
+                        <UserPlus size={16} /> Crear contenido
+                      </button>
+                    </div>
+
+                    {/* Cola de revisión */}
+                    <div>
+                      <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-slate-700">
+                        <Send size={15} /> Esperando revisión ({reviewQueue.length})
+                      </h3>
+                      {reviewQueue.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 p-6 text-center">
+                          <p className="text-sm text-muted-foreground">
+                            No hay propuestas pendientes de revisión.
+                          </p>
+                        </div>
+                      ) : (
+                        <ul className="space-y-3">
+                          {reviewQueue.map((item) => (
+                            <li
+                              key={item.id}
+                              className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4"
+                            >
+                              <div className="flex flex-wrap items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="text-xs font-semibold text-slate-500">
+                                    {CONTENT_TYPE_LABELS[item.content_type]} · {item.categoria}
+                                  </p>
+                                  <p className="mt-0.5 font-bold text-primary">{item.titulo}</p>
+                                  <p className="text-xs text-slate-500">{item.resumen_breve}</p>
+                                </div>
+                                <div className="flex shrink-0 flex-wrap gap-2">
+                                  <button
+                                    onClick={() => setContentEditor({ open: true, item })}
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                                  >
+                                    <Eye size={13} /> Revisar / editar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setChangesFor(item);
+                                      setChangeNotes("");
+                                    }}
+                                    disabled={busyRow === item.id}
+                                    className="rounded-lg border border-orange-300 px-3 py-2 text-xs font-bold text-orange-700 transition-colors hover:bg-orange-100 disabled:opacity-60"
+                                  >
+                                    Solicitar cambios
+                                  </button>
+                                  <button
+                                    onClick={() => void handleContentAction(item, "aprobar")}
+                                    disabled={busyRow === item.id}
+                                    className="rounded-lg border border-sky-300 px-3 py-2 text-xs font-bold text-sky-700 transition-colors hover:bg-sky-100 disabled:opacity-60"
+                                  >
+                                    Aprobar
+                                  </button>
+                                  <button
+                                    onClick={() => void handleContentAction(item, "publicar")}
+                                    disabled={busyRow === item.id}
+                                    className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                                  >
+                                    Publicar
+                                  </button>
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Catálogo completo */}
+                    <div>
+                      <h3 className="mb-3 text-sm font-bold text-slate-700">
+                        Todo el contenido ({contentItems.length})
+                      </h3>
+                      {contentItems.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/50 p-6 text-center">
+                          <p className="text-sm text-muted-foreground">
+                            Todavía no hay contenido creado.
+                          </p>
+                        </div>
+                      ) : (
+                        <ul className="space-y-2">
+                          {contentItems.map((item) => (
+                            <li
+                              key={item.id}
+                              className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/60 p-3"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span
+                                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${CONTENT_STATUS_CLASSES[item.status]}`}
+                                  >
+                                    {CONTENT_STATUS_LABELS[item.status]}
+                                  </span>
+                                  <span className="text-xs text-slate-500">
+                                    {CONTENT_TYPE_LABELS[item.content_type]} · {item.categoria}
+                                  </span>
+                                </div>
+                                <p className="mt-1 truncate font-semibold text-slate-800">
+                                  {item.titulo}
+                                </p>
+                              </div>
+                              <div className="flex shrink-0 flex-wrap gap-2">
+                                <button
+                                  onClick={() => setContentEditor({ open: true, item })}
+                                  className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                                >
+                                  Editar
+                                </button>
+                                {item.status !== "publicado" && item.status !== "archivado" && (
+                                  <button
+                                    onClick={() => void handleContentAction(item, "publicar")}
+                                    disabled={busyRow === item.id}
+                                    className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                                  >
+                                    Publicar
+                                  </button>
+                                )}
+                                {item.status !== "archivado" && (
+                                  <button
+                                    onClick={() => void handleContentAction(item, "archivar")}
+                                    disabled={busyRow === item.id}
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100 disabled:opacity-60"
+                                  >
+                                    <Archive size={12} /> Archivar
+                                  </button>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* ── LEADS ── */}
                 {activeTab === "leads" &&
                   (leads.length > 0 ? (
@@ -552,6 +776,77 @@ export function AdminDashboard({ profile, onLogout }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Editor / revisión de una pieza. El admin sí puede publicar desde aquí. */}
+      {contentEditor.open && (
+        <ContentEditorModal
+          authorId={profile.id}
+          existing={contentEditor.item}
+          onClose={() => {
+            setContentEditor({ open: false, item: null });
+            void refreshContent();
+          }}
+          onSaved={() => void refreshContent()}
+          footerExtra={
+            contentEditor.item && contentEditor.item.status !== "publicado" ? (
+              <button
+                onClick={async () => {
+                  await handleContentAction(contentEditor.item!, "publicar");
+                  setContentEditor({ open: false, item: null });
+                }}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
+              >
+                <CheckCircle2 size={15} /> Publicar
+              </button>
+            ) : null
+          }
+        />
+      )}
+
+      {/* Solicitar cambios: las notas vuelven al terapeuta autor */}
+      {changesFor && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-slate-900">Solicitar cambios</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              El autor verá estas notas y podrá corregir y reenviar la pieza.
+            </p>
+            <p className="mt-3 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700">
+              {changesFor.titulo}
+            </p>
+            <textarea
+              rows={5}
+              value={changeNotes}
+              onChange={(e) => setChangeNotes(e.target.value)}
+              placeholder="Ej. Falta el bloque 'En resumen' y la sección de FAQ. El tono del cierre quedó muy clínico."
+              className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm focus:border-primary focus:outline-none"
+            />
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => {
+                  setChangesFor(null);
+                  setChangeNotes("");
+                }}
+                className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => void handleRequestChanges()}
+                disabled={!changeNotes.trim() || busyRow === changesFor.id}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-orange-700 disabled:opacity-60"
+              >
+                {busyRow === changesFor.id ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <Send size={15} />
+                )}
+                Enviar solicitud
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

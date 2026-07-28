@@ -18,6 +18,7 @@ import {
   Award,
   Clock,
   Activity,
+  PenLine,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase, type Profile } from "../../lib/supabase";
@@ -26,6 +27,7 @@ import { CognitiveScreeningForm } from "../CognitiveScreeningForm";
 import { TherapistMessages } from "../messaging/TherapistMessages";
 import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
 import { DashboardShell, type ShellNavItem } from "./DashboardShell";
+import { ContentEditorModal } from "../content/ContentEditorModal";
 import {
   getTherapistPatients,
   getPrescriptionsCatalog,
@@ -36,9 +38,15 @@ import {
   updateSessionStatus,
   updateSessionVideoLink,
   getTherapistUnreadCount,
+  listMyContent,
+  submitForReview,
+  CONTENT_STATUS_LABELS,
+  CONTENT_STATUS_CLASSES,
+  CONTENT_TYPE_LABELS,
   type TherapistSessionRow,
   type SessionStatus,
   type TherapistConversation,
+  type ContentItem,
 } from "../../lib/api";
 
 const SESSION_STATUS_OPTIONS: { value: SessionStatus; label: string }[] = [
@@ -95,6 +103,17 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
   // Sección activa del sidebar. Sustituye a la navegación por scroll del layout anterior.
   const [section, setSection] = useState("inicio");
 
+  // Propuestas de contenido escritas por este terapeuta.
+  const [myContent, setMyContent] = useState<ContentItem[]>([]);
+  const [contentEditor, setContentEditor] = useState<{ open: boolean; item: ContentItem | null }>({
+    open: false,
+    item: null,
+  });
+
+  async function refreshMyContent() {
+    setMyContent(await listMyContent(profile.id));
+  }
+
   function handleConversationsChange(conversations: TherapistConversation[]) {
     setUnreadMessages(conversations.reduce((sum, c) => sum + c.unread_count, 0));
   }
@@ -117,6 +136,9 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     }
     fetchDashboardData();
     fetchSessions();
+    refreshMyContent().catch((err) =>
+      console.error("[TherapistDashboard] Error cargando mis propuestas:", err),
+    );
     getTherapistUnreadCount(profile.id)
       .then(setUnreadMessages)
       .catch((err) => console.error("[TherapistDashboard] Error cargando no leídos:", err));
@@ -326,6 +348,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     { key: "historia", label: "Historia Clínica", icon: FileText },
     { key: "documentos", label: "Documentos Clínicos", icon: FolderOpen },
     { key: "mensajes", label: "Mensajes", icon: MessageCircle, badge: unreadMessages },
+    { key: "contenido", label: "Contenido", icon: PenLine },
   ];
   const BOTTOM_NAV: ShellNavItem[] = [
     { key: "perfil", label: "Mi Perfil", icon: UserCircle },
@@ -337,6 +360,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     historia: "Historia clínica",
     documentos: "Documentos clínicos",
     mensajes: "Mensajes",
+    contenido: "Escribir contenido",
     perfil: "Mi perfil profesional",
   };
 
@@ -803,6 +827,82 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
     count: sessions.filter((s) => s.status === opt.value).length,
   }));
 
+  // ── Contenido: propuestas escritas por este terapeuta ─────────────────────
+  // El terapeuta redacta y envía a revisión; publicar es potestad del admin, y
+  // esa regla la impone la base de datos, no esta pantalla.
+  const contenidoCard = (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 rounded-3xl border border-primary/20 bg-primary/5 p-5">
+        <div className="max-w-xl">
+          <h2 className="text-lg font-bold text-primary">Ayuda a nutrir el blog</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Escribe un artículo, una herramienta o el tema de un audio. Cuando lo envíes, el equipo
+            lo revisa y lo publica. Puedes guardarlo como borrador las veces que quieras.
+          </p>
+        </div>
+        <button
+          onClick={() => setContentEditor({ open: true, item: null })}
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
+        >
+          <Plus size={16} /> Nueva propuesta
+        </button>
+      </div>
+
+      {myContent.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/40 p-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            Todavía no has propuesto contenido. Empieza por un tema que trabajes seguido en consulta.
+          </p>
+        </div>
+      ) : (
+        <ul className="space-y-3">
+          {myContent.map((item) => {
+            // El autor solo puede editar mientras es borrador o le pidieron cambios.
+            const editable = item.status === "borrador" || item.status === "cambios_solicitados";
+            return (
+              <li
+                key={item.id}
+                className="rounded-2xl border border-white/60 bg-white/60 p-4 shadow-sm"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ${CONTENT_STATUS_CLASSES[item.status]}`}
+                      >
+                        {CONTENT_STATUS_LABELS[item.status]}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-500">
+                        {CONTENT_TYPE_LABELS[item.content_type]} · {item.categoria}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 font-bold text-primary">{item.titulo}</p>
+                    <p className="text-xs text-slate-500">{item.resumen_breve}</p>
+                  </div>
+                  <button
+                    onClick={() => setContentEditor({ open: true, item })}
+                    className="shrink-0 rounded-lg border border-primary/20 px-3 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/10"
+                  >
+                    {editable ? "Editar" : "Ver"}
+                  </button>
+                </div>
+
+                {item.status === "cambios_solicitados" && item.review_notes && (
+                  <div className="mt-3 rounded-xl border border-orange-200 bg-orange-50 p-3">
+                    <p className="text-xs font-bold uppercase tracking-wider text-orange-700">
+                      El equipo pidió cambios
+                    </p>
+                    <p className="mt-1 text-sm text-orange-800">{item.review_notes}</p>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+
   // ── Mi Perfil profesional ─────────────────────────────────────────────────
   // Estructura visual del perfil que más adelante alimentará la recomendación
   // de terapeutas a pacientes (filtros por especialidad, enfoque, modalidad,
@@ -1116,6 +1216,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         onConversationsChange={handleConversationsChange}
       />
     ),
+    contenido: contenidoCard,
     perfil: perfilCard,
   };
 
@@ -1146,6 +1247,27 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
           therapistId={profile.id}
           onClose={() => setAlertToResolve(null)}
           onResolved={handleAlertResolved}
+        />
+      )}
+
+      {contentEditor.open && (
+        <ContentEditorModal
+          authorId={profile.id}
+          existing={contentEditor.item}
+          readOnly={
+            contentEditor.item != null &&
+            contentEditor.item.status !== "borrador" &&
+            contentEditor.item.status !== "cambios_solicitados"
+          }
+          onClose={() => {
+            setContentEditor({ open: false, item: null });
+            void refreshMyContent();
+          }}
+          onSaved={() => void refreshMyContent()}
+          onSubmitForReview={async (id) => {
+            await submitForReview(id);
+            await refreshMyContent();
+          }}
         />
       )}
     </>

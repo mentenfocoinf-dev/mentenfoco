@@ -18,6 +18,7 @@ import { Route as IngresaRouteImport } from './routes/ingresa'
 import { Route as GuiaRouteImport } from './routes/guia'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EmpresasRouteImport } from './routes/empresas'
+import { Route as ContenidoRouteImport } from './routes/contenido'
 import { Route as ContactanosRouteImport } from './routes/contactanos'
 import { Route as ConsentimientoRouteImport } from './routes/consentimiento'
 import { Route as CompraExitosaRouteImport } from './routes/compra-exitosa'
@@ -29,6 +30,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServiciosSlugRouteImport } from './routes/servicios.$slug'
 import { Route as PacientesPatientIdRouteImport } from './routes/pacientes.$patientId'
 import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
+import { Route as ContenidoSlugRouteImport } from './routes/contenido.$slug'
 
 const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
   id: '/sobre-nosotros',
@@ -73,6 +75,11 @@ const FaqRoute = FaqRouteImport.update({
 const EmpresasRoute = EmpresasRouteImport.update({
   id: '/empresas',
   path: '/empresas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContenidoRoute = ContenidoRouteImport.update({
+  id: '/contenido',
+  path: '/contenido',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactanosRoute = ContactanosRouteImport.update({
@@ -130,6 +137,11 @@ const GuiasGuiaIdRoute = GuiasGuiaIdRouteImport.update({
   path: '/guias/$guiaId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContenidoSlugRoute = ContenidoSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ContenidoRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -140,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
+  '/contenido': typeof ContenidoRouteWithChildren
   '/empresas': typeof EmpresasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
@@ -149,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/contenido/$slug': typeof ContenidoSlugRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -162,6 +176,7 @@ export interface FileRoutesByTo {
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
+  '/contenido': typeof ContenidoRouteWithChildren
   '/empresas': typeof EmpresasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
@@ -171,6 +186,7 @@ export interface FileRoutesByTo {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/contenido/$slug': typeof ContenidoSlugRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -185,6 +201,7 @@ export interface FileRoutesById {
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
+  '/contenido': typeof ContenidoRouteWithChildren
   '/empresas': typeof EmpresasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
@@ -194,6 +211,7 @@ export interface FileRoutesById {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/contenido/$slug': typeof ContenidoSlugRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -209,6 +227,7 @@ export interface FileRouteTypes {
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
+    | '/contenido'
     | '/empresas'
     | '/faq'
     | '/guia'
@@ -218,6 +237,7 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/recursos'
     | '/sobre-nosotros'
+    | '/contenido/$slug'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -231,6 +251,7 @@ export interface FileRouteTypes {
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
+    | '/contenido'
     | '/empresas'
     | '/faq'
     | '/guia'
@@ -240,6 +261,7 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/recursos'
     | '/sobre-nosotros'
+    | '/contenido/$slug'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -253,6 +275,7 @@ export interface FileRouteTypes {
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
+    | '/contenido'
     | '/empresas'
     | '/faq'
     | '/guia'
@@ -262,6 +285,7 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/recursos'
     | '/sobre-nosotros'
+    | '/contenido/$slug'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -276,6 +300,7 @@ export interface RootRouteChildren {
   CompraExitosaRoute: typeof CompraExitosaRoute
   ConsentimientoRoute: typeof ConsentimientoRoute
   ContactanosRoute: typeof ContactanosRoute
+  ContenidoRoute: typeof ContenidoRouteWithChildren
   EmpresasRoute: typeof EmpresasRoute
   FaqRoute: typeof FaqRoute
   GuiaRoute: typeof GuiaRoute
@@ -355,6 +380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmpresasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contenido': {
+      id: '/contenido'
+      path: '/contenido'
+      fullPath: '/contenido'
+      preLoaderRoute: typeof ContenidoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contactanos': {
       id: '/contactanos'
       path: '/contactanos'
@@ -432,8 +464,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuiasGuiaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contenido/$slug': {
+      id: '/contenido/$slug'
+      path: '/$slug'
+      fullPath: '/contenido/$slug'
+      preLoaderRoute: typeof ContenidoSlugRouteImport
+      parentRoute: typeof ContenidoRoute
+    }
   }
 }
+
+interface ContenidoRouteChildren {
+  ContenidoSlugRoute: typeof ContenidoSlugRoute
+}
+
+const ContenidoRouteChildren: ContenidoRouteChildren = {
+  ContenidoSlugRoute: ContenidoSlugRoute,
+}
+
+const ContenidoRouteWithChildren = ContenidoRoute._addFileChildren(
+  ContenidoRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -444,6 +495,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompraExitosaRoute: CompraExitosaRoute,
   ConsentimientoRoute: ConsentimientoRoute,
   ContactanosRoute: ContactanosRoute,
+  ContenidoRoute: ContenidoRouteWithChildren,
   EmpresasRoute: EmpresasRoute,
   FaqRoute: FaqRoute,
   GuiaRoute: GuiaRoute,
