@@ -60,6 +60,10 @@ export interface ProgramStep {
   titulo: string;
   descripcion?: string;
   content_item_id?: string | null;
+  /** Slug de la pieza enlazada. Puede ser de contenido o de una guía clínica. */
+  slug_relacionado?: string | null;
+  /** Lo resuelve el seed: dice a qué ruta apunta `slug_relacionado`. */
+  ref_kind?: "contenido" | "guia" | null;
 }
 
 /** Metadatos (vista content_items_meta): nunca incluye body_md. */

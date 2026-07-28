@@ -18,7 +18,6 @@ import { Route as IngresaRouteImport } from './routes/ingresa'
 import { Route as GuiaRouteImport } from './routes/guia'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EmpresasRouteImport } from './routes/empresas'
-import { Route as ContenidoRouteImport } from './routes/contenido'
 import { Route as ContactanosRouteImport } from './routes/contactanos'
 import { Route as ConsentimientoRouteImport } from './routes/consentimiento'
 import { Route as CompraExitosaRouteImport } from './routes/compra-exitosa'
@@ -27,6 +26,7 @@ import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
 import { Route as AnamnesisRouteImport } from './routes/anamnesis'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ContenidoIndexRouteImport } from './routes/contenido.index'
 import { Route as ServiciosSlugRouteImport } from './routes/servicios.$slug'
 import { Route as PacientesPatientIdRouteImport } from './routes/pacientes.$patientId'
 import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
@@ -77,11 +77,6 @@ const EmpresasRoute = EmpresasRouteImport.update({
   path: '/empresas',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContenidoRoute = ContenidoRouteImport.update({
-  id: '/contenido',
-  path: '/contenido',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ContactanosRoute = ContactanosRouteImport.update({
   id: '/contactanos',
   path: '/contactanos',
@@ -122,6 +117,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContenidoIndexRoute = ContenidoIndexRouteImport.update({
+  id: '/contenido/',
+  path: '/contenido/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServiciosSlugRoute = ServiciosSlugRouteImport.update({
   id: '/servicios/$slug',
   path: '/servicios/$slug',
@@ -138,9 +138,9 @@ const GuiasGuiaIdRoute = GuiasGuiaIdRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContenidoSlugRoute = ContenidoSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => ContenidoRoute,
+  id: '/contenido/$slug',
+  path: '/contenido/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -152,7 +152,6 @@ export interface FileRoutesByFullPath {
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
-  '/contenido': typeof ContenidoRouteWithChildren
   '/empresas': typeof EmpresasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
@@ -166,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
+  '/contenido/': typeof ContenidoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -176,7 +176,6 @@ export interface FileRoutesByTo {
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
-  '/contenido': typeof ContenidoRouteWithChildren
   '/empresas': typeof EmpresasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
@@ -190,6 +189,7 @@ export interface FileRoutesByTo {
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
+  '/contenido': typeof ContenidoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -201,7 +201,6 @@ export interface FileRoutesById {
   '/compra-exitosa': typeof CompraExitosaRoute
   '/consentimiento': typeof ConsentimientoRoute
   '/contactanos': typeof ContactanosRoute
-  '/contenido': typeof ContenidoRouteWithChildren
   '/empresas': typeof EmpresasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
@@ -215,6 +214,7 @@ export interface FileRoutesById {
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
+  '/contenido/': typeof ContenidoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -227,7 +227,6 @@ export interface FileRouteTypes {
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
-    | '/contenido'
     | '/empresas'
     | '/faq'
     | '/guia'
@@ -241,6 +240,7 @@ export interface FileRouteTypes {
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
+    | '/contenido/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -251,7 +251,6 @@ export interface FileRouteTypes {
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
-    | '/contenido'
     | '/empresas'
     | '/faq'
     | '/guia'
@@ -265,6 +264,7 @@ export interface FileRouteTypes {
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
+    | '/contenido'
   id:
     | '__root__'
     | '/'
@@ -275,7 +275,6 @@ export interface FileRouteTypes {
     | '/compra-exitosa'
     | '/consentimiento'
     | '/contactanos'
-    | '/contenido'
     | '/empresas'
     | '/faq'
     | '/guia'
@@ -289,6 +288,7 @@ export interface FileRouteTypes {
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
+    | '/contenido/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -300,7 +300,6 @@ export interface RootRouteChildren {
   CompraExitosaRoute: typeof CompraExitosaRoute
   ConsentimientoRoute: typeof ConsentimientoRoute
   ContactanosRoute: typeof ContactanosRoute
-  ContenidoRoute: typeof ContenidoRouteWithChildren
   EmpresasRoute: typeof EmpresasRoute
   FaqRoute: typeof FaqRoute
   GuiaRoute: typeof GuiaRoute
@@ -310,9 +309,11 @@ export interface RootRouteChildren {
   NuevaContrasenaRoute: typeof NuevaContrasenaRoute
   RecursosRoute: typeof RecursosRoute
   SobreNosotrosRoute: typeof SobreNosotrosRoute
+  ContenidoSlugRoute: typeof ContenidoSlugRoute
   GuiasGuiaIdRoute: typeof GuiasGuiaIdRoute
   PacientesPatientIdRoute: typeof PacientesPatientIdRoute
   ServiciosSlugRoute: typeof ServiciosSlugRoute
+  ContenidoIndexRoute: typeof ContenidoIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -380,13 +381,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EmpresasRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contenido': {
-      id: '/contenido'
-      path: '/contenido'
-      fullPath: '/contenido'
-      preLoaderRoute: typeof ContenidoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/contactanos': {
       id: '/contactanos'
       path: '/contactanos'
@@ -443,6 +437,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contenido/': {
+      id: '/contenido/'
+      path: '/contenido'
+      fullPath: '/contenido/'
+      preLoaderRoute: typeof ContenidoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/servicios/$slug': {
       id: '/servicios/$slug'
       path: '/servicios/$slug'
@@ -466,25 +467,13 @@ declare module '@tanstack/react-router' {
     }
     '/contenido/$slug': {
       id: '/contenido/$slug'
-      path: '/$slug'
+      path: '/contenido/$slug'
       fullPath: '/contenido/$slug'
       preLoaderRoute: typeof ContenidoSlugRouteImport
-      parentRoute: typeof ContenidoRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface ContenidoRouteChildren {
-  ContenidoSlugRoute: typeof ContenidoSlugRoute
-}
-
-const ContenidoRouteChildren: ContenidoRouteChildren = {
-  ContenidoSlugRoute: ContenidoSlugRoute,
-}
-
-const ContenidoRouteWithChildren = ContenidoRoute._addFileChildren(
-  ContenidoRouteChildren,
-)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -495,7 +484,6 @@ const rootRouteChildren: RootRouteChildren = {
   CompraExitosaRoute: CompraExitosaRoute,
   ConsentimientoRoute: ConsentimientoRoute,
   ContactanosRoute: ContactanosRoute,
-  ContenidoRoute: ContenidoRouteWithChildren,
   EmpresasRoute: EmpresasRoute,
   FaqRoute: FaqRoute,
   GuiaRoute: GuiaRoute,
@@ -505,9 +493,11 @@ const rootRouteChildren: RootRouteChildren = {
   NuevaContrasenaRoute: NuevaContrasenaRoute,
   RecursosRoute: RecursosRoute,
   SobreNosotrosRoute: SobreNosotrosRoute,
+  ContenidoSlugRoute: ContenidoSlugRoute,
   GuiasGuiaIdRoute: GuiasGuiaIdRoute,
   PacientesPatientIdRoute: PacientesPatientIdRoute,
   ServiciosSlugRoute: ServiciosSlugRoute,
+  ContenidoIndexRoute: ContenidoIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

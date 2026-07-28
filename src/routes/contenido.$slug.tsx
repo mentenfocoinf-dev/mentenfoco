@@ -214,22 +214,74 @@ function ContenidoDetalle() {
             <ol className="space-y-4">
               {[...doc.program_steps]
                 .sort((a, b) => a.orden - b.orden)
-                .map((step) => (
-                  <li
-                    key={`${step.orden}-${step.titulo}`}
-                    className="flex gap-4 rounded-2xl border border-white/60 bg-white/60 p-5 shadow-sm"
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                      {step.orden}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="font-bold text-slate-800">{step.titulo}</p>
-                      {step.descripcion && (
-                        <p className="mt-1 text-sm text-slate-600">{step.descripcion}</p>
-                      )}
-                    </div>
-                  </li>
-                ))}
+                .map((step) => {
+                  // Un paso puede enlazar a otra pieza de contenido o a una guía
+                  // clínica; el seed marcó cuál en ref_kind. Sin referencia, el
+                  // paso se muestra igual pero sin enlace (ej. "haz tu GAD-7").
+                  const body = (
+                    <>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                        {step.orden}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-bold text-slate-800">{step.titulo}</span>
+                        {step.descripcion && (
+                          <span className="mt-1 block text-sm text-slate-600">
+                            {step.descripcion}
+                          </span>
+                        )}
+                      </span>
+                    </>
+                  );
+
+                  const linkClasses =
+                    "glow-hover group flex w-full gap-4 rounded-2xl border border-white/60 bg-white/60 p-5 text-left shadow-sm";
+
+                  if (step.slug_relacionado && step.ref_kind === "contenido") {
+                    return (
+                      <li key={`${step.orden}-${step.titulo}`}>
+                        <Link
+                          to="/contenido/$slug"
+                          params={{ slug: step.slug_relacionado }}
+                          className={linkClasses}
+                        >
+                          {body}
+                          <ArrowLeft
+                            size={16}
+                            className="mt-1 shrink-0 rotate-180 text-primary transition-transform group-hover:translate-x-1"
+                          />
+                        </Link>
+                      </li>
+                    );
+                  }
+
+                  if (step.slug_relacionado && step.ref_kind === "guia") {
+                    return (
+                      <li key={`${step.orden}-${step.titulo}`}>
+                        <Link
+                          to="/guias/$guiaId"
+                          params={{ guiaId: step.slug_relacionado }}
+                          className={linkClasses}
+                        >
+                          {body}
+                          <ArrowLeft
+                            size={16}
+                            className="mt-1 shrink-0 rotate-180 text-primary transition-transform group-hover:translate-x-1"
+                          />
+                        </Link>
+                      </li>
+                    );
+                  }
+
+                  return (
+                    <li
+                      key={`${step.orden}-${step.titulo}`}
+                      className="flex gap-4 rounded-2xl border border-white/60 bg-white/60 p-5 shadow-sm"
+                    >
+                      {body}
+                    </li>
+                  );
+                })}
             </ol>
           </div>
         )}

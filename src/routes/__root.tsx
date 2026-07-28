@@ -104,6 +104,7 @@ const SERVICIOS_MENU: MenuItem[] = [
 ];
 
 const RECURSOS_MENU: MenuItem[] = [
+  { to: "/contenido", label: "Contenido" },
   { to: "/guia", label: "Guías de bienestar" },
   { to: "/blog", label: "Blog y artículos" },
   { to: "/faq", label: "Preguntas frecuentes" },

@@ -18,7 +18,7 @@ import {
 } from "../lib/api";
 import { supabase, type PlanType } from "../lib/supabase";
 
-export const Route = createFileRoute("/contenido")({
+export const Route = createFileRoute("/contenido/")({
   head: () => ({
     meta: [
       { title: "Contenido — Mente en Foco" },

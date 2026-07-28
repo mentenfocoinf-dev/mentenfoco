@@ -16,6 +16,7 @@ import {
   Clock,
   MessageCircle,
   Stethoscope,
+  Library,
   Settings,
   HelpCircle,
   Phone,
@@ -672,24 +673,45 @@ export function PatientDashboard({ profile, onLogout }: Props) {
   );
 
   const recursosCard = (
-    <div className="max-w-2xl">
+    <div className="grid max-w-4xl gap-4 sm:grid-cols-2">
+      <Link
+        to="/contenido"
+        className="glow-hover group block rounded-3xl glass-card p-6 border border-white/40 hover:border-primary/40"
+      >
+        <div className="flex items-start gap-3">
+          <div className="text-primary bg-primary/10 p-3 rounded-xl border border-primary/20 shrink-0">
+            <Library size={22} strokeWidth={1.5} />
+          </div>
+          <div className="min-w-0">
+            <p className="font-bold text-primary">Explorar contenido</p>
+            <p className="text-sm text-muted-foreground">
+              Artículos, programas, herramientas y meditaciones.
+            </p>
+          </div>
+          <ArrowRight
+            size={18}
+            className="ml-auto shrink-0 text-primary group-hover:translate-x-1 transition-transform"
+          />
+        </div>
+      </Link>
+
       <Link
         to="/guia"
         className="glow-hover group block rounded-3xl glass-card p-6 border border-white/40 hover:border-primary/40"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <div className="text-primary bg-primary/10 p-3 rounded-xl border border-primary/20 shrink-0">
             <BookOpen size={22} strokeWidth={1.5} />
           </div>
-          <div>
-            <p className="font-bold text-primary">Explorar guías de bienestar</p>
+          <div className="min-w-0">
+            <p className="font-bold text-primary">Guías de bienestar</p>
             <p className="text-sm text-muted-foreground">
               Recursos prácticos escritos por nuestro equipo clínico.
             </p>
           </div>
           <ArrowRight
             size={18}
-            className="ml-auto text-primary group-hover:translate-x-1 transition-transform"
+            className="ml-auto shrink-0 text-primary group-hover:translate-x-1 transition-transform"
           />
         </div>
       </Link>
