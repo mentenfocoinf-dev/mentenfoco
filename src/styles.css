@@ -362,3 +362,40 @@
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome/Safari */
 }
+
+/* ── Tarjeta que se voltea ───────────────────────────────────────────────────
+   Las dos caras se apilan en la MISMA celda de grid, no con position:absolute:
+   así el contenedor toma la altura de la cara más alta (la del detalle) y
+   ninguna lista de beneficios queda cortada, sin tener que fijar alturas a mano
+   por breakpoint. */
+.flip-card {
+  perspective: 1600px;
+}
+
+.flip-card-inner {
+  display: grid;
+  transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1);
+}
+
+.flip-card-inner > * {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.flip-card-inner > .flip-card-back {
+  transform: rotateY(180deg);
+}
+
+.flip-card-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+
+/* Sin animación de giro para quien pide menos movimiento: la cara sigue
+   cambiando, pero de golpe, que es lo que evita el mareo. */
+@media (prefers-reduced-motion: reduce) {
+  .flip-card-inner {
+    transition: none;
+  }
+}

@@ -104,6 +104,7 @@ const SERVICIOS_MENU: MenuItem[] = [
 ];
 
 const RECURSOS_MENU: MenuItem[] = [
+  { to: "/tests", label: "Tests de bienestar" },
   { to: "/contenido", label: "Contenido" },
   { to: "/guia", label: "Guías de bienestar" },
   { to: "/blog", label: "Blog y artículos" },
@@ -113,6 +114,7 @@ const RECURSOS_MENU: MenuItem[] = [
 
 // Enlaces directos (sin submenú)
 const DIRECT_LINKS: { to: string; label: string }[] = [
+  { to: "/tests", label: "Evalúate" },
   { to: "/asesoramiento", label: "Planes" },
   { to: "/sobre-nosotros", label: "Nosotros" },
   { to: "/empresas", label: "Empresas" },
@@ -143,7 +145,7 @@ function NavDropdown({ label, items }: { label: string; items: MenuItem[] }) {
         <ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-60 rounded-2xl border border-white/50 glass bg-white/80 p-1.5 shadow-lg animate-in fade-in slide-in-from-top-2">
+        <div className="absolute left-0 top-full z-50 mt-1 w-60 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl animate-in fade-in slide-in-from-top-2">
           {items.map((item) =>
             item.soon ? (
               <span

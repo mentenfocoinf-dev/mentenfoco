@@ -12,13 +12,11 @@ import { Loader2, Save, Send, X } from "lucide-react";
 import {
   createContentDraft,
   updateContentDraft,
-  slugify,
   CONTENT_TYPE_LABELS,
   type ContentItem,
   type ContentType,
   type AudioKind,
 } from "../../lib/api";
-import type { PlanType } from "../../lib/supabase";
 
 /** Taxonomía compartida con las guías. */
 export const CONTENT_CATEGORIES = [
@@ -68,39 +66,29 @@ export function ContentEditorModal({
   const [audioKind, setAudioKind] = useState<AudioKind | "">(existing?.audio_kind ?? "");
   const [categoria, setCategoria] = useState(existing?.categoria ?? CONTENT_CATEGORIES[2]);
   const [titulo, setTitulo] = useState(existing?.titulo ?? "");
-  const [slug, setSlug] = useState(existing?.slug ?? "");
-  const [slugTouched, setSlugTouched] = useState(Boolean(existing?.slug));
   const [resumen, setResumen] = useState(existing?.resumen_breve ?? "");
   const [tiempo, setTiempo] = useState(existing?.tiempo_lectura ?? "");
-  const [minPlan, setMinPlan] = useState<PlanType>(existing?.min_plan ?? "free");
   const [bodyMd, setBodyMd] = useState(existing?.body_md ?? "");
 
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [okMsg, setOkMsg] = useState<string | null>(null);
 
-  const complete = titulo.trim() && resumen.trim() && categoria && (slugTouched ? slug.trim() : true);
-
-  function handleTitulo(value: string) {
-    setTitulo(value);
-    // El slug sigue al título hasta que alguien lo edite a mano.
-    if (!slugTouched) setSlug(slugify(value));
-  }
+  const complete = Boolean(titulo.trim() && resumen.trim() && categoria);
 
   async function save(): Promise<string | null> {
     setSaving(true);
     setErrorMsg(null);
     setOkMsg(null);
     try {
+      // Sin slug ni min_plan: los define el admin al publicar.
       const payload = {
         content_type: contentType,
         audio_kind: contentType === "audio" && audioKind ? (audioKind as AudioKind) : null,
         categoria,
         titulo: titulo.trim(),
-        slug: (slug || slugify(titulo)).trim(),
         resumen_breve: resumen.trim(),
         tiempo_lectura: tiempo.trim() || null,
-        min_plan: minPlan,
         body_md: bodyMd || null,
       };
 
@@ -141,12 +129,12 @@ export function ContentEditorModal({
         <div className="flex items-start justify-between border-b border-slate-100 px-6 py-4">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
-              {existing ? "Editar contenido" : "Nueva propuesta de contenido"}
+              {existing ? "Editar contenido" : "Comparte tu experiencia"}
             </h2>
             <p className="text-xs text-slate-500">
               {readOnly
                 ? "Vista de solo lectura."
-                : "Guarda como borrador cuantas veces quieras antes de enviarlo."}
+                : "Guárdalo como borrador las veces que quieras antes de enviarlo."}
             </p>
           </div>
           <button
@@ -235,65 +223,36 @@ export function ContentEditorModal({
             <input
               disabled={readOnly}
               value={titulo}
-              onChange={(e) => handleTitulo(e.target.value)}
+              onChange={(e) => setTitulo(e.target.value)}
               placeholder="Ej. La ansiedad que no se apaga"
               className={inputClass}
             />
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-slate-900">
-              URL (slug) <span className="font-normal text-slate-500">— se genera del título</span>
-            </label>
-            <input
-              disabled={readOnly}
-              value={slug}
-              onChange={(e) => {
-                setSlugTouched(true);
-                setSlug(slugify(e.target.value));
-              }}
-              placeholder="la-ansiedad-que-no-se-apaga"
-              className={inputClass}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-semibold text-slate-900">Resumen breve</label>
+            <label className="text-sm font-semibold text-slate-900">De qué se trata</label>
             <textarea
               disabled={readOnly}
               rows={2}
               value={resumen}
               onChange={(e) => setResumen(e.target.value)}
-              placeholder="Una frase: lo que el lector se lleva."
+              placeholder="En una frase: qué se lleva quien lo lea."
               className={inputClass}
             />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="text-sm font-semibold text-slate-900">
-                Tiempo de lectura / duración
-              </label>
-              <input
-                disabled={readOnly}
-                value={tiempo}
-                onChange={(e) => setTiempo(e.target.value)}
-                placeholder="8 min"
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold text-slate-900">Plan mínimo</label>
-              <select
-                disabled={readOnly}
-                value={minPlan}
-                onChange={(e) => setMinPlan(e.target.value as PlanType)}
-                className={inputClass}
-              >
-                <option value="free">Libre (todos)</option>
-                <option value="esencial">Requiere plan pago</option>
-              </select>
-            </div>
+          <div>
+            <label className="text-sm font-semibold text-slate-900">
+              Tiempo de lectura{" "}
+              <span className="font-normal text-slate-500">(opcional)</span>
+            </label>
+            <input
+              disabled={readOnly}
+              value={tiempo}
+              onChange={(e) => setTiempo(e.target.value)}
+              placeholder="8 min"
+              className={inputClass}
+            />
           </div>
 
           <div>
@@ -309,8 +268,8 @@ export function ContentEditorModal({
               className={`${inputClass} font-mono text-xs leading-relaxed`}
             />
             <p className="mt-1 text-xs text-slate-500">
-              Sigue la guía de estilo: gancho de apertura, secciones con "qué ganas", cierre
-              esperanzador. Se renderiza igual que las guías.
+              Comparte lo que trabajas con tus pacientes. Escribe con tus palabras; nuestro equipo
+              editorial lo revisa y le da el toque final antes de publicarlo.
             </p>
           </div>
         </div>

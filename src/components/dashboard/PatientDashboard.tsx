@@ -30,6 +30,7 @@ import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
 import { PlanUpgradeModal } from "./PlanUpgradeModal";
 import { ServiceRequestModal } from "./ServiceRequestModal";
 import { DailyQuoteCard } from "./DailyQuoteCard";
+import { ClinicalConsentCard } from "./ClinicalConsentCard";
 import { MoodTrackerCard } from "./MoodTrackerCard";
 import { TrendChart } from "./TrendChart";
 import { DashboardShell, type ShellNavItem } from "./DashboardShell";
@@ -772,6 +773,10 @@ export function PatientDashboard({ profile, onLogout }: Props) {
           Editar mis datos <ArrowRight size={14} />
         </Link>
       </div>
+
+      {/* Consentimiento clínico (Ley 1090). Se oculta solo si no hay proceso
+          abierto: una cuenta que solo lee contenido no tiene qué revocar. */}
+      <ClinicalConsentCard profile={profile} />
     </div>
   );
 

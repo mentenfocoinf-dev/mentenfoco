@@ -12,3 +12,6 @@ export * from "./moodService";
 export * from "./onboardingGates";
 export * from "./patientOverviewService";
 export * from "./contentService";
+export * from "./blogCommentsService";
+export * from "./clinicalConsentService";
+export * from "./publicTestsService";

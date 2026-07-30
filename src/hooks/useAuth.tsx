@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { Session } from "@supabase/supabase-js";
 import { supabase, type Profile } from "../lib/supabase";
-import { shouldRedirectToGate } from "../lib/api";
+import { shouldRedirectToGate, getClinicalConsentState } from "../lib/api";
 
 // Logger condicional: solo activo en desarrollo
 const log = {
@@ -98,11 +98,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // 2. Pasos obligatorios antes del portal (contraseña temporal,
-      // consentimiento de datos, datos mínimos de facturación, anamnesis).
-      // El orden y las condiciones viven en resolveRequiredGate: aquí solo se
-      // aplica el resultado, para que no vuelva a haber varios flujos de
-      // "pantalla obligatoria" repartidos por el hook.
-      const gate = shouldRedirectToGate(profileData, window.location.pathname);
+      // consentimiento de datos, datos mínimos de facturación, consentimiento
+      // clínico, anamnesis). El orden y las condiciones viven en
+      // resolveRequiredGate: aquí solo se aplica el resultado, para que no vuelva
+      // a haber varios flujos de "pantalla obligatoria" repartidos por el hook.
+      //
+      // El paso clínico necesita datos que el perfil no tiene (si hay proceso
+      // abierto y si existe la versión vigente del consentimiento), así que se
+      // resuelven aparte. Solo para pacientes: al staff no le aplica y sería una
+      // consulta por cada carga de sesión sin motivo.
+      let clinical;
+      if (profileData.role === "patient") {
+        const estado = await getClinicalConsentState(profileData);
+        clinical = {
+          inClinicalProcess: estado.estado !== "no_aplica",
+          hasCurrentConsent: estado.estado === "aceptado",
+        };
+      }
+
+      const gate = shouldRedirectToGate(profileData, window.location.pathname, clinical);
       if (gate) {
         window.location.href = gate;
         return;

@@ -1,7 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { HeroImagen } from "../components/HeroImagen";
 import { useState } from "react";
-import { Check, Minus } from "lucide-react";
+import {
+  Check,
+  ClipboardList,
+  HeartHandshake,
+  MessageSquareHeart,
+  Minus,
+  TrendingUp,
+} from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { FlipPlanCard } from "../components/plans/FlipPlanCard";
+import { ProcesoInfografia, type PasoProceso } from "../components/ProcesoInfografia";
 import {
   PLAN_OFFERS,
   DEFAULT_HIGHLIGHTED_OFFER,
@@ -21,11 +31,34 @@ const COMPARE_PLANS: { plan: PlanType; label: string }[] = [
   { plan: "premium", label: PLAN_LABELS.premium },
 ];
 
-const PROCESO = [
-  { n: "1", title: "Cuéntanos qué necesitas", desc: "Nos escribes y coordinamos tu valoración inicial." },
-  { n: "2", title: "Valoración inicial", desc: "Un profesional entiende tu caso y proponen juntos un plan." },
-  { n: "3", title: "Acompañamiento", desc: "Trabajas con tu especialista según el plan que elijas." },
-  { n: "4", title: "Seguimiento", desc: "Medimos tu evolución y ajustamos el camino contigo." },
+/** Cabecera de cada tarjeta de plan. Ver public/planes/. */
+const PLAN_IMAGES: Record<string, string> = {
+  esencial: "/planes/primeros-pasos.jpg",
+  integral: "/planes/mi-equilibrio.jpg",
+  premium: "/planes/mi-mundo-en-foco.jpg",
+};
+
+const PROCESO: PasoProceso[] = [
+  {
+    icon: MessageSquareHeart,
+    title: "Cuéntanos qué necesitas",
+    desc: "Nos escribes y coordinamos tu valoración inicial.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Valoración inicial",
+    desc: "Un profesional entiende tu caso y proponen juntos un plan.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "Acompañamiento",
+    desc: "Trabajas con tu especialista según el plan que elijas.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Seguimiento",
+    desc: "Medimos tu evolución y ajustamos el camino contigo.",
+  },
 ];
 
 const PLAN_FAQ = [
@@ -101,7 +134,7 @@ function Asesoramiento() {
 
   return (
     <>
-      <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat">
+      <HeroImagen image="/cabecera-planes.jpg">
         <div className="mx-auto max-w-7xl px-4 py-16 text-center md:px-6 md:py-20 glass-card mx-4 rounded-3xl mt-8">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">
             Planes de Intervención Clínica
@@ -111,50 +144,24 @@ function Asesoramiento() {
             usando métodos comprobados científicamente para apoyarte a ti y a tu familia.
           </p>
         </div>
-      </section>
+      </HeroImagen>
 
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-8 lg:grid-cols-3">
           {PLAN_OFFERS.map((plan) => (
-            <div
+            <FlipPlanCard
               key={plan.name}
-              onClick={() => setSelectedPlan(plan.name)}
-              className={`card-neon-hover relative bg-white rounded-3xl p-8 shadow-sm transition-all duration-300 cursor-pointer hover:shadow-xl hover:scale-105 flex flex-col ${
-                selectedPlan === plan.name ? "selected-card-glow scale-105" : ""
-              }`}
-            >
-              {plan.highlighted && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-primary/20 bg-background/80 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-primary shadow-sm">
-                  Más popular
-                </span>
-              )}
-              <h3 className="text-2xl font-bold text-primary">{plan.name}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{plan.desc}</p>
-              <div className="mt-6 flex items-baseline gap-1">
-                <span className="text-4xl font-bold text-slate-900">{plan.price}</span>
-                <span className="text-muted-foreground">{plan.period}</span>
-              </div>
-              <ul className="mt-6 space-y-3 flex-grow">
-                {(PLAN_FEATURES[plan.plan] ?? []).map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm">
-                    <span className="text-primary font-bold">✓</span>
-                    <span className="text-slate-700">{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <a
-                href={buildCheckoutLink(plan.link, profile)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`mt-8 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all hover:scale-105 shadow-sm ${
-                  plan.highlighted
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20"
-                    : "border border-primary/20 text-primary hover:bg-primary/10"
-                }`}
-              >
-                Elegir {plan.name}
-              </a>
-            </div>
+              name={plan.name}
+              price={plan.price}
+              period={plan.period}
+              desc={plan.desc}
+              features={PLAN_FEATURES[plan.plan] ?? []}
+              checkoutUrl={buildCheckoutLink(plan.link, profile)}
+              image={PLAN_IMAGES[plan.plan]}
+              highlighted={plan.highlighted}
+              selected={selectedPlan === plan.name}
+              onSelect={() => setSelectedPlan(plan.name)}
+            />
           ))}
         </div>
         <p className="mt-8 text-center text-sm text-muted-foreground">
@@ -168,20 +175,7 @@ function Asesoramiento() {
           <h2 className="text-center text-3xl font-bold text-primary drop-shadow-sm">
             Cómo funciona el proceso
           </h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {PROCESO.map((s) => (
-              <div
-                key={s.n}
-                className="card-neon-hover rounded-3xl glass-card p-7 border border-white/40 text-center"
-              >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20">
-                  {s.n}
-                </div>
-                <h3 className="mt-4 font-bold text-primary">{s.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
-              </div>
-            ))}
-          </div>
+          <ProcesoInfografia pasos={PROCESO} className="mt-14" />
         </div>
       </section>
 

@@ -35,7 +35,7 @@ const ADMIN_EMAIL = "admin@test.com";
 const DRY_RUN = process.argv.includes("--dry-run");
 
 const CONTENT_ROOT = path.resolve(__dirname, "contexto-proyecto/contenido-plataforma");
-const FOLDERS = ["articulos", "programas", "herramientas", "audio"];
+const FOLDERS = ["articulos", "programas", "herramientas", "audio", "blog"];
 
 // Solo estas columnas existen en content_items; cualquier otra clave del frontmatter se ignora
 // (los .md pueden traer metadatos de redacción que no van a la base).
@@ -57,6 +57,7 @@ const COLUMNS = [
   "external_embed_url",
   "program_steps",
   "min_plan",
+  "admite_comentarios",
   "tags",
 ];
 

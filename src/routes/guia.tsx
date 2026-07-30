@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, Loader2, Lock } from "lucide-react";
-import { listGuides, isFreeLeadAccount, PLAN_LABELS, type GuideMeta } from "../lib/api";
-import { PaywallModal } from "../components/PaywallModal";
-import type { PlanType } from "../lib/supabase";
+import { ChevronDown, Loader2 } from "lucide-react";
+import { listGuides } from "../lib/api";
 
 export const Route = createFileRoute("/guia")({
   head: () => ({
@@ -21,11 +19,10 @@ export const Route = createFileRoute("/guia")({
     ],
   }),
   loader: async () => {
-    // La vista de metadatos muestra TODAS las guías (también las premium), para
-    // que el visitante vea el catálogo completo con su nivel requerido. isFreeLead
-    // decide qué candado le corresponde a cada tarjeta: ver la nota en guidesService.
-    const [guias, isFreeLead] = await Promise.all([listGuides(), isFreeLeadAccount()]);
-    return { guias, isFreeLead };
+    // listGuides ya devuelve solo lo que el plan del usuario incluye: aquí no
+    // hay nada que bloquear ni candado que dibujar.
+    const guias = await listGuides();
+    return { guias };
   },
   pendingComponent: () => (
     <div className="flex min-h-[50vh] items-center justify-center">
@@ -42,11 +39,10 @@ export const Route = createFileRoute("/guia")({
 const PINNED_PILL_COUNT = 5;
 
 function Guia() {
-  const { guias, isFreeLead } = Route.useLoaderData();
+  const { guias } = Route.useLoaderData();
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement>(null);
-  const [paywallGuide, setPaywallGuide] = useState<GuideMeta | null>(null);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -71,22 +67,6 @@ function Guia() {
 
   const filteredGuides =
     activeFilter === "Todas" ? guias : guias.filter((g) => g.categoria === activeFilter);
-
-  /**
-   * Regla del candado, distinta según quién mira:
-   * - Cuenta gratuita/anónima: solo puede LEER lo marcado `visible_en_plan_gratis`.
-   *   Hay guías con `min_plan='free'` que no son de vitrina — siguen bloqueadas
-   *   para este grupo aunque estructuralmente sean "gratis".
-   * - Cualquier otro viewer (plan pago, terapeuta, admin): la regla estructural
-   *   de siempre, `min_plan !== 'free'`.
-   * Para quien ve el candado por ser cuenta gratuita, el plan que realmente lo
-   * desbloquea siempre es el más económico de pago (esencial) — subir de plan
-   * da acceso al catálogo completo, sin importar el min_plan real de la guía.
-   */
-  function lockInfo(g: GuideMeta): { locked: boolean; plan: PlanType } {
-    if (isFreeLead) return { locked: !g.visible_en_plan_gratis, plan: "esencial" };
-    return { locked: g.min_plan !== "free", plan: g.min_plan };
-  }
 
   return (
     <>
@@ -147,7 +127,7 @@ function Guia() {
               </button>
 
               {moreOpen && (
-                <div className="absolute left-1/2 top-full z-50 mt-2 w-56 -translate-x-1/2 rounded-2xl border border-white/40 glass p-1.5 shadow-lg animate-in fade-in slide-in-from-top-2">
+                <div className="absolute left-1/2 top-full z-50 mt-2 w-56 -translate-x-1/2 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-xl animate-in fade-in slide-in-from-top-2">
                   {overflow.map((c) => (
                     <button
                       key={c.name}
@@ -172,9 +152,7 @@ function Guia() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredGuides.map((g) => {
-            const { locked, plan } = lockInfo(g);
-            return (
+          {filteredGuides.map((g) => (
               <article
                 key={g.id}
                 className="card-neon-hover group relative rounded-3xl border-border bg-white overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col h-full"
@@ -188,11 +166,6 @@ function Guia() {
                     <span className="inline-block rounded-full bg-primary/10 border border-primary/10 px-3 py-1 text-xs font-bold text-primary">
                       {g.categoria}
                     </span>
-                    {locked && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-700">
-                        <Lock size={11} /> {PLAN_LABELS[plan].replace("Plan ", "")}
-                      </span>
-                    )}
                   </div>
                   <h3 className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors">
                     {g.titulo}
@@ -203,38 +176,19 @@ function Guia() {
                     <span className="font-semibold text-muted-foreground">
                       Lectura de {g.tiempoLectura}
                     </span>
-                    {locked ? (
-                      // El popup abre en esta misma vista: navegar primero y recién
-                      // ahí mostrar el paywall obligaba a cargar otra página para
-                      // enterarse de algo que ya se sabía en el listado.
-                      <button
-                        onClick={() => setPaywallGuide(g)}
-                        className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
-                      >
-                        Leer guía
-                      </button>
-                    ) : (
-                      <Link
-                        to="/guias/$guiaId"
-                        params={{ guiaId: g.id }}
-                        className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
-                      >
-                        Leer guía
-                      </Link>
-                    )}
+                    <Link
+                      to="/guias/$guiaId"
+                      params={{ guiaId: g.id }}
+                      className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
+                    >
+                      Leer guía
+                    </Link>
                   </div>
                 </div>
               </article>
-            );
-          })}
+          ))}
         </div>
       </section>
-
-      <PaywallModal
-        isOpen={!!paywallGuide}
-        onOpenChange={() => setPaywallGuide(null)}
-        requiredPlan={paywallGuide ? lockInfo(paywallGuide).plan : undefined}
-      />
     </>
   );
 }

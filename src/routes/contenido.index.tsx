@@ -1,22 +1,19 @@
 // ============================================================================
 // Hub de contenido publicado (artículos, programas, herramientas, audio).
 //
-// Lista TODAS las piezas publicadas, incluidas las que el usuario todavía no
-// puede leer: esas se muestran con candado, mismo criterio que el hub de guías.
-// El gating real del cuerpo ocurre en getContentBySlug().
+// Lista las piezas publicadas que el plan del viewer incluye. Lo que no incluye
+// no se lista: no hay tarjetas con candado ni pantallas de "adquiere un plan".
+// listPublishedContent() ya aplica ese filtro.
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { BookOpen, Headphones, Loader2, Lock, Route as RouteIcon, Wrench } from "lucide-react";
+import { BookOpen, Headphones, Loader2, Route as RouteIcon, Wrench } from "lucide-react";
 import {
   listPublishedContent,
-  canReadContent,
   CONTENT_TYPE_LABELS,
-  PLAN_LABELS,
   type ContentMeta,
   type ContentType,
 } from "../lib/api";
-import { supabase, type PlanType } from "../lib/supabase";
 
 export const Route = createFileRoute("/contenido/")({
   head: () => ({
@@ -30,20 +27,8 @@ export const Route = createFileRoute("/contenido/")({
     ],
   }),
   loader: async () => {
-    const [items, { data: { user } }] = await Promise.all([
-      listPublishedContent(),
-      supabase.auth.getUser(),
-    ]);
-    let plan: PlanType = "free";
-    if (user) {
-      const { data } = await supabase
-        .from("profiles")
-        .select("plan_type")
-        .eq("id", user.id)
-        .maybeSingle();
-      plan = (data?.plan_type as PlanType) ?? "free";
-    }
-    return { items, plan };
+    const items = await listPublishedContent();
+    return { items };
   },
   pendingComponent: () => (
     <div className="flex min-h-[50vh] items-center justify-center">
@@ -54,6 +39,8 @@ export const Route = createFileRoute("/contenido/")({
 });
 
 const TYPE_ICON: Record<ContentType, typeof BookOpen> = {
+  blog: BookOpen, // no se usa aquí: /contenido nunca lista piezas de blog
+
   articulo: BookOpen,
   programa: RouteIcon,
   herramienta: Wrench,
@@ -69,7 +56,7 @@ const FILTERS: { key: ContentType | "todos"; label: string }[] = [
 ];
 
 function ContenidoHub() {
-  const { items, plan } = Route.useLoaderData();
+  const { items } = Route.useLoaderData();
   const [filter, setFilter] = useState<ContentType | "todos">("todos");
 
   const visible = useMemo(
@@ -122,7 +109,7 @@ function ContenidoHub() {
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {visible.map((item) => (
-              <ContentCard key={item.id} item={item} plan={plan} />
+              <ContentCard key={item.id} item={item} />
             ))}
           </div>
         )}
@@ -131,9 +118,8 @@ function ContenidoHub() {
   );
 }
 
-function ContentCard({ item, plan }: { item: ContentMeta; plan: PlanType }) {
+function ContentCard({ item }: { item: ContentMeta }) {
   const Icon = TYPE_ICON[item.content_type] ?? BookOpen;
-  const locked = !canReadContent(item.min_plan, plan);
 
   return (
     <Link
@@ -155,11 +141,6 @@ function ContentCard({ item, plan }: { item: ContentMeta; plan: PlanType }) {
           <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600">
             {item.categoria}
           </span>
-          {locked && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
-              <Lock size={11} /> {PLAN_LABELS[item.min_plan].replace("Plan ", "")}
-            </span>
-          )}
         </div>
         <h3 className="text-xl font-bold text-primary transition-colors group-hover:text-primary/80">
           {item.titulo}
@@ -170,7 +151,7 @@ function ContentCard({ item, plan }: { item: ContentMeta; plan: PlanType }) {
             {item.tiempo_lectura ?? "Lectura breve"}
           </span>
           <span className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 font-bold text-primary transition-colors group-hover:bg-primary/20">
-            {locked ? "Ver detalle" : "Leer"}
+            Leer
           </span>
         </div>
       </div>

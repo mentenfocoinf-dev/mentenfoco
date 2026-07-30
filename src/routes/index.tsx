@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { HeroImagen } from "../components/HeroImagen";
 import {
   Star,
   ShieldCheck,
@@ -9,13 +10,11 @@ import {
   FileText,
   Stethoscope,
   ArrowRight,
-  Lock,
   HeartHandshake,
   Brain,
   MessageSquare,
 } from "lucide-react";
-import { listGuides, isFreeLeadAccount, PLAN_LABELS, type GuideMeta } from "../lib/api";
-import type { PlanType } from "../lib/supabase";
+import { listGuides } from "../lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,8 +29,8 @@ export const Route = createFileRoute("/")({
   }),
   loader: async () => {
     // Guías destacadas reales desde clinical_guides_meta (mismo servicio que /guia).
-    const [guias, isFreeLead] = await Promise.all([listGuides(), isFreeLeadAccount()]);
-    return { guias: guias.slice(0, 6), isFreeLead };
+    const guias = await listGuides();
+    return { guias: guias.slice(0, 6) };
   },
   component: Index,
 });
@@ -127,19 +126,14 @@ const comoFunciona = [
   },
 ];
 
-function lockInfo(g: GuideMeta, isFreeLead: boolean): { locked: boolean; plan: PlanType } {
-  if (isFreeLead) return { locked: !g.visible_en_plan_gratis, plan: "esencial" };
-  return { locked: g.min_plan !== "free", plan: g.min_plan };
-}
-
 function Index() {
-  const { guias, isFreeLead } = Route.useLoaderData();
+  const { guias } = Route.useLoaderData();
 
   return (
     <>
       {/* ── Hero (existente) ── */}
-      <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat">
-        <div className="mx-auto max-w-7xl px-4 py-20 md:px-6 md:py-28">
+      <HeroImagen image="/hero-inicio.jpg" tall>
+        <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="mx-auto max-w-3xl text-center glass-card p-10 rounded-3xl">
             <span className="inline-block rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 px-4 py-1.5 text-xs font-medium text-primary shadow-sm">
               Primer Centro Clínico de Bienestar Integral
@@ -168,7 +162,7 @@ function Index() {
             </div>
           </div>
         </div>
-      </section>
+      </HeroImagen>
 
       {/* ── Barra de confianza (NUEVO) ── */}
       <section className="border-y border-border bg-primary/5">
@@ -369,9 +363,7 @@ function Index() {
               </Link>
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {guias.map((g) => {
-                const { locked, plan } = lockInfo(g, isFreeLead);
-                return (
+              {guias.map((g) => (
                   <Link
                     key={g.id}
                     to="/guias/$guiaId"
@@ -387,11 +379,6 @@ function Index() {
                         <span className="inline-block rounded-full bg-primary/10 border border-primary/10 px-3 py-1 text-xs font-bold text-primary">
                           {g.categoria}
                         </span>
-                        {locked && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-700">
-                            <Lock size={11} /> {PLAN_LABELS[plan].replace("Plan ", "")}
-                          </span>
-                        )}
                       </div>
                       <h3 className="text-lg font-bold text-primary">{g.titulo}</h3>
                       <p className="mt-2 flex-1 text-sm text-foreground/80">{g.descripcionBreve}</p>
@@ -400,8 +387,7 @@ function Index() {
                       </span>
                     </div>
                   </Link>
-                );
-              })}
+              ))}
             </div>
           </div>
         </section>

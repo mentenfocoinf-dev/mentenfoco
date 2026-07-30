@@ -13,8 +13,18 @@
 // ============================================================================
 import { supabase, type PlanType } from "../supabase";
 import { PLAN_RANK } from "./plans";
+import { getViewerPlan } from "./guidesService";
 
-export type ContentType = "articulo" | "programa" | "herramienta" | "audio";
+export type ContentType = "articulo" | "programa" | "herramienta" | "audio" | "blog";
+
+/**
+ * Los tipos que forman la biblioteca del miembro (/contenido).
+ *
+ * 'blog' queda fuera a propósito: desde el 29-jul, Guías, Contenido y Blog son
+ * tres secciones separadas y ninguna pieza vive en dos. El tipo es lo único que
+ * decide la sección — no hay marcas paralelas que puedan desincronizarse.
+ */
+export const LIBRARY_TYPES: ContentType[] = ["articulo", "programa", "herramienta", "audio"];
 export type AudioKind = "meditacion" | "podcast";
 export type ContentStatus =
   | "borrador"
@@ -29,6 +39,7 @@ export const CONTENT_TYPE_LABELS: Record<ContentType, string> = {
   programa: "Programa",
   herramienta: "Herramienta",
   audio: "Audio",
+  blog: "Blog",
 };
 
 export const CONTENT_STATUS_LABELS: Record<ContentStatus, string> = {
@@ -78,12 +89,17 @@ export interface ContentMeta {
   cover_image: string | null;
   tiempo_lectura: string | null;
   min_plan: PlanType;
+  /** Solo se mira en piezas de blog: si es false, no se dibuja la caja de comentarios. */
+  admite_comentarios: boolean;
   tags: string[] | null;
   status: ContentStatus;
   published_at: string | null;
 }
 
 export interface ContentItem extends ContentMeta {
+  /** SEO: lo fija el admin al publicar, no el autor. */
+  meta_title: string | null;
+  meta_description: string | null;
   body_md: string | null;
   en_resumen: string[] | null;
   faq: ContentFaqEntry[] | null;
@@ -102,32 +118,31 @@ export interface ContentItem extends ContentMeta {
 }
 
 // ── Lectura pública / paciente ──────────────────────────────────────────────
+//
+// MODELO DE ACCESO (28-jul): no se muestra contenido bloqueado. El usuario ve
+// completas las piezas que su plan incluye; el resto no se devuelve. `min_plan`
+// sigue decidiendo desde qué plan aparece cada pieza, pero se aplica FILTRANDO,
+// no bloqueando. No hay paywall en ningún camino de contenido.
 
-/** Plan del usuario actual; `free` si no hay sesión. */
-async function currentPlan(): Promise<PlanType> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return "free";
-  const { data } = await supabase
-    .from("profiles")
-    .select("plan_type")
-    .eq("id", user.id)
-    .maybeSingle();
-  return (data?.plan_type as PlanType) ?? "free";
-}
-
-/** ¿Este plan alcanza para leer una pieza con ese `min_plan`? */
-export function canReadContent(minPlan: PlanType, userPlan: PlanType): boolean {
-  return PLAN_RANK[userPlan] >= PLAN_RANK[minPlan];
+/** Planes cuyo contenido alcanza a ver quien tiene `plan`. */
+function allowedPlans(plan: PlanType): PlanType[] {
+  return (Object.keys(PLAN_RANK) as PlanType[]).filter((p) => PLAN_RANK[p] <= PLAN_RANK[plan]);
 }
 
 /**
- * Lista TODAS las piezas publicadas (metadatos), incluidas las que el usuario
- * todavía no puede leer — la UI las muestra con candado, igual que las guías.
+ * Lista las piezas publicadas que el plan del usuario incluye. Lo que no
+ * incluye, no se devuelve: la UI nunca dibuja un candado.
  */
 export async function listPublishedContent(type?: ContentType): Promise<ContentMeta[]> {
-  let query = supabase.from("content_items_meta").select("*").eq("status", "publicado");
+  const plan = await getViewerPlan();
+
+  let query = supabase
+    .from("content_items_meta")
+    .select("*")
+    .eq("status", "publicado")
+    .in("min_plan", allowedPlans(plan))
+    // El blog no es biblioteca: tiene su propia sección y sus propias reglas.
+    .in("content_type", LIBRARY_TYPES);
   if (type) query = query.eq("content_type", type);
 
   const { data, error } = await query.order("published_at", { ascending: false });
@@ -139,35 +154,107 @@ export async function listPublishedContent(type?: ContentType): Promise<ContentM
 }
 
 /**
- * Trae una pieza publicada por slug. Si el plan del usuario no alcanza, devuelve
- * solo los metadatos para que la UI muestre el paywall — mismo contrato que
- * getGuide().
+ * Trae una pieza publicada por slug si el plan del usuario la incluye.
+ *
+ * Si no la incluye devuelve `null` — la ruta muestra "no encontrada", no una
+ * pantalla de bloqueo.
  */
 export async function getContentBySlug(
   slug: string,
-): Promise<{ item: ContentItem | null; meta: ContentMeta | null }> {
-  const { data: meta } = await supabase
-    .from("content_items_meta")
-    .select("*")
-    .eq("slug", slug)
-    .eq("status", "publicado")
-    .maybeSingle();
-
-  if (!meta) return { item: null, meta: null };
-
-  const plan = await currentPlan();
-  if (!canReadContent((meta as ContentMeta).min_plan, plan)) {
-    return { item: null, meta: meta as ContentMeta };
-  }
+): Promise<{ item: ContentItem | null; reachableSteps: string[] }> {
+  const plan = await getViewerPlan();
 
   const { data: item } = await supabase
     .from("content_items")
     .select("*")
     .eq("slug", slug)
     .eq("status", "publicado")
+    .in("min_plan", allowedPlans(plan))
+    // Un post de blog en /contenido/... sería la misma pieza en dos secciones.
+    .in("content_type", LIBRARY_TYPES)
     .maybeSingle();
 
-  return { item: (item as ContentItem) ?? null, meta: meta as ContentMeta };
+  const doc = (item as ContentItem) ?? null;
+  return { item: doc, reachableSteps: await resolveReachableSteps(doc, plan) };
+}
+
+/**
+ * Qué pasos de un programa puede abrir de verdad este lector.
+ *
+ * Un programa puede estar en un plan más bajo que las piezas a las que enlaza
+ * (`programa-enfoque` es free y apunta a herramientas integral/premium). Sin
+ * esto, el enlace llevaría a "no encontrado", que es justo el callejón sin
+ * salida que el modelo sin candados existe para evitar. El paso se sigue
+ * mostrando —título y descripción valen por sí solos—, pero como texto.
+ */
+async function resolveReachableSteps(item: ContentItem | null, plan: PlanType): Promise<string[]> {
+  const steps = item?.program_steps;
+  if (!steps || steps.length === 0) return [];
+
+  const planes = allowedPlans(plan);
+  const contenido = steps.filter((s) => s.ref_kind === "contenido" && s.slug_relacionado);
+  const guias = steps.filter((s) => s.ref_kind === "guia" && s.slug_relacionado);
+
+  const alcanzables: string[] = [];
+
+  if (contenido.length > 0) {
+    const { data } = await supabase
+      .from("content_items_meta")
+      .select("slug")
+      .in("slug", contenido.map((s) => s.slug_relacionado as string))
+      .eq("status", "publicado")
+      .in("min_plan", planes);
+    alcanzables.push(...(data ?? []).map((r) => r.slug as string));
+  }
+
+  if (guias.length > 0) {
+    const { data } = await supabase
+      .from("clinical_guides_meta")
+      .select("id")
+      .in("id", guias.map((s) => s.slug_relacionado as string))
+      .in("min_plan", planes);
+    alcanzables.push(...(data ?? []).map((r) => r.id as string));
+  }
+
+  return alcanzables;
+}
+
+// ── Blog público ────────────────────────────────────────────────────────────
+//
+// Sección propia, no un espejo de Contenido. Hasta el 29-jul /blog listaba los
+// artículos free de la biblioteca, con lo que la misma pieza salía en dos
+// secciones; ahora el blog es `content_type = 'blog'` y nada más.
+//
+// Estas funciones no consultan el plan del visitante a propósito: el blog es
+// público por definición y es donde vive la conversación con los pacientes.
+
+/** Posts del blog publicados. Público: no depende de la sesión. */
+export async function listBlogArticles(): Promise<ContentMeta[]> {
+  const { data, error } = await supabase
+    .from("content_items_meta")
+    .select("*")
+    .eq("content_type", "blog")
+    .eq("status", "publicado")
+    .order("published_at", { ascending: false });
+
+  if (error) {
+    console.error("[contentService] Error listando el blog:", error.message);
+    return [];
+  }
+  return (data ?? []) as ContentMeta[];
+}
+
+/** Un post del blog por slug. Nunca devuelve una pieza de la biblioteca. */
+export async function getBlogArticleBySlug(slug: string): Promise<{ item: ContentItem | null }> {
+  const { data } = await supabase
+    .from("content_items")
+    .select("*")
+    .eq("slug", slug)
+    .eq("content_type", "blog")
+    .eq("status", "publicado")
+    .maybeSingle();
+
+  return { item: (data as ContentItem) ?? null };
 }
 
 // ── Autoría (terapeuta y admin) ─────────────────────────────────────────────
@@ -185,16 +272,29 @@ export async function listMyContent(authorId: string): Promise<ContentItem[]> {
   return (data ?? []) as ContentItem[];
 }
 
+/**
+ * Campos que edita el AUTOR (terapeuta o admin).
+ *
+ * `slug`, `min_plan` y los meta de SEO NO están aquí a propósito: son decisiones
+ * editoriales y de distribución que toma el admin al publicar. El terapeuta solo
+ * escribe.
+ */
 export interface ContentDraftInput {
   content_type: ContentType;
   audio_kind?: AudioKind | null;
   categoria: string;
   titulo: string;
-  slug: string;
   resumen_breve: string;
   body_md?: string | null;
   tiempo_lectura?: string | null;
-  min_plan?: PlanType;
+}
+
+/** Campos que solo el admin fija antes de publicar. */
+export interface ContentPublishSettings {
+  slug: string;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  min_plan: PlanType;
 }
 
 /** Convierte un título en slug: minúsculas, sin acentos, separado por guiones. */
@@ -214,6 +314,9 @@ function translateWriteError(message: string): string {
   }
   if (message.includes("content_items_slug_key") || message.includes("duplicate key")) {
     return "Ya existe una pieza con esa URL (slug). Cambia el título o el slug.";
+  }
+  if (message.includes("content_items_published_needs_slug_check")) {
+    return "No se puede publicar sin una URL (slug). Defínela antes de publicar.";
   }
   return message;
 }
@@ -310,10 +413,28 @@ export async function requestContentChanges(
  * Publica una pieza. Si quien llama no es admin, el trigger de la base rechaza
  * la operación y translateWriteError devuelve el mensaje entendible.
  */
-export async function publishContent(id: string, adminId: string): Promise<void> {
+/**
+ * Publica una pieza fijando, en el mismo paso, la URL, el SEO y el tier — son
+ * decisiones del admin, no del autor. La base rechaza publicar sin slug
+ * (content_items_published_needs_slug_check) y rechaza que publique alguien que
+ * no sea admin (trigger enforce_content_publish_is_admin).
+ */
+export async function publishContent(
+  id: string,
+  adminId: string,
+  settings?: ContentPublishSettings,
+): Promise<void> {
   const { error } = await supabase
     .from("content_items")
     .update({
+      ...(settings
+        ? {
+            slug: settings.slug.trim(),
+            meta_title: settings.meta_title?.trim() || null,
+            meta_description: settings.meta_description?.trim() || null,
+            min_plan: settings.min_plan,
+          }
+        : {}),
       status: "publicado",
       published_by: adminId,
       published_at: new Date().toISOString(),

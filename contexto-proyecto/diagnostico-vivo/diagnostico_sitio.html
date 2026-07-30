@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Diagnóstico Mente en Foco — Julio 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  :root{
+    --bg:#f4f6f8; --card:#ffffff; --ink:#1c2530; --sub:#5b6675; --muted:#8b93a1;
+    --border:#e2e6ec; --accent:#3d6b8c; --accent-dark:#274a63;
+    --ok:#1d9e75; --ok-bg:#e1f5ee; --warn:#ba7517; --warn-bg:#faeeda;
+    --bad:#a32d2d; --bad-bg:#fcebeb; --none:#888780; --none-bg:#f1efe8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;}
+  .wrap{max-width:1100px;margin:0 auto;padding:40px 24px 80px;}
+  header.top{margin-bottom:32px;}
+  header.top h1{font-size:28px;font-weight:700;margin:0 0 6px;color:var(--accent-dark);}
+  header.top p{margin:0;color:var(--sub);font-size:15px;}
+  .badge-row{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  .badge{font-size:12px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--none-bg);color:var(--none);border:1px solid var(--border);}
+
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:28px 0 40px;}
+  .metric-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+  .metric-card .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600;}
+  .metric-card .value{font-size:32px;font-weight:700;margin-top:6px;color:var(--accent-dark);}
+  .metric-card .note{font-size:12.5px;color:var(--sub);margin-top:4px;}
+
+  section{margin-bottom:48px;}
+  h2.section-title{font-size:19px;font-weight:700;color:var(--accent-dark);border-bottom:2px solid var(--border);padding-bottom:10px;margin-bottom:20px;}
+  h2.section-title span.tag{font-size:12px;font-weight:600;color:var(--sub);background:var(--none-bg);padding:3px 10px;border-radius:999px;margin-left:10px;vertical-align:middle;}
+
+  .module{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px 22px;margin-bottom:14px;}
+  .module-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .module-head h3{font-size:15.5px;font-weight:700;margin:0;color:var(--ink);}
+  .module-head .status{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px;text-transform:uppercase;letter-spacing:.03em;}
+  .status.done{background:var(--ok-bg);color:var(--ok);}
+  .status.partial{background:var(--warn-bg);color:var(--warn);}
+  .status.missing{background:var(--bad-bg);color:var(--bad);}
+  .module p.desc{font-size:13.5px;color:var(--sub);margin:0 0 14px;}
+
+  .bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+  .bar-row:last-child{margin-bottom:0;}
+  .bar-label{width:74px;flex-shrink:0;font-size:12px;font-weight:600;color:var(--muted);}
+  .bar-track{flex:1;height:9px;border-radius:5px;background:var(--none-bg);overflow:hidden;}
+  .bar-fill{height:100%;border-radius:5px;}
+  .bar-fill.be{background:var(--accent);}
+  .bar-fill.fe{background:#7f77dd;}
+  .bar-pct{width:38px;text-align:right;flex-shrink:0;font-size:12.5px;font-weight:700;color:var(--ink);}
+
+  .legend{display:flex;gap:18px;font-size:12px;color:var(--sub);margin-bottom:18px;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+
+  .rule-box{background:#274a63;color:#fff;border-radius:14px;padding:26px 28px;}
+  .rule-box h3{margin:0 0 8px;font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .rule-box p{margin:0;font-size:14px;color:#cfe0ec;line-height:1.6;}
+  .rule-box .why{margin-top:12px;font-size:13px;color:#9fc0d6;}
+
+  .compete-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;}
+  .compete-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;}
+  .compete-card h3{margin:0 0 4px;font-size:16px;color:var(--accent-dark);}
+  .compete-card .origin{font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .compete-card dl{margin:0;}
+  .compete-card dt{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-top:12px;}
+  .compete-card dt:first-child{margin-top:0;}
+  .compete-card dd{margin:3px 0 0;font-size:13.5px;color:var(--ink);}
+
+  .idea-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+  .idea-card{background:var(--card);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;padding:16px 20px;}
+  .idea-card h4{margin:0 0 6px;font-size:14.5px;color:var(--accent-dark);}
+  .idea-card p{margin:0;font-size:13.5px;color:var(--sub);}
+
+  .reco-list{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:6px 0;}
+  .reco-item{display:flex;gap:14px;padding:16px 22px;border-bottom:1px solid var(--border);}
+  .reco-item:last-child{border-bottom:none;}
+  .reco-num{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .reco-item h4{margin:0 0 3px;font-size:14px;color:var(--ink);}
+  .reco-item p{margin:0;font-size:13px;color:var(--sub);}
+  .prio{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:8px;text-transform:uppercase;}
+  .prio.alta{background:var(--bad-bg);color:var(--bad);}
+  .prio.media{background:var(--warn-bg);color:var(--warn);}
+
+  footer{margin-top:40px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:18px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>Diagnóstico de Mente en Foco</h1>
+    <p>Auditoría de producto — julio 2026. Cada módulo se mide en dos barras independientes: qué tan real es el
+       backend (datos, RLS, lógica de negocio en la base de datos) y qué tan construida está la interfaz que lo
+       consume. Un módulo con frontend alto y backend bajo es decoración, no funcionalidad.</p>
+    <div class="badge-row">
+      <span class="badge">Salud mental — psicología clínica y neuropsicología</span>
+      <span class="badge">React 19 + Supabase + Stripe</span>
+      <span class="badge">Seguridad pospuesta a propósito (entorno de pruebas)</span>
+    </div>
+  </header>
+
+  <div class="summary-grid">
+    <div class="metric-card">
+      <div class="label">Avance backend</div>
+      <div class="value">74%</div>
+      <div class="note">Promedio de los 13 módulos evaluados</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Avance frontend</div>
+      <div class="value">81%</div>
+      <div class="note">Interfaz realmente conectada a datos reales</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Módulos con backend en 0%</div>
+      <div class="value">1</div>
+      <div class="note">Solo queda "Alex AI" — el resto del roadmap de producto ya tiene backend real</div>
+    </div>
+    <div class="metric-card">
+      <div class="label">Corregido 16→21-jul</div>
+      <div class="value">21</div>
+      <div class="note">Lo anterior, más: trazabilidad completa de alertas de crisis (gap #4 de terapeuta cerrado) y consentimiento de datos del signup separado en modal propio versionado. Sesión de hoy quedó interrumpida antes de ejecutar la migración de OAuth — ver bloqueo arriba</div>
+    </div>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px;">
+    <h3>⚠ Deuda de seguridad pendiente (a propósito, no un descuido)</h3>
+    <p>RLS está desactivado ahora mismo en 5 tablas para agilizar la generación de perfiles de prueba:
+       <code>psychometric_evaluations</code>, <code>clinical_alerts</code>, <code>patient_anamnesis</code>,
+       <code>therapy_sessions</code> y <code>messages</code>. Las policies de las 5 ya están escritas (las de
+       <code>therapy_sessions</code> además probadas en vivo antes de desactivarlas de nuevo para pruebas). Es
+       la misma decisión que ya se tomó con Stripe en modo test y con password=email — pospuesta por decisión
+       explícita del usuario, pendiente para la fase de seguridad final antes de cualquier lanzamiento real.</p>
+    <p class="why">Por qué importa dejarlo escrito aquí: sin este aviso, alguien podría asumir que estas tablas
+       están tan protegidas como lo estuvieron durante las pruebas de <code>therapy_sessions</code> — hoy no lo
+       están.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#1d5c3f;">
+    <h3>✅ Recordatorios de sesión por correo — desplegados el 19-jul</h3>
+    <p>Claude Code desplegó <code>send-session-reminders</code> con la API key de Resend, configuró el secret,
+       llenó el project ref real en el cron y lo dejó corriendo cada hora. Este ítem sale de "pendiente" y pasa
+       a la lista de resueltos, abajo.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#3a3560;">
+    <h3>📱 App móvil (Expo/React Native) — Fase 1 paciente construida el 19-jul</h3>
+    <p>Se decidió posponer la app móvil para el final del roadmap y enfocar el resto del trabajo en la web.
+       Antes de esa pausa quedó lista la Fase 1 (paciente): login, inicio, progreso, evaluaciones (PHQ-9/GAD-7/
+       C-SSRS con la misma lógica clínica de la web), agenda y mensajería en tiempo real, en
+       <code>mobile/</code>, con README de handoff para que Claude Code la corra y la pruebe en un teléfono
+       real por WiFi antes de generar un APK.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#5c3d1d;">
+    <h3>🩺 Gap analysis del panel de terapeuta — pendiente de confirmación en vivo (20-jul)</h3>
+    <p>Se revisaron los estándares clínicos aplicables (Ley 1090/2006, Res. 1995/1999, Ley 1616/2013) contra el
+       código real del dashboard del terapeuta. Faltan, a la espera de que Claude Code lo confirme logueado con
+       <code>terapeuta@test.com</code>: consentimiento informado documentado, informe formal exportable/imprimible
+       (hoy solo hay nota de evolución interna), plan de tratamiento estructurado (objetivos/modalidad/frecuencia),
+       registro de qué acción se tomó al descartar una alerta de crisis, antecedentes personales no patológicos en
+       la anamnesis, campo de remisión/interconsulta, e informe de cierre/egreso.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#1d5c3f;">
+    <h3>✅ Cuenta gratuita autoservicio (captura de leads) — construida y probada el 20-jul</h3>
+    <p>Botón "Crear cuenta gratis": pide nombre, correo y teléfono, exige aceptar tratamiento de datos (Ley 1581
+       de 2012) y envía las credenciales por correo. Primer login fuerza cambio de contraseña. Migración aplicada
+       en producción, Edge Function <code>public-signup</code> desplegada y probada en vivo (signup válido, correo
+       duplicado, correo inválido, sin aceptar términos — los 4 casos correctos). Perfil creado con
+       <code>role=patient</code>, <code>plan=free</code>, 0 terapeuta y 0 sesiones asignadas. Guías de vitrina
+       curadas: <code>ansiedad-estres</code>, <code>autoestima-autoconcepto</code>, <code>relaciones-comunicacion</code>,
+       <code>infantil-regulacion</code>. Commiteado en local, sin <code>push</code> todavía.</p>
+    <p class="why">3 desvíos deliberados sobre la especificación original: <code>onboarding_completed: true</code>
+       en vez de <code>false</code> (si no, el lead terminaba respondiendo la anamnesis clínica completa —
+       contradice "sin acceso al producto real"); filtro por <code>role==='patient' && plan_type==='free'</code>
+       en vez de solo por plan (<code>admin@test.com</code> y <code>terapeuta@test.com</code> también tienen
+       <code>plan_type='free'</code> y se habrían quedado sin ver el catálogo de guías); anti-duplicados por
+       <code>profiles.email</code> en vez de <code>auth.admin.listUsers()</code> (esa función pagina de a 50 y
+       falla en silencio al crecer la base de usuarios).</p>
+    <p class="why">Pendiente, aplazado a propósito para la fase de seguridad final (después de reactivar RLS),
+       según decisión del usuario: <code>SITE_URL</code> y <code>REMINDER_FROM_EMAIL</code> sin setear (el correo
+       sale desde el remitente de pruebas de Resend), dominio de Resend sin verificar (a un correo real de un lead
+       no le va a llegar hasta verificarlo), API key de Resend sin rotar, y sin captcha/rate-limit en la función
+       pública (no bloquea el lanzamiento, pero conviene antes de anunciarlo masivamente). El flujo tampoco se
+       validó en navegador todavía — solo base de datos, función y build.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#5c1d3d;">
+    <h3>🔐 Refactor de Auth + lógica Freemium + upsells + retención — 21-jul (2ª ola, verificado en código)</h3>
+    <p>Login con Facebook eliminado, panel izquierdo de marca con imagen corporativa real (<code>pasareladepago.jpg</code>,
+       subida y ya referenciada en <code>BRAND_PANEL_IMAGE</code>), Google OAuth habilitado. Anamnesis liberada al
+       100% para el plan gratuito. Límite de 1 evaluación PHQ-9/GAD-7 al mes en plan Free (trigger de base de
+       datos), C-SSRS exento por seguridad clínica. Modal de upsell de plan conectado a Stripe y modal de
+       "solicitar servicio adicional" (tabla <code>service_requests</code>). Frase del día y tracker de ánimo
+       persistente. <strong>Nuevo en esta ola:</strong> se cerró el "hueco de Google" — <code>clinical_alerts</code>
+       ahora registra quién y con qué acción se resolvió cada alerta de crisis (antes solo se ocultaba en el
+       cliente); la política de tratamiento de datos del signup se separó en un modal propio y versionado
+       (<code>PRIVACY_POLICY_VERSION</code>), documentando expresamente que <strong>no</strong> cubre el
+       consentimiento clínico de salud (ese es un consentimiento aparte, todavía pendiente — ver gaps de
+       terapeuta); y se escribió (sin ejecutar aún) el trigger <code>handle_new_auth_user</code> que crea el
+       perfil automáticamente para cualquier alta en <code>auth.users</code>, incluyendo OAuth.</p>
+    <p class="why"><strong>Actualización 22-jul: cerrado por completo.</strong> La migración de OAuth corrió y
+       fue confirmada. Commits nuevos verificados en <code>git log</code>: <code>3a93de8</code> (fix de assets +
+       migración OAuth), <code>e6825d0</code> (gate único <code>resolveRequiredGate</code>: password temporal →
+       consentimiento → completar perfil → anamnesis, en ese orden, con staff saltándose todo menos la
+       contraseña — exactamente lo especificado en la expansión del 21-jul), <code>e22e6bd</code> (fondo con
+       patrón de olas en la sección de login). El gate de consentimiento post-OAuth y la captura de
+       cédula/teléfono/contacto de emergencia (<code>/consentimiento</code>, <code>/completar-perfil</code>) ya
+       están construidos.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#1d3a5c;">
+    <h3>📁 Reorganización de todo el contexto del proyecto — 22-jul</h3>
+    <p>Todos los documentos de auditoría, investigación clínica, análisis estratégico y prompts de handoff que
+       estaban sueltos en la raíz del repositorio (o repartidos en 3 carpetas distintas) quedaron consolidados en
+       <code>contexto-proyecto/</code>, con un índice maestro (<code>00_INDICE_MAESTRO.md</code>) que explica qué
+       hay en cada subcarpeta. Esta misma carpeta de diagnóstico vivo también se movió ahí
+       (<code>contexto-proyecto/diagnostico-vivo/</code>). Se encontró y se dejó visible (sin borrar) un archivo
+       de otra marca (Bocaditos) guardado por error en una sesión anterior — pendiente de que el usuario
+       confirme si se mueve o se elimina.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#5c4d1d;">
+    <h3>🩺 Gap encontrado hoy: los informes clínicos no se ven en ningún lado — 22-jul</h3>
+    <p>Verificado por grep en todo <code>src/</code>: las notas clínicas que genera
+       <code>ClinicalReportModal.tsx</code> solo son visibles dentro de ese mismo modal, abierto paciente por
+       paciente. <code>AdminDashboard.tsx</code> no tiene ninguna mención de informes, notas ni evaluaciones —
+       cero visibilidad de supervisión clínica. Especificado un "Historial clínico" agregado para el terapeuta
+       (lista + línea de tiempo por paciente) y un panel de supervisión de solo lectura para el admin — ver
+       <code>contexto-proyecto/especificaciones-producto/01_informes_y_evoluciones_medicas.md</code>. También se
+       escribió <code>seed_clinical_demo_data.cjs</code>: 5 sesiones + notas firmadas + evaluaciones con
+       tendencia de mejora para cada uno de los 4 perfiles de paciente de prueba (más 2 alertas de crisis ya
+       resueltas), para poder probar todo esto con datos reales en vez de una base vacía. Todo consolidado en
+       <code>contexto-proyecto/prompts-claude-code/prompt-claude-code-22-jul-2026-informes-evoluciones-seed.md</code>,
+       pendiente de que Claude Code lo ejecute y verifique en vivo en los 6 perfiles de prueba.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#5c1d1d;">
+    <h3>📋 Ficha de paciente + 3 tipos de documento (Valoración/Informe/Evolución) + PDF — especificado 22-jul</h3>
+    <p>Se quita el botón "Informe Clínico" de "Mis Pacientes": cada paciente pasa a llevar a una ficha
+       propia (resumen clínico, gráficas, panel de uso del plan, y lista de documentos). Se diferencian
+       explícitamente 3 tipos de documento sobre <code>clinical_notes</code> (columna
+       <code>document_type</code> nueva): <strong>valoración</strong> (evaluación inicial completa, con
+       plan de tratamiento estructurado — cierra de paso el gap #3 de terapeuta), <strong>evolución</strong>
+       (nota corta de seguimiento por sesión, ya no el SOAP completo repetido cada vez), e
+       <strong>informe</strong> (documento formal exportable, pre-rellenado desde valoración+evoluciones).
+       Todos firmables e inmutables como hoy, con botón de descarga en PDF solo si están firmados. Spec
+       completa en <code>especificaciones-producto/04_ficha_paciente_valoraciones_informes_evoluciones.md</code>,
+       prompt de ejecución en
+       <code>prompts-claude-code/prompt-claude-code-22-jul-2026-ficha-paciente-documentos.md</code>.
+       <strong>Construido y verificado el mismo día</strong>: migración aplicada, backend de uso del plan,
+       ficha de paciente en <code>/pacientes/$patientId</code>, y PDF client-side con jsPDF. Backfill de las
+       20 notas sembradas resuelto con criterio (el trigger de inmutabilidad bloqueó reclasificar notas
+       firmadas, correctamente — se insertó una valoración nueva por paciente en su lugar, dejando las 5
+       sembradas como evoluciones, que es lo que realmente son). Pendiente de recorrido visual completo
+       logueado como terapeuta (el generador de PDF ya se probó suelto y funciona).</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#1d3a5c;">
+    <h3>📄 Iteración 2 de documentos clínicos: plantillas reales de práctica profesional — 22-jul</h3>
+    <p>El usuario compartió 6 documentos reales de su ejercicio profesional previo (neuropsicología,
+       rehabilitación cognitiva, pruebas de inteligencia). Se extrajo la estructura (sin copiar datos de
+       pacientes reales) en <code>especificaciones-producto/05_plantillas_reales_valoracion_informe_evolucion.md</code>
+       y se enriquecieron — de forma aditiva, sin romper lo ya construido — los 3 tipos de documento:
+       Valoración gana motivo de consulta y antecedentes personales estructurados por categoría (8 campos);
+       Evolución corrige su campo central a "plan de intervención" (qué se trabajó en la sesión, hallazgo
+       más importante de este material) en vez del "resumen" genérico original; Informe pasa sus
+       recomendaciones de texto plano a categorías con ítems. Prompt de ejecución en
+       <code>prompts-claude-code/prompt-claude-code-22-jul-2026-enriquecer-documentos-clinicos.md</code>,
+       pendiente de que Claude Code lo aplique.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#5c1d1d;">
+    <h3>🐛 Bug diagnosticado: guías bloqueadas para plan gratis/anónimo — 22-jul</h3>
+    <p>Perfil premium veía las 20 guías correctamente; perfil gratis o visitante sin sesión solo veía 4 en
+       total, en vez de 20 con candado en las bloqueadas. Causa exacta: <code>listGuides()</code> en
+       <code>guidesService.ts</code> filtraba la lista completa por <code>visible_en_plan_gratis</code>
+       antes de que la UI pudiera mostrar el candado (que ya estaba construido y listo, solo nunca recibía
+       esas filas). Fix de una línea, sin tocar RLS ni <code>getGuide()</code> (que ya gatea el contenido
+       correctamente). Spec en
+       <code>especificaciones-producto/06_fix_visibilidad_guias_y_expansion_categorias.md</code>, prompt en
+       <code>prompt-claude-code-22-jul-2026-fix-guias-y-categorias.md</code>.</p>
+    <p class="why">De paso se confirmó que el backend ya cumple lo pedido hoy: cualquier guía premium tiene
+       <code>min_plan='esencial'</code> (nunca integral/premium), así que cualquier plan pago desbloquea
+       todo el catálogo — <strong>esto revierte la recomendación pendiente #5</strong> ("diferenciar los 3
+       planes repartiendo guías por min_plan"), descartada explícitamente hoy por decisión del usuario.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#1d5c3f;">
+    <h3>📚 Plantilla maestra + taxonomía + prompt generador de guías — 22-jul</h3>
+    <p>Formalizada (no inventada — es el patrón ya validado en las 20 guías existentes) la estructura
+       obligatoria de toda guía nueva: fundamento clínico con código CIE-11, tabla de diferenciación
+       diagnóstica, protocolo de intervención numerado con modelo de evidencia nombrado, cierre siempre con
+       "cuándo buscar ayuda profesional". 5 categorías nuevas propuestas (Personalidad, Sueño, Estrés
+       laboral/Burnout, Adicciones, Salud mental perinatal) — con corrección importante: la CIE-11 no usa
+       "clusters" categóricos de personalidad (eso es CIE-10/DSM-IV superado), usa un modelo dimensional de
+       severidad + 5 rasgos, y la categoría se nombra y enfoca en consecuencia para no estigmatizar. "TCA"
+       ya estaba cubierto por la categoría Alimentación — no se duplicó. Todo en
+       <code>contexto-proyecto/guias-bienestar/</code>, incluido el prompt reutilizable que se usará para
+       la futura automatización de 1 guía cada 2 días. Contenido de las 5 categorías nuevas pendiente de
+       investigación científica antes de redactarse — no se generó todavía, por instrucción explícita.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#1d5c3f;">
+    <h3>✅ Fix de guías + 9 casos rotos adicionales encontrados y corregidos por Claude Code — 22-jul</h3>
+    <p>Verificado en <code>git log</code>/reporte: el fix de 1 línea funcionó (4→20 tarjetas sin sesión),
+       y Claude Code encontró de más un hallazgo real que mi spec no cubría: 9 de las 20 guías tenían
+       <code>min_plan='free'</code> sin ser de vitrina — se veían sin candado pero el paywall nunca se
+       activaba (caían en "Guía no encontrada"). Corregido en ambos lugares (candado condicionado a quién
+       mira, paywall disparado por <code>meta</code> en vez de <code>meta?.es_premium</code>). Conteo
+       final verificado: 20 tarjetas, 16 con candado, 4 libres — coincide con la matriz real.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#1d3a5c;">
+    <h3>🖼️ Curaduría de imágenes + fix de click + orden de membresía + renombrado de planes — 22-jul</h3>
+    <p>Cuatro pedidos nuevos del usuario, los 4 ya especificados: (1) brief curado de imágenes de banco
+       gratuito para las 8 guías sin imagen — mi sandbox no tiene red para descargarlas, así que queda
+       como brief + términos de búsqueda exactos por guía, con criterio ético basado en las guías
+       Mindframe de imagery en salud mental (spec 07); (2) fix para que clic en una guía bloqueada abra el
+       popup ahí mismo en vez de navegar a otra página, y quitar el emoji ✨ del modal (spec 08); (3)
+       reordenar Membresía para que la tabla comparativa vaya antes del carrusel (spec 08); (4) análisis de
+       neuromarketing (con fuentes) sobre el naming actual y propuesta de renombrado — Esencial/Integral/
+       Premium pasan a <strong>Primeros Pasos / Mi Equilibrio / Mi Mundo en Foco</strong>, y "Membresía"
+       se reencuadra como "Invierte en tu bienestar" — sin tocar el campo <code>plan_type</code> de la
+       base de datos, solo labels de presentación. Todo consolidado en
+       <code>prompt-claude-code-22-jul-2026-imagenes-ux-guias-membresia.md</code>, pendiente de ejecución.</p>
+  </div>
+
+  <div class="rule-box" style="margin-bottom:40px; background:#24408c;">
+    <h3>🗺️ Plan de reestructuración de páginas públicas — 24-jul</h3>
+    <p>Tras el scrape profundo de las 5 competidoras, se diseñó un plan página por página para que Mente
+       en Foco muestre muchísima más información sin login (como Selia/Terapify), <strong>sin quitar
+       nada</strong>. Cubre: nav global con menús desplegables; Inicio de 5→11 secciones; 3 páginas nuevas
+       clave — <strong>Tests públicos</strong> (gancho de captación #1, sacar PHQ-9/GAD-7/Rosenberg/etc.
+       del login), <strong>Encontrar especialista + matching + directorio</strong> (gap #2), y hub de
+       <strong>Recursos</strong> (blog, ejercicios, líneas de crisis, FAQ); más Empresas (B2B), y
+       enriquecimiento de Asesoramiento/Guías/Membresía/Nosotros. Ordenado en 3 olas por impacto/esfuerzo:
+       Ola 1 estática (montable ya), Ola 2 tests públicos (necesita tabla), Ola 3 matching (fase propia).
+       Spec completa en
+       <code>especificaciones-producto/09_plan_reestructuracion_paginas_publicas.md</code>. Respeta la
+       regla de backend-antes-que-frontend en cada sección.</p>
+  </div>
+
+  <section>
+    <h2 class="section-title">Estado por módulo <span class="tag">backend vs. frontend</span></h2>
+    <div class="legend">
+      <span><i style="background:var(--accent)"></i>Backend (datos, RLS, lógica real)</span>
+      <span><i style="background:#7f77dd"></i>Frontend (interfaz que lo usa)</span>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Autenticación y roles</h3><span class="status done">Refactorizado 21-jul</span></div>
+      <p class="desc">Login rediseñado: panel izquierdo de marca (imagen corporativa + mensaje de posicionamiento clínico) y formulario minimalista a la derecha (<code>ingresa.tsx</code>). Se quitó el login con Facebook a propósito — posicionamiento estrictamente clínico, no un producto de consumo masivo. Se habilitó Google OAuth (<code>SocialAuthButtons.tsx</code> + trigger SQL que crea el perfil automáticamente con plan Free y nombre extraído de Google). Pendiente conocido sin cambios: cuentas creadas por Stripe usan el correo como contraseña — pospuesto a propósito.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:85%"></div></div><span class="bar-pct">85%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:90%"></div></div><span class="bar-pct">90%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Freemium, límites y embudos de venta</h3><span class="status done">Construido 21-jul</span></div>
+      <p class="desc">Anamnesis liberada al 100% para el plan gratuito — ya no es un callejón sin salida, redirige al dashboard y funciona como captura de leads. Trigger <code>enforce_free_plan_evaluation_limit</code> (verificado en <code>20260721_free_plan_evaluation_limit.sql</code>): plan Free hace 1 evaluación PHQ-9/GAD-7 cada 30 días, con badge de "disponible el [fecha]" en la UI; el C-SSRS queda excluido del límite a propósito — restringir una escala de riesgo suicida por un muro comercial sería un riesgo clínico inaceptable. El botón "Mejorar mi plan" ahora abre un modal interactivo conectado a Stripe (antes redirigía a una página externa). Nuevo botón "Solicitar servicio adicional" (consulta extra, valoración neuropsicológica, aplicación de pruebas) con tabla <code>service_requests</code> verificada — nace en <code>pending</code>/<code>unpaid</code>, columnas de pago preparadas para cuando se conecte el cobro.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:75%"></div></div><span class="bar-pct">75%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:80%"></div></div><span class="bar-pct">80%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Anamnesis clínica</h3><span class="status done">Sólido</span></div>
+      <p class="desc">Tabla dedicada con RLS, formulario cubre antecedentes médicos, medicación, AUDIT-C, autolesión, red de apoyo y cribado cognitivo. Ya no es solo el nombre completo.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:90%"></div></div><span class="bar-pct">90%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:90%"></div></div><span class="bar-pct">90%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Evaluaciones psicométricas (PHQ-9, GAD-7, C-SSRS, MoCA, MMSE)</h3><span class="status done">Sólido</span></div>
+      <p class="desc">PHQ-9/GAD-7/C-SSRS son autoadministrables por el paciente. MoCA/MMSE son registro post-aplicación del terapeuta, correctamente, porque no son autoadministrables en la vida real.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:90%"></div></div><span class="bar-pct">90%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:85%"></div></div><span class="bar-pct">85%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Alertas de crisis</h3><span class="status done">Resuelto 21-jul: trazabilidad completa</span></div>
+      <p class="desc">El 16-jul se corrigió que ningún terapeuta viera la alerta. El 21-jul se cerró el gap #4 de terapeuta identificado en el diagnóstico clínico: <code>dismissCrisisAlert</code> solo ocultaba la alerta en el cliente, sin dejar rastro de quién la atendió ni qué hizo. Ahora <code>clinical_alerts</code> tiene <code>resolved_at</code>/<code>resolved_by</code>/<code>resolution_action</code>/<code>resolution_notes</code> (verificado en <code>20260721_alert_resolution.sql</code>), con un constraint que impide cerrar una alerta sin declarar quién y con qué acción (<code>contacted_patient</code>, <code>session_scheduled</code>, <code>referred_psychiatry</code>, <code>emergency_services</code>, <code>no_action_needed</code>). <code>CrisisAlertResolutionModal.tsx</code> reemplaza el botón de "descartar".</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:95%"></div></div><span class="bar-pct">95%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:95%"></div></div><span class="bar-pct">95%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Guías clínicas</h3><span class="status done">Sólido</span></div>
+      <p class="desc">RLS por nivel de plan ahora sí está activa (antes existía la política pero la tabla tenía RLS apagado — cualquiera veía contenido premium gratis). Contenido ampliado más allá de los ~12 artículos originales. Voseo verificado y corregido el 16-jul con un detector en Postgres (el grep local se comía tildes); las 12 guías originales, las nuevas, clinical_prescriptions y todo src/ quedaron en tuteo neutro.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:85%"></div></div><span class="bar-pct">85%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:90%"></div></div><span class="bar-pct">90%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Directorio CIE-11 / diagnóstico</h3><span class="status done">Casi completo</span></div>
+      <p class="desc">Corregido el 16-jul tras leer ClinicalReportModal.tsx completo: la UI ya tiene búsqueda CIE-11 con debounce, catálogo navegable por categoría, 18 motivos de consulta, examen mental de 10 categorías, notas SOAP y firma electrónica con la Resolución 839/2017. El estimado anterior (60%) estaba desactualizado.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:90%"></div></div><span class="bar-pct">90%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:90%"></div></div><span class="bar-pct">90%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Dashboard del paciente</h3><span class="status done">Mejorado 21-jul</span></div>
+      <p class="desc">Incluye tarjeta de "Próximas sesiones", "Tu anamnesis", historial de evaluaciones y gráfico de tendencia PHQ-9/GAD-7. Nuevo el 21-jul: <code>DailyQuoteCard</code> (frase del día rotativa) y <code>MoodTrackerCard</code> (registro de estado de ánimo persistente en base de datos, verificado en <code>moodService.ts</code>) llenando la columna que antes quedaba vacía; modal de upsell de plan conectado a Stripe y modal de solicitud de servicio adicional; restaurados efectos de "minimalismo elegante" (halos de luz, sombras interactivas, transiciones). Solo falta mensajería dentro de esta pantalla (ya existe como sección propia).</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:65%"></div></div><span class="bar-pct">65%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:95%"></div></div><span class="bar-pct">95%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Dashboard del terapeuta</h3><span class="status partial">Mejorado 16-jul</span></div>
+      <p class="desc">Lista de pacientes, asignación de tareas del catálogo, informe clínico, cribado cognitivo, banner de crisis y ahora una sección completa de "Agenda de sesiones": programar sesión nueva, cambiar estado, cargar enlace de videollamada. Falta: no ve la anamnesis del paciente desde aquí sin salir del flujo, no hay mensajería.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:75%"></div></div><span class="bar-pct">75%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:85%"></div></div><span class="bar-pct">85%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Dashboard del admin</h3><span class="status done">El más maduro</span></div>
+      <p class="desc">Crear usuarios, activar/desactivar terapeutas, cambiar planes y asignar paciente↔terapeuta ya son RPCs reales en la base de datos, no botones decorativos. Falta un panel de analítica (telemetry_events existe pero nadie lo lee).</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:85%"></div></div><span class="bar-pct">85%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:85%"></div></div><span class="bar-pct">85%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Planes y pagos (Stripe)</h3><span class="status partial">Test mode</span></div>
+      <p class="desc">Todos los links son buy.stripe.com/test_*, no procesan pago real. El webhook crea la cuenta pero con contraseña = correo. Ambas cosas pospuestas a propósito para agilizar pruebas — no son un descuido.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:35%"></div></div><span class="bar-pct">35%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:70%"></div></div><span class="bar-pct">70%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Agenda de sesiones</h3><span class="status done">Construida y probada hoy</span></div>
+      <p class="desc">Migración aplicada y probada contra Supabase real: tabla therapy_sessions (estado, enlace de videollamada, estado de recordatorio), 10 pruebas de RLS con usuarios reales, trigger de updated_at endurecido. UI real: próximas sesiones para el paciente, gestión completa para el terapeuta, calendario visual semanal en ambos dashboards, y recordatorios automáticos por correo ya desplegados y corriendo cada hora (19-jul).</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:95%"></div></div><span class="bar-pct">95%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:90%"></div></div><span class="bar-pct">90%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>Mensajería paciente↔terapeuta</h3><span class="status done">Construida y subida hoy</span></div>
+      <p class="desc">Backend y UI construidos y ya en <code>origin/main</code>: chat del lado del paciente e inbox del lado del terapeuta, con un <strong>badge global de mensajes no leídos</strong> agregado hoy en el header de ambos dashboards (en tiempo real, visible sin entrar a la pantalla de mensajería). RLS de la tabla <code>messages</code> está desactivado a propósito por ahora (ver aviso de seguridad arriba) — las policies ya están escritas, documentadas como bloque comentado en su migración.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:85%"></div></div><span class="bar-pct">85%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:95%"></div></div><span class="bar-pct">95%</span></div>
+    </div>
+
+    <div class="module">
+      <div class="module-head"><h3>"Alex AI" (asistente 24/7)</h3><span class="status partial">Reformulado a "próximamente"</span></div>
+      <p class="desc">Corregido el 16-jul en membresia.tsx, contactanos.tsx y plans.ts: ya no se presenta como disponible, se marca explícitamente como "Próximamente". Sigue sin existir ni una línea de backend — el riesgo reputacional bajó, el técnico sigue en cero.</p>
+      <div class="bar-row"><span class="bar-label">Backend</span><div class="bar-track"><div class="bar-fill be" style="width:0%"></div></div><span class="bar-pct">0%</span></div>
+      <div class="bar-row"><span class="bar-label">Frontend</span><div class="bar-track"><div class="bar-fill fe" style="width:15%"></div></div><span class="bar-pct">15%</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Regla obligatoria a partir de hoy</h2>
+    <div class="rule-box">
+      <h3>Backend primero, siempre</h3>
+      <p>Ninguna pantalla, botón o componente nuevo se construye en el frontend si la funcionalidad que promete
+         no existe ya de verdad en la base de datos (tabla, RLS, RPC probada). Si no hay backend, no hay
+         interfaz — ni siquiera "para mostrar cómo se vería". El dashboard del paciente y "Alex AI" de arriba
+         son ejemplos exactos de lo que esta regla habría evitado: interfaz bonita prometiendo algo que no
+         funciona por dentro.</p>
+      <p class="why">Por qué: para que cada avance sea real y medible en las barras de arriba, no decorativo.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Qué hacen 3 plataformas similares</h2>
+    <div class="compete-grid">
+      <div class="compete-card">
+        <h3>Selia</h3>
+        <div class="origin">Colombia · +500 especialistas</div>
+        <dl>
+          <dt>Onboarding paciente</dt>
+          <dd>10 tests validados científicamente antes de elegir especialista; recibe un informe legible antes de decidir el siguiente paso.</dd>
+          <dt>Emparejamiento</dt>
+          <dd>Encuentra especialista compatible en ~3 minutos; se puede cambiar de terapeuta sin fricción si no hay conexión.</dd>
+          <dt>Diferenciador</dt>
+          <dd>Herramientas de auto-cuidado diarias (respiración, journaling emocional) entre sesiones, no solo el encuentro clínico.</dd>
+        </dl>
+      </div>
+      <div class="compete-card">
+        <h3>Terapify</h3>
+        <div class="origin">México / LatAm</div>
+        <dl>
+          <dt>Onboarding paciente</dt>
+          <dd>Test de Afinidad Terapéutica gratuito: motivo de consulta, estilo de acompañamiento preferido y horarios.</dd>
+          <dt>Emparejamiento</dt>
+          <dd>Sugiere perfiles compatibles en ~2 minutos, antes de agendar ningún pago.</dd>
+          <dt>Diferenciador</dt>
+          <dd>Garantía explícita sobre la primera cita — reduce el riesgo percibido de "probar" terapia por primera vez.</dd>
+        </dl>
+      </div>
+      <div class="compete-card">
+        <h3>BetterHelp</h3>
+        <div class="origin">EE. UU. · referente global</div>
+        <dl>
+          <dt>Onboarding paciente</dt>
+          <dd>Cuestionario de 10-15 min: antecedentes, síntomas (ansiedad, depresión, duelo), preferencias de terapeuta (género, edad, cultura, estilo directo vs. suave).</dd>
+          <dt>Emparejamiento</dt>
+          <dd>Algoritmo con aprendizaje automático; asigna terapeuta en 24-48h; se puede pedir cambio con un clic.</dd>
+          <dt>Diferenciador</dt>
+          <dd>El match se siente personalizado por la cantidad de preferencias finas que pregunta, no solo el motivo clínico.</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Ideas fuera de molde para diferenciarnos</h2>
+    <div class="idea-grid">
+      <div class="idea-card">
+        <h4>Línea de tiempo de "ADN Clínico"</h4>
+        <p>Ninguno de los 3 competidores le muestra al paciente su propia evolución. Un gráfico simple de PHQ-9/GAD-7 a lo largo del tiempo, visible para el paciente, convierte la terapia en algo tangible en vez de una caja negra.</p>
+      </div>
+      <div class="idea-card">
+        <h4>Módulo de salud cognitiva para familias</h4>
+        <p>Ningún competidor investigado toca neuropsicología ni deterioro cognitivo. Una vista para un familiar/cuidador (con permiso del paciente) que siga el MoCA/MMSE en el tiempo es un espacio que hoy nadie ocupa en Colombia, y encaja con el peso cultural del cuidado familiar del adulto mayor.</p>
+      </div>
+      <div class="idea-card">
+        <h4>Informe clínico exportable entre proveedores</h4>
+        <p>Aprovechar que ya tenemos códigos CIE-11 reales: un PDF de traslado clínico (diagnóstico + notas SOAP resumidas) que el paciente pueda llevar a un psiquiatra o neurólogo externo. Ningún competidor de bienestar se posiciona como "clínico" al punto de generar esto.</p>
+      </div>
+      <div class="idea-card">
+        <h4>Alerta de crisis con respuesta humana, no un número</h4>
+        <p>Lo que se corrigió hoy (alertar directo al terapeuta asignado en vez de un botón de llamada genérico) es, bien comunicado, un diferenciador real: "tu alerta llega a una persona que ya te conoce", no a una línea anónima.</p>
+      </div>
+      <div class="idea-card">
+        <h4>Test de afinidad con enfoque clínico, no solo de preferencia</h4>
+        <p>Terapify y BetterHelp preguntan estilo/horario. Uno propio podría cruzar el resultado del PHQ-9/GAD-7 inicial con la especialidad real del terapeuta (ej. trauma, TCA, neuropsicología) — match clínicamente informado, no solo de personalidad.</p>
+      </div>
+      <div class="idea-card">
+        <h4>Modo "primera cita sin fricción"</h4>
+        <p>Inspirado en la garantía de Terapify: comunicar explícitamente qué pasa si el paciente no conecta con su primer terapeuta (cambio sin costo, sin preguntas), bajando la barrera psicológica de "probar" terapia.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">Recomendaciones priorizadas</h2>
+    <div class="reco-list">
+      <div class="reco-item">
+        <div class="reco-num">0</div>
+        <div><h4>Fix de guías bloqueadas para plan gratis/anónimo <span class="prio alta">Alta — bug diagnosticado hoy, fix de 1 línea</span></h4>
+        <p>Perfil gratis/anónimo solo ve 4 de 20 guías en vez de verlas todas con candado en las bloqueadas. Causa exacta identificada en <code>guidesService.ts</code>, fix trivial sin tocar RLS. Prompt en <code>prompt-claude-code-22-jul-2026-fix-guias-y-categorias.md</code>.</p></div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-num">1</div>
+        <div><h4>Ejecutar el prompt de historial clínico + datos de prueba + búsqueda dual <span class="prio alta">Alta — hecho hoy, sin ejecutar</span></h4>
+        <p>Los informes clínicos no se ven en ningún lado (ni terapeuta ni admin) y la base seguía sin datos de prueba longitudinales. Todo especificado y con script listo para correr en <code>contexto-proyecto/prompts-claude-code/prompt-claude-code-22-jul-2026-informes-evoluciones-seed.md</code>.</p></div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-num">2</div>
+        <div><h4>Enriquecer los 3 documentos con plantillas de práctica real <span class="prio alta">Alta — especificado hoy, sin ejecutar</span></h4>
+        <p>La ficha de paciente + 3 tipos de documento ya está construida y verificada. Esta iteración añade campos validados por 6 documentos reales del usuario (antecedentes personales estructurados, plan de intervención en evolución, recomendaciones categorizadas en informe) — aditivo, sin romper lo ya hecho. Prompt en <code>prompt-claude-code-22-jul-2026-enriquecer-documentos-clinicos.md</code>.</p></div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-num">3</div>
+        <div><h4>Recorrido en vivo de los 6 perfiles de prueba <span class="prio alta">Alta — pedido explícito del usuario</span></h4>
+        <p>Verificar que la información que ve cada rol (admin, terapeuta, y los 4 planes de paciente) sea correcta y relevante — solo se puede hacer con acceso real a la app corriendo, incluido en el prompt del ítem 1.</p></div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-num">4</div>
+        <div><h4>Gap de terapeuta restante: #1 <span class="prio alta">Alta — #3 y #4 ya resueltos</span></h4>
+        <p>Consentimiento informado clínico — distinto del consentimiento de datos del signup/OAuth, que ya quedó resuelto. Es el único gap de terapeuta que sigue sin spec propia.</p></div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-num">5</div>
+        <div><h4>Diferenciar de verdad los 3 planes de pago <span class="prio media">Descartado 22-jul — decisión explícita del usuario</span></h4>
+        <p><s>Repartir el catálogo de guías por <code>min_plan</code> entre esencial/integral/premium.</s> El usuario decidió lo contrario hoy: cualquier plan pago, incluido el más económico, debe desbloquear el catálogo completo de guías — la diferenciación entre planes debe darse en otros beneficios, nunca en acceso a guías. El backend ya funciona así (verificado). Se deja este ítem tachado, no eliminado, para que quede registro de que no es un olvido.</p></div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-num">6</div>
+        <div><h4>Fase de seguridad final <span class="prio alta">Alta — decisión explícita: hacerla toda junta</span></h4>
+        <p>Reactivar RLS en las 5 tablas ya identificadas. En el mismo paso: dominio propio en Supabase Pro, verificación de la app en Google Cloud, verificación de dominio en Resend, <code>SITE_URL</code>/<code>REMINDER_FROM_EMAIL</code>, rotar la API key de Resend, eliminar el secret <code>DEV_MAIL_REDIRECT</code>, captcha/rate-limit en <code>public-signup</code>, y revisión jurídica de la política de tratamiento de datos. Agrupado a propósito para el cierre del proyecto.</p></div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-num">7</div>
+        <div><h4>Paridad móvil del terapeuta <span class="prio media">Después de cerrar los gaps</span></h4>
+        <p>El build grande de la app Expo. A propósito no se arranca antes de cerrar los gaps clínicos.</p></div>
+      </div>
+      <div class="reco-item">
+        <div class="reco-num">8</div>
+        <div><h4>Resueltos el 16, 19, 20 y 21-jul, para registro <span class="prio media">Completados</span></h4>
+        <p>Agenda, voseo, mensajería, recordatorios por correo, Fase 1 de app móvil, signup gratuito; y el 21-jul: refactor de autenticación (Google OAuth, sin Facebook, login rediseñado con imagen real), anamnesis liberada para el plan Free, límite de evaluaciones freemium con excepción C-SSRS, upsell de plan y de servicio adicional, frase del día, tracker de ánimo, trazabilidad completa de alertas de crisis (gap #4), y consentimiento de datos del signup separado en su propio modal versionado.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Diagnóstico generado a partir de lectura directa del código y las migraciones del proyecto (no solo de
+    documentación previa), más investigación pública de Selia, Terapify y BetterHelp en julio 2026. Los
+    porcentajes son una estimación de trabajo, no una medición automatizada — actualízalos manualmente en este
+    archivo (buscar <code>style="width:XX%"</code>) cada vez que avance un módulo, para mantener la línea
+    visual sincronizada con el estado real.
+  </footer>
+
+</div>
+</body>
+</html>

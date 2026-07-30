@@ -28,6 +28,7 @@ import { TherapistMessages } from "../messaging/TherapistMessages";
 import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
 import { DashboardShell, type ShellNavItem } from "./DashboardShell";
 import { ContentEditorModal } from "../content/ContentEditorModal";
+import { CommentModerationQueue } from "../blog/CommentModerationQueue";
 import {
   getTherapistPatients,
   getPrescriptionsCatalog,
@@ -1216,7 +1217,16 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         onConversationsChange={handleConversationsChange}
       />
     ),
-    contenido: contenidoCard,
+    contenido: (
+      <div className="space-y-6">
+        {contenidoCard}
+        {/* El terapeuta modera la conversación de SUS posts, no la ajena: la
+            cola va acotada por postAuthorId y el trigger lo vuelve a exigir. */}
+        <div className="card-neon-hover overflow-hidden rounded-3xl glass-card border border-white/40">
+          <CommentModerationQueue moderatorId={profile.id} postAuthorId={profile.id} />
+        </div>
+      </div>
+    ),
     perfil: perfilCard,
   };
 

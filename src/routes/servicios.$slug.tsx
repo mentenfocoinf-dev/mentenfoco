@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { HeroImagen } from "../components/HeroImagen";
 import {
   ArrowRight,
   Brain,
@@ -21,6 +22,8 @@ interface Service {
   slug: string;
   icon: LucideIcon;
   title: string;
+  /** Fotografía de cabecera en public/servicios/. Sin ella cae al banner genérico. */
+  image?: string;
   tagline: string;
   intro: string;
   paraQuien: string[];
@@ -36,6 +39,7 @@ const SERVICES: Record<string, Service> = {
     slug: "psicologia-clinica",
     icon: HeartHandshake,
     title: "Psicología Clínica",
+    image: "/servicios/psicologia-clinica.jpg",
     tagline: "Terapia enfocada en darte herramientas prácticas para tu día a día.",
     intro:
       "La psicología clínica trabaja sobre lo que sientes, piensas y haces para ayudarte a entender qué te ocurre y a construir formas más sanas de afrontarlo. No es solo hablar: es un proceso estructurado, con objetivos claros y seguimiento de tu avance.",
@@ -56,6 +60,7 @@ const SERVICES: Record<string, Service> = {
     slug: "neuropsicologia",
     icon: Brain,
     title: "Neuropsicología",
+    image: "/servicios/neuropsicologia.jpg",
     tagline: "Evaluación y cuidado de la relación entre tu cerebro y tu conducta.",
     intro:
       "La neuropsicología evalúa funciones como la memoria, la atención, el lenguaje y las funciones ejecutivas, y cómo se relacionan con tu vida diaria. Es el corazón del enfoque clínico de Mente en Foco: acompañamos a niños, adultos y personas mayores con una mirada estructurada del funcionamiento cognitivo.",
@@ -76,6 +81,7 @@ const SERVICES: Record<string, Service> = {
     slug: "psiquiatria",
     icon: Stethoscope,
     title: "Psiquiatría",
+    image: "/servicios/psiquiatria.jpg",
     tagline: "Atención médica especializada cuando se requiere apoyo farmacológico.",
     intro:
       "La psiquiatría es la rama médica de la salud mental. Evalúa y trata con rigor científico los casos en los que, junto al acompañamiento psicológico, puede ser útil un abordaje farmacológico. Siempre con evaluación cuidadosa y decisiones compartidas contigo.",
@@ -187,7 +193,7 @@ function ServicioDetalle() {
 
   return (
     <>
-      <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
+      <HeroImagen image={service.image ?? "/BANNER.jpg"}>
         <div className="mx-auto max-w-4xl px-4 text-center glass-card mx-4 rounded-3xl py-14 shadow-lg border border-white/40">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20">
             <Icon size={30} strokeWidth={1.5} />
@@ -202,7 +208,7 @@ function ServicioDetalle() {
             </p>
           )}
         </div>
-      </section>
+      </HeroImagen>
 
       <section className="mx-auto max-w-4xl px-4 py-14 md:px-6">
         <p className="text-lg leading-relaxed text-foreground/80">{service.intro}</p>

@@ -13,10 +13,16 @@ import {
   Send,
   Archive,
   Eye,
+  MessageCircle,
+  ClipboardList,
 } from "lucide-react";
 import { supabase, type Profile, type CrmLead, type PlanType } from "../../lib/supabase";
 import { ContentEditorModal } from "../content/ContentEditorModal";
+import { PublishContentModal } from "../content/PublishContentModal";
+import { CommentModerationQueue } from "../blog/CommentModerationQueue";
+import { TestSubmissionsPanel } from "./TestSubmissionsPanel";
 import {
+  countPendingComments,
   getAdminDirectory,
   assignPatientToTherapist,
   unassignPatient,
@@ -36,6 +42,7 @@ import {
   type DirectoryPatient,
   type DirectoryTherapist,
   type ContentItem,
+  type ContentPublishSettings,
 } from "../../lib/api";
 
 interface Props {
@@ -43,7 +50,7 @@ interface Props {
   onLogout: () => void;
 }
 
-type TabType = "leads" | "therapists" | "patients" | "contenido";
+type TabType = "leads" | "therapists" | "patients" | "contenido" | "comentarios" | "tests";
 
 const PLAN_OPTIONS: PlanType[] = ["free", "esencial", "integral", "premium"];
 
@@ -61,7 +68,10 @@ export function AdminDashboard({ profile, onLogout }: Props) {
     open: false,
     item: null,
   });
+  const [publishFor, setPublishFor] = useState<ContentItem | null>(null);
   const [changesFor, setChangesFor] = useState<ContentItem | null>(null);
+  // Badge de la pestaña: lo que espera moderación es lo que reclama atención.
+  const [pendingComments, setPendingComments] = useState(0);
   const [changeNotes, setChangeNotes] = useState("");
 
   const refreshContent = useCallback(async () => {
@@ -94,6 +104,12 @@ export function AdminDashboard({ profile, onLogout }: Props) {
     }
   }, []);
 
+  // El contador de la pestaña se carga al entrar al panel, no al abrir la cola:
+  // si no, el admin no sabría que hay algo esperando hasta hacer clic.
+  useEffect(() => {
+    void countPendingComments().then(setPendingComments);
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
@@ -106,6 +122,9 @@ export function AdminDashboard({ profile, onLogout }: Props) {
         if (data) setLeads(data);
       } else if (activeTab === "contenido") {
         await refreshContent();
+      } else if (activeTab === "comentarios") {
+        // La cola la carga el propio componente; aquí solo se refresca el badge.
+        setPendingComments(await countPendingComments());
       } else {
         await refreshDirectory();
       }
@@ -115,18 +134,12 @@ export function AdminDashboard({ profile, onLogout }: Props) {
   }, [activeTab, refreshDirectory, refreshContent]);
 
   // ── Acciones del panel de revisión ─────────────────────────────────────
-  async function handleContentAction(
-    item: ContentItem,
-    action: "aprobar" | "publicar" | "archivar",
-  ) {
+  async function handleContentAction(item: ContentItem, action: "aprobar" | "archivar") {
     setBusyRow(item.id);
     try {
       if (action === "aprobar") {
         await approveContent(item.id, profile.id);
         notify("ok", "Contenido aprobado.");
-      } else if (action === "publicar") {
-        await publishContent(item.id, profile.id);
-        notify("ok", "Contenido publicado.");
       } else {
         await archiveContent(item.id);
         notify("ok", "Contenido archivado.");
@@ -137,6 +150,15 @@ export function AdminDashboard({ profile, onLogout }: Props) {
     } finally {
       setBusyRow(null);
     }
+  }
+
+  /** Publicar pasa siempre por el modal: ahí el admin fija URL, SEO y tier. */
+  async function handlePublishWithSettings(settings: ContentPublishSettings) {
+    if (!publishFor) return;
+    await publishContent(publishFor.id, profile.id, settings);
+    notify("ok", "Contenido publicado.");
+    setPublishFor(null);
+    await refreshContent();
   }
 
   async function handleRequestChanges() {
@@ -235,6 +257,12 @@ export function AdminDashboard({ profile, onLogout }: Props) {
     { key: "therapists", label: "Terapeutas", icon: <Users size={18} /> },
     { key: "leads", label: "Leads (CRM)", icon: <Contact size={18} /> },
     { key: "contenido", label: "Contenido", icon: <FileText size={18} /> },
+    {
+      key: "comentarios",
+      label: pendingComments > 0 ? `Comentarios (${pendingComments})` : "Comentarios",
+      icon: <MessageCircle size={18} />,
+    },
+    { key: "tests", label: "Tests públicos", icon: <ClipboardList size={18} /> },
   ];
 
   const reviewQueue = contentItems.filter((i) => i.status === "en_revision");
@@ -483,7 +511,7 @@ export function AdminDashboard({ profile, onLogout }: Props) {
                                     Aprobar
                                   </button>
                                   <button
-                                    onClick={() => void handleContentAction(item, "publicar")}
+                                    onClick={() => setPublishFor(item)}
                                     disabled={busyRow === item.id}
                                     className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
                                   >
@@ -539,7 +567,7 @@ export function AdminDashboard({ profile, onLogout }: Props) {
                                 </button>
                                 {item.status !== "publicado" && item.status !== "archivado" && (
                                   <button
-                                    onClick={() => void handleContentAction(item, "publicar")}
+                                    onClick={() => setPublishFor(item)}
                                     disabled={busyRow === item.id}
                                     className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
                                   >
@@ -773,6 +801,18 @@ export function AdminDashboard({ profile, onLogout }: Props) {
                   ))}
               </div>
             )}
+
+            {activeTab === "tests" && <TestSubmissionsPanel />}
+
+            {activeTab === "comentarios" && (
+              <CommentModerationQueue
+                moderatorId={profile.id}
+                onFeedback={(tipo, msg) => {
+                  notify(tipo, msg);
+                  void countPendingComments().then(setPendingComments);
+                }}
+              />
+            )}
           </div>
         </div>
       </section>
@@ -790,8 +830,8 @@ export function AdminDashboard({ profile, onLogout }: Props) {
           footerExtra={
             contentEditor.item && contentEditor.item.status !== "publicado" ? (
               <button
-                onClick={async () => {
-                  await handleContentAction(contentEditor.item!, "publicar");
+                onClick={() => {
+                  setPublishFor(contentEditor.item);
                   setContentEditor({ open: false, item: null });
                 }}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-700"
@@ -800,6 +840,15 @@ export function AdminDashboard({ profile, onLogout }: Props) {
               </button>
             ) : null
           }
+        />
+      )}
+
+      {/* Publicación: único lugar donde se fijan URL, SEO y tier */}
+      {publishFor && (
+        <PublishContentModal
+          item={publishFor}
+          onClose={() => setPublishFor(null)}
+          onPublish={handlePublishWithSettings}
         />
       )}
 

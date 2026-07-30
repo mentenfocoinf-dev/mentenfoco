@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { HeroImagen } from "../components/HeroImagen";
 import { ChevronRight, ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/sobre-nosotros")({
@@ -53,7 +54,7 @@ const team = [
 function SobreNosotros() {
   return (
     <>
-      <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
+      <HeroImagen image="/nosotros.jpg">
         <div className="mx-auto max-w-5xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">
             No tratamos síntomas, potenciamos vidas
@@ -64,7 +65,7 @@ function SobreNosotros() {
             herramientas para superar cualquier reto.
           </p>
         </div>
-      </section>
+      </HeroImagen>
 
       <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
         <div className="grid gap-10 lg:grid-cols-2">

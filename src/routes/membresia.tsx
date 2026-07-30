@@ -1,15 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { HeroImagen } from "../components/HeroImagen";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight, Check, Minus } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import {
   MEMBERSHIP_TIERS,
   PLAN_BENEFITS,
+  benefitsForPlan,
   PLAN_LABELS,
   PLAN_RANK,
   buildCheckoutLink,
 } from "../lib/api";
 import type { PlanType } from "../lib/supabase";
+import { FlipPlanCard } from "../components/plans/FlipPlanCard";
+
+/** Cabecera de cada tarjeta de membresía. Ver public/planes/. */
+const MEMBERSHIP_IMAGES: Record<string, string> = {
+  integral: "/planes/mi-equilibrio.jpg",
+  premium: "/planes/mi-mundo-en-foco.jpg",
+};
 
 export const Route = createFileRoute("/membresia")({
   head: () => ({
@@ -69,7 +78,7 @@ function Membresia() {
 
   return (
     <>
-      <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
+      <HeroImagen image="/cabecera-planes.jpg">
         <div className="mx-auto max-w-7xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
           <span className="inline-block rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 px-4 py-1.5 text-xs font-medium text-primary shadow-sm">
             Invierte en tu bienestar
@@ -82,7 +91,7 @@ function Membresia() {
             potencian tu bienestar emocional.
           </p>
         </div>
-      </section>
+      </HeroImagen>
 
       {/* ── Tabla comparativa: qué incluye cada nivel ──
           Va antes del carrusel a propósito: es la comparación que responde
@@ -191,47 +200,25 @@ function Membresia() {
           <h2 className="text-center text-3xl font-bold text-primary drop-shadow-sm">
             Elige cómo quieres avanzar
           </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
+          <div className="mt-12 grid gap-8 md:grid-cols-2">
             {MEMBERSHIP_TIERS.map((t) => (
-              <div
+              <FlipPlanCard
                 key={t.name}
-                className={`card-neon-hover rounded-3xl p-8 transition-transform hover:scale-[1.02] ${
-                  t.highlight
-                    ? "bg-primary/20 backdrop-blur-xl shadow-lg shadow-primary/20"
-                    : "bg-white/40 backdrop-blur-lg"
-                }`}
-              >
-                <h3 className="text-xl font-semibold text-primary">{t.name}</h3>
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold">{t.price}</span>
-                  <span className={t.highlight ? "text-primary/70" : "text-muted-foreground"}>
-                    {t.period}
-                  </span>
-                </div>
-                <p
-                  className={`mt-2 text-sm ${t.highlight ? "text-primary/80" : "text-muted-foreground"}`}
-                >
-                  {t.note}
-                </p>
-                <button
-                  onClick={() => {
-                    // Si hay sesión, el pago queda vinculado a la cuenta actual
-                    window.location.href = buildCheckoutLink(t.link, profile);
-                  }}
-                  className={`mt-6 inline-flex w-full items-center justify-center rounded-xl px-4 py-4 text-sm font-semibold transition-all hover:scale-105 shadow-sm ${
-                    t.highlight
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/20"
-                      : "border border-primary/20 bg-background/50 backdrop-blur text-primary hover:bg-primary/10"
-                  }`}
-                >
-                  {/* PLAN_LABELS[t.plan], no t.name: t.name ya trae el sufijo
-                      "mes a mes"/"todo el año" y repetirlo en el botón alargaba
-                      el texto sin aportar ("Empezar con Mi Equilibrio, mes a mes"). */}
-                  Empezar con {PLAN_LABELS[t.plan]}
-                </button>
-              </div>
+                name={t.name}
+                price={t.price}
+                period={t.period}
+                desc={t.note}
+                // El reverso muestra lo que ese nivel de contenido desbloquea:
+                // es el detalle que la persona necesita antes de pagar.
+                features={benefitsForPlan(t.plan).map((b) => b.label)}
+                checkoutUrl={buildCheckoutLink(t.link, profile)}
+                image={MEMBERSHIP_IMAGES[t.plan]}
+                highlighted={t.highlight}
+                footnote="El cobro se hace en la pasarela; puedes cancelar cuando quieras."
+              />
             ))}
           </div>
+
           <p className="mt-8 text-center text-sm text-muted-foreground">
             ¿Buscas sesiones con un especialista?{" "}
             <Link to="/asesoramiento" className="font-bold text-primary hover:underline">

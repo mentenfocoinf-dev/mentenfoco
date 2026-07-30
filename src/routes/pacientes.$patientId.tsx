@@ -27,6 +27,8 @@ import {
   ALERT_RESOLUTION_LABELS,
   DOCUMENT_BADGE_CLASSES,
   DOCUMENT_LABELS,
+  formatConsentDate,
+  getClinicalConsentStateById,
   getPatientAlerts,
   getPatientAnamnesis,
   getPatientDocuments,
@@ -36,6 +38,7 @@ import {
   latestSignedValoracion,
   PLAN_LABELS,
   type AlertResolutionAction,
+  type ClinicalConsentState,
   type ClinicalDocument,
   type DocumentType,
   type PatientAlert,
@@ -83,6 +86,9 @@ function FichaPaciente() {
   const [alerts, setAlerts] = useState<PatientAlert[]>([]);
   const [anamnesis, setAnamnesis] = useState<Record<string, unknown> | null>(null);
   const [usage, setUsage] = useState<PlanUsage | null>(null);
+  // Respaldo ético-legal del proceso (Ley 1090): el profesional tiene que poder
+  // verificar de un vistazo que el consentimiento existe y sigue vigente.
+  const [consent, setConsent] = useState<ClinicalConsentState | null>(null);
   const [loading, setLoading] = useState(true);
 
   const [activeDoc, setActiveDoc] = useState<ClinicalDocument | null>(null);
@@ -94,12 +100,13 @@ function FichaPaciente() {
       setLoading(false);
       return;
     }
-    const [docs, evals, alrt, anam, use] = await Promise.all([
+    const [docs, evals, alrt, anam, use, cons] = await Promise.all([
       getPatientDocuments(patientId),
       getPatientEvaluations(patientId),
       getPatientAlerts(patientId),
       getPatientAnamnesis(patientId),
       getPatientPlanUsage(patientId, p.plan_type ?? "free"),
+      getClinicalConsentStateById(patientId),
     ]);
     setPatient(p);
     setDocuments(docs);
@@ -107,6 +114,7 @@ function FichaPaciente() {
     setAlerts(alrt);
     setAnamnesis((anam?.data as Record<string, unknown>) ?? null);
     setUsage(use);
+    setConsent(cons);
     setLoading(false);
   }, [patientId]);
 
@@ -334,6 +342,7 @@ function FichaPaciente() {
             {/* Resumen clínico */}
             <Card title="Resumen clínico" icon={<ClipboardList size={20} />}>
               <div className="space-y-3 text-sm">
+                <ConsentimientoClinicoEstado estado={consent} />
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-slate-400">
                     Diagnóstico activo
@@ -490,5 +499,58 @@ function FichaPaciente() {
         />
       )}
     </section>
+  );
+}
+
+/**
+ * Estado del consentimiento informado clínico (Ley 1090).
+ *
+ * Tres estados con peso distinto, y por eso tres tratamientos visuales:
+ * aceptado es información de respaldo (verde discreto); pendiente es algo que
+ * falta (ámbar); revocado es una ALERTA, porque el proceso clínico no debería
+ * continuar sin consentimiento vigente y el profesional tiene que enterarse sin
+ * buscarlo.
+ */
+function ConsentimientoClinicoEstado({ estado }: { estado: ClinicalConsentState | null }) {
+  if (!estado || estado.estado === "no_aplica") return null;
+
+  if (estado.estado === "revocado") {
+    return (
+      <div className="rounded-xl border border-red-200 bg-red-50 p-3">
+        <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-red-700">
+          <AlertTriangle size={13} /> Consentimiento clínico revocado
+        </p>
+        <p className="mt-1 text-xs leading-relaxed text-red-800">
+          El paciente revocó su consentimiento el{" "}
+          {formatConsentDate(estado.consent.revoked_at as string)}. El proceso de atención no
+          debería continuar sin consentimiento vigente.
+        </p>
+      </div>
+    );
+  }
+
+  if (estado.estado === "pendiente") {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+        <p className="text-xs font-bold uppercase tracking-wider text-amber-700">
+          Consentimiento informado clínico
+        </p>
+        <p className="mt-1 text-xs text-amber-800">
+          Pendiente — se le pedirá al paciente al entrar a su portal.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
+      <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+        Consentimiento informado clínico
+      </p>
+      <p className="mt-1 text-xs text-emerald-800">
+        Aceptado el {formatConsentDate(estado.consent.accepted_at)}, versión{" "}
+        {estado.consent.version}.
+      </p>
+    </div>
   );
 }

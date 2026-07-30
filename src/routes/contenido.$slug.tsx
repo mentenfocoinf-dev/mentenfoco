@@ -2,13 +2,13 @@
 // Detalle de una pieza de contenido publicada.
 //
 // El render se ramifica por content_type (artículo / programa / herramienta /
-// audio), pero el markdown se renderiza con el mismo ReactMarkdown + remark-gfm
-// que ya usan las guías, y el bloqueo por plan usa el mismo PaywallModal.
+// audio), pero el cuerpo lo dibuja <ContentBody>, el mismo lector que usan las
+// guías y el blog. No hay bloqueo por plan: si la pieza no corresponde al plan
+// del viewer, getContentBySlug() no la devuelve y esto es un "no encontrado".
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import { useEffect } from "react";
+import { ContentBody } from "../components/ContentBody";
 import {
   ArrowLeft,
   BookOpen,
@@ -16,29 +16,22 @@ import {
   Clock,
   Headphones,
   Loader2,
-  Lock,
   Route as RouteIcon,
   Tag,
   Wrench,
 } from "lucide-react";
-import { PaywallModal } from "../components/PaywallModal";
-import {
-  getContentBySlug,
-  CONTENT_TYPE_LABELS,
-  PLAN_LABELS,
-  type ContentType,
-} from "../lib/api";
+import { getContentBySlug, CONTENT_TYPE_LABELS, type ContentType } from "../lib/api";
 
 export const Route = createFileRoute("/contenido/$slug")({
   loader: async ({ params }) => await getContentBySlug(params.slug),
   head: ({ loaderData }) => {
-    const t = loaderData?.item?.titulo ?? loaderData?.meta?.titulo;
+    const t = loaderData?.item?.titulo;
     return {
       meta: [
         { title: t ? `${t} — Mente en Foco` : "Contenido — Mente en Foco" },
         {
           name: "description",
-          content: loaderData?.meta?.resumen_breve ?? "Contenido de bienestar de Mente en Foco.",
+          content: loaderData?.item?.resumen_breve ?? "Contenido de bienestar de Mente en Foco.",
         },
       ],
     };
@@ -52,39 +45,22 @@ export const Route = createFileRoute("/contenido/$slug")({
 });
 
 const TYPE_ICON: Record<ContentType, typeof BookOpen> = {
+  blog: BookOpen, // no se usa aquí: /contenido nunca lista piezas de blog
+
   articulo: BookOpen,
   programa: RouteIcon,
   herramienta: Wrench,
   audio: Headphones,
 };
 
-const MD_COMPONENTS = {
-  table: ({ node: _n, ...props }: any) => (
-    <div className="not-prose my-10 w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-      <table className="w-full border-collapse text-left text-sm" {...props} />
-    </div>
-  ),
-  thead: ({ node: _n, ...props }: any) => (
-    <thead className="border-b border-slate-200 bg-slate-50" {...props} />
-  ),
-  th: ({ node: _n, ...props }: any) => (
-    <th className="whitespace-nowrap p-4 font-bold text-slate-900" {...props} />
-  ),
-  td: ({ node: _n, ...props }: any) => (
-    <td className="border-b border-slate-100 p-4 align-top text-slate-700" {...props} />
-  ),
-};
 
 function ContenidoDetalle() {
-  const { item, meta } = Route.useLoaderData();
-  const [paywallOpen, setPaywallOpen] = useState(false);
+  const { item, reachableSteps } = Route.useLoaderData();
+  // Un paso solo es enlace si su destino está dentro del plan del lector; si no,
+  // el enlace terminaría en "no encontrado". Ver resolveReachableSteps().
+  const alcanzable = new Set(reachableSteps);
 
-  // Sin cuerpo pero con metadatos = el plan no alcanza.
-  useEffect(() => {
-    if (!item && meta) setPaywallOpen(true);
-  }, [item, meta]);
-
-  if (!item && !meta) {
+  if (!item) {
     return (
       <section className="mx-auto flex min-h-[70vh] max-w-4xl flex-col items-center justify-center px-4 py-16 text-center">
         <h1 className="mb-4 text-4xl font-bold text-slate-900">Contenido no encontrado</h1>
@@ -99,56 +75,12 @@ function ContenidoDetalle() {
     );
   }
 
-  // ── Bloqueado por plan ────────────────────────────────────────────────────
-  if (!item && meta) {
-    const requiredPlan = meta.min_plan === "free" ? "esencial" : meta.min_plan;
-    return (
-      <>
-        <PaywallModal
-          isOpen={paywallOpen}
-          onOpenChange={setPaywallOpen}
-          requiredPlan={requiredPlan}
-        />
-        <Hero meta={meta} />
-        <section className="mx-auto max-w-4xl px-4 py-14 md:px-6">
-          <div className="relative overflow-hidden rounded-3xl">
-            <div className="pointer-events-none select-none blur-sm">
-              <p className="leading-relaxed text-slate-700">{meta.resumen_breve}</p>
-              <p className="mt-4 leading-relaxed text-slate-700">
-                El contenido completo de esta pieza está disponible para los planes de
-                acompañamiento…
-              </p>
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-3xl bg-gradient-to-b from-white/20 to-white/95">
-              <div className="px-6 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-                  <Lock size={28} />
-                </div>
-                <h2 className="mb-2 text-xl font-bold text-slate-900">Contenido de plan</h2>
-                <p className="mx-auto mb-6 max-w-sm text-sm text-slate-600">
-                  Disponible desde el{" "}
-                  <strong className="text-primary">{PLAN_LABELS[requiredPlan]}</strong> en adelante.
-                </p>
-                <button
-                  onClick={() => setPaywallOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:-translate-y-0.5 hover:bg-primary/90"
-                >
-                  Ver planes
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-      </>
-    );
-  }
-
-  const doc = item!;
+  const doc = item;
   const hasAudioSource = Boolean(doc.audio_url || doc.external_embed_url);
 
   return (
     <>
-      <Hero meta={meta ?? doc} />
+      <Hero meta={doc} />
 
       <section className="mx-auto max-w-4xl px-4 py-14 md:px-6">
         {/* AUDIO: reproductor si existe; si no, el resumen ya aporta valor solo */}
@@ -200,11 +132,7 @@ function ContenidoDetalle() {
 
         {/* Cuerpo markdown — mismo renderizado que las guías */}
         {doc.body_md && (
-          <article className="prose prose-slate prose-lg mx-auto max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:leading-relaxed prose-p:text-slate-700 prose-a:text-primary hover:prose-a:text-primary/80 prose-li:text-slate-700 prose-img:rounded-xl prose-img:shadow-md">
-            <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
-              {doc.body_md}
-            </ReactMarkdown>
-          </article>
+          <ContentBody markdown={doc.body_md} titulo={doc.titulo} />
         )}
 
         {/* PROGRAMA: pasos ordenados, cada uno puede enlazar a otra pieza */}
@@ -216,8 +144,11 @@ function ContenidoDetalle() {
                 .sort((a, b) => a.orden - b.orden)
                 .map((step) => {
                   // Un paso puede enlazar a otra pieza de contenido o a una guía
-                  // clínica; el seed marcó cuál en ref_kind. Sin referencia, el
-                  // paso se muestra igual pero sin enlace (ej. "haz tu GAD-7").
+                  // clínica; el seed marcó cuál en ref_kind. Sin referencia —o
+                  // con un destino fuera del plan del lector— el paso se muestra
+                  // igual pero sin enlace (ej. "haz tu GAD-7").
+                  const enlazable =
+                    Boolean(step.slug_relacionado) && alcanzable.has(step.slug_relacionado as string);
                   const body = (
                     <>
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
@@ -237,12 +168,12 @@ function ContenidoDetalle() {
                   const linkClasses =
                     "glow-hover group flex w-full gap-4 rounded-2xl border border-white/60 bg-white/60 p-5 text-left shadow-sm";
 
-                  if (step.slug_relacionado && step.ref_kind === "contenido") {
+                  if (enlazable && step.ref_kind === "contenido") {
                     return (
                       <li key={`${step.orden}-${step.titulo}`}>
                         <Link
                           to="/contenido/$slug"
-                          params={{ slug: step.slug_relacionado }}
+                          params={{ slug: step.slug_relacionado as string }}
                           className={linkClasses}
                         >
                           {body}
@@ -255,12 +186,12 @@ function ContenidoDetalle() {
                     );
                   }
 
-                  if (step.slug_relacionado && step.ref_kind === "guia") {
+                  if (enlazable && step.ref_kind === "guia") {
                     return (
                       <li key={`${step.orden}-${step.titulo}`}>
                         <Link
                           to="/guias/$guiaId"
-                          params={{ guiaId: step.slug_relacionado }}
+                          params={{ guiaId: step.slug_relacionado as string }}
                           className={linkClasses}
                         >
                           {body}
