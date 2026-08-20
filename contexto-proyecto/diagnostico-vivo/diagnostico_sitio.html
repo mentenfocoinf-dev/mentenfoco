@@ -89,15 +89,36 @@
 
   <header class="top">
     <h1>Diagnóstico de Mente en Foco</h1>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:10px;"><strong>Última actualización: 7 de agosto de 2026</strong> — se reescribió el estado de seguridad tras la campaña de blindaje del 5 al 7 de agosto. Los porcentajes de módulos siguen siendo los de julio.</p>
     <p>Auditoría de producto — julio 2026. Cada módulo se mide en dos barras independientes: qué tan real es el
        backend (datos, RLS, lógica de negocio en la base de datos) y qué tan construida está la interfaz que lo
        consume. Un módulo con frontend alto y backend bajo es decoración, no funcionalidad.</p>
     <div class="badge-row">
       <span class="badge">Salud mental — psicología clínica y neuropsicología</span>
       <span class="badge">React 19 + Supabase + Stripe</span>
-      <span class="badge">Seguridad pospuesta a propósito (entorno de pruebas)</span>
+      <span class="badge">Perímetro de contenido blindado (7-ago) · resto del esquema aún sin RLS</span>
     </div>
   </header>
+
+  <section>
+    <div class="rule-box" style="background:#1f3b52;border:2px solid #4a90b8;">
+      <h3>⛔ Antes de leer este diagnóstico — la filosofía del producto</h3>
+      <p>Este documento mide <strong>en qué estado está</strong> cada módulo. Tres documentos definen
+         <strong>por qué el producto es como es</strong>, y tienen prioridad sobre este diagnóstico, sobre el
+         roadmap y sobre cualquier spec. Viven en <code>contexto-proyecto/vision-producto/</code> y son de
+         lectura obligatoria antes de modificar el producto:</p>
+      <p style="margin-top:14px;">
+         <strong>00_FILOSOFIA_MENTE_EN_FOCO.md</strong> — en qué creemos: qué es y qué NO es Mente en Foco,
+         misión, visión, y los 10 principios innegociables.<br>
+         <strong>03_DECISIONES_ARQUITECTONICAS.md</strong> — qué se decidió y es irreversible: 13 ADR con
+         contexto, consecuencias y módulos afectados.<br>
+         <strong>04_SISTEMA_DE_EXPERIENCIA_Y_LENGUAJE.md</strong> — cómo suena: voz, tono, lenguaje permitido
+         y prohibido, y cómo escribir cada tipo de mensaje.</p>
+      <p class="why">Si una tarea, una métrica o una recomendación de este diagnóstico contradice alguno de
+         esos documentos, manda la filosofía: se detiene la tarea y se señala el conflicto (ADR-010).
+         La regla "backend primero" de más abajo es hoy el ADR-006.</p>
+    </div>
+  </section>
 
   <div class="summary-grid">
     <div class="metric-card">
@@ -122,17 +143,48 @@
     </div>
   </div>
 
+  <div class="rule-box" style="margin-bottom:40px; background:#1d5c3f;">
+    <h3>✅ Blindaje del perímetro de contenido — 5 al 7 de agosto de 2026</h3>
+    <p>Se detuvo el trabajo de Agenda por decisión explícita del usuario para blindar la seguridad. <strong>14
+       migraciones aplicadas, cada una con backup de reversión</strong>, cada una idempotente y aplicada dos
+       veces. El informe completo, con la evidencia medida, está en
+       <code>auditorias-tecnicas/Blindaje_Seguridad_Contenido_2026-08-07.md</code>.</p>
+    <p style="margin-top:14px;">Lo que un paciente cualquiera conseguía <strong>antes</strong>, medido
+       ejecutando: reescribir el título, el cuerpo y el slug de contenido ajeno; apropiarse de la autoría;
+       falsear <code>reviewed_by</code>; <strong>despublicar las 26 piezas del sitio</strong>; y
+       <strong>liberar las 16 de pago</strong>. Hoy los ocho ataques responden
+       <code>CONTENT_NOT_AUTHOR</code>, <code>CONTENT_IMMUTABLE</code> o <code>permission denied</code>.</p>
+    <p style="margin-top:14px;">Modelo actual en dos capas: un trigger de autorización editorial
+       (<code>trg_content_authorization</code>) más <code>GRANT</code> por columna en
+       <code>content_items</code> — <strong>9 columnas en el alta y 17 en la edición</strong>, de 32. Los otros
+       6 objetos de contenido quedaron de <strong>solo lectura</strong> para <code>authenticated</code>.
+       Crear contenido está reservado al equipo clínico y a la administración. Se cerró además
+       <strong>H-TRIGGER-001</strong>: el privilegio <code>TRIGGER</code> permitía colgar un trigger que
+       reescribiera la fila <em>después</em> de que la autorización la aprobara.</p>
+    <p class="why">Ojo con el alcance: esto blindó el <strong>contenido</strong>, no la base entera. Ver el
+       aviso de abajo.</p>
+  </div>
+
   <div class="rule-box" style="margin-bottom:40px;">
-    <h3>⚠ Deuda de seguridad pendiente (a propósito, no un descuido)</h3>
-    <p>RLS está desactivado ahora mismo en 5 tablas para agilizar la generación de perfiles de prueba:
-       <code>psychometric_evaluations</code>, <code>clinical_alerts</code>, <code>patient_anamnesis</code>,
-       <code>therapy_sessions</code> y <code>messages</code>. Las policies de las 5 ya están escritas (las de
-       <code>therapy_sessions</code> además probadas en vivo antes de desactivarlas de nuevo para pruebas). Es
-       la misma decisión que ya se tomó con Stripe en modo test y con password=email — pospuesta por decisión
-       explícita del usuario, pendiente para la fase de seguridad final antes de cualquier lanzamiento real.</p>
-    <p class="why">Por qué importa dejarlo escrito aquí: sin este aviso, alguien podría asumir que estas tablas
-       están tan protegidas como lo estuvieron durante las pruebas de <code>therapy_sessions</code> — hoy no lo
-       están.</p>
+    <h3>⚠ Deuda de seguridad que sigue abierta (medida el 7-ago, no estimada)</h3>
+    <p><strong>RLS está desactivado en las 37 tablas de <code>public</code>.</strong> Ninguna de las 12
+       migraciones de agosto lo activó: estuvo fuera de alcance por decisión explícita en todos los sprints.
+       Las policies escritas para <code>psychometric_evaluations</code>, <code>clinical_alerts</code>,
+       <code>patient_anamnesis</code>, <code>therapy_sessions</code> y <code>messages</code> siguen ahí, sin
+       efecto mientras RLS esté apagado.</p>
+    <p style="margin-top:14px;"><strong><code>anon</code> —sin sesión alguna— todavía puede escribir en 15
+       tablas</strong>, varias clínicas: <code>clinical_documents</code>,
+       <code>clinical_prescriptions</code>, <code>clinical_recommendations</code>, <code>clinical_tasks</code>,
+       <code>family_genograms</code>, <code>test_scores</code>, <code>public_test_submissions</code>,
+       <code>content_revisions</code>, <code>blog_comments</code>, <code>crm_leads</code>,
+       <code>crm_notes</code>, <code>service_requests</code>, <code>telemetry_events</code>,
+       <code>user_guide_progress</code>, e <code>INSERT</code> en <code>journey_events</code>.
+       <code>authenticated</code> puede <code>DELETE</code> en 15 tablas.</p>
+    <p style="margin-top:14px;"><strong>PITR deshabilitado y cero copias de seguridad</strong>
+       (<code>pitr_enabled: false</code>, <code>backups: 0</code>). Hoy un borrado accidental no tiene vuelta
+       atrás — condiciona todo lo demás y precede a cualquier lanzamiento.</p>
+    <p class="why">Por qué importa dejarlo escrito aquí: el bloque verde de arriba podría leerse como "la base
+       ya está segura". No lo está. Lo que está blindado es el perímetro de contenido; el clínico no.</p>
   </div>
 
   <div class="rule-box" style="margin-bottom:40px; background:#1d5c3f;">
@@ -342,6 +394,23 @@
   </div>
 
   <section>
+    <div class="rule-box" style="background:#3d3520;border:2px solid #b8963f;margin-bottom:22px;">
+      <h3>⚠️ Nota de coherencia — 30 de julio de 2026</h3>
+      <p>Varias entradas de este documento describen el <strong>modelo de candados y paywall</strong> que el
+         producto tuvo hasta el 28 de julio ("20 tarjetas, 16 con candado", "el paywall nunca se activaba",
+         "cualquier plan pago desbloquea el catálogo"). <strong>Ese modelo ya no existe.</strong></p>
+      <p style="margin-top:12px;">Desde el 28-jul rige <strong>ADR-001</strong>: el plan <em>filtra</em> el
+         catálogo — lo que una etapa no incluye no se lista, no se muestra bloqueado. Se eliminaron los
+         badges de candado, el modal de paywall y la vista de preview borrosa. Y desde el 28-jul la
+         biblioteca de contenido <strong>sí</strong> escalona por etapa (Free 8 · Primeros Pasos 12 ·
+         Mi Equilibrio 16 · Mi Mundo en Foco 24, <strong>ADR-002</strong>), aunque las guías sigan siendo
+         accesibles completas desde cualquier etapa de pago.</p>
+      <p class="why">Esas entradas <strong>no se corrigen a propósito</strong>: son el registro histórico de
+         qué se encontró y qué se arregló en cada auditoría. Léelas como historia, no como estado actual.
+         El estado vigente está en el vault (<code>Estado actual</code>) y las reglas en
+         <code>contexto-proyecto/vision-producto/</code>.</p>
+    </div>
+
     <h2 class="section-title">Estado por módulo <span class="tag">backend vs. frontend</span></h2>
     <div class="legend">
       <span><i style="background:var(--accent)"></i>Backend (datos, RLS, lógica real)</span>
@@ -450,7 +519,7 @@
   <section>
     <h2 class="section-title">Regla obligatoria a partir de hoy</h2>
     <div class="rule-box">
-      <h3>Backend primero, siempre</h3>
+      <h3>Backend primero, siempre <span style="font-weight:400;font-size:13px;opacity:.75;">— hoy formalizada como ADR-006</span></h3>
       <p>Ninguna pantalla, botón o componente nuevo se construye en el frontend si la funcionalidad que promete
          no existe ya de verdad en la base de datos (tabla, RLS, RPC probada). Si no hay backend, no hay
          interfaz — ni siquiera "para mostrar cómo se vería". El dashboard del paciente y "Alex AI" de arriba
@@ -567,8 +636,9 @@
       </div>
       <div class="reco-item">
         <div class="reco-num">6</div>
-        <div><h4>Fase de seguridad final <span class="prio alta">Alta — decisión explícita: hacerla toda junta</span></h4>
-        <p>Reactivar RLS en las 5 tablas ya identificadas. En el mismo paso: dominio propio en Supabase Pro, verificación de la app en Google Cloud, verificación de dominio en Resend, <code>SITE_URL</code>/<code>REMINDER_FROM_EMAIL</code>, rotar la API key de Resend, eliminar el secret <code>DEV_MAIL_REDIRECT</code>, captcha/rate-limit en <code>public-signup</code>, y revisión jurídica de la política de tratamiento de datos. Agrupado a propósito para el cierre del proyecto.</p></div>
+        <div><h4>Fase de seguridad final <span class="prio alta">Alta — parcialmente hecha (5–7 ago); el perímetro clínico sigue abierto</span></h4>
+        <p><strong>Hecho en agosto</strong> (ver <code>auditorias-tecnicas/Blindaje_Seguridad_Contenido_2026-08-07.md</code>): guardias <code>admin_*</code>, cierre de <code>anon</code> sobre 8 tablas clínicas, <code>DELETE</code>/<code>TRUNCATE</code> retirados, <code>profiles</code> endurecido por columna, y todo el perímetro de contenido (autorización editorial + <code>GRANT</code> por columna en alta y edición + comprobación de rol al crear + H-TRIGGER-001).</p>
+        <p style="margin-top:10px;"><strong>Sigue pendiente:</strong> activar RLS (37 tablas, hoy todas en <code>false</code>); cerrar la escritura de <code>anon</code> en las 15 tablas restantes y el <code>DELETE</code> de <code>authenticated</code> en otras 15; <strong>habilitar PITR y copias de seguridad</strong> (hoy cero, y precede a todo lo demás). Y lo de siempre: dominio propio en Supabase Pro, verificación de la app en Google Cloud, verificación de dominio en Resend, <code>SITE_URL</code>/<code>REMINDER_FROM_EMAIL</code>, <strong>rotar la API key de Resend (comprometida)</strong>, eliminar el secret <code>DEV_MAIL_REDIRECT</code>, captcha/rate-limit en <code>public-signup</code>, y revisión jurídica de la política de tratamiento de datos.</p></div>
       </div>
       <div class="reco-item">
         <div class="reco-num">7</div>

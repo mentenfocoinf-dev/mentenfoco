@@ -82,7 +82,46 @@ edita lo que envió un terapeuta — recomendable pero no bloqueante para la v1;
 - **Paciente / público:** solo lee ítems en `publicado`, con el gating de `min_plan` (igual que las guías:
   cualquier plan pago desbloquea; algunos ítems quedan libres como vitrina).
 
-## 3. RLS (se escribe ahora, se activa en la fase de seguridad como el resto)
+## 3. Autorización — cómo quedó de verdad (actualizado 7-ago-2026)
+
+> **Esta sección se escribió pensando en RLS. No se implementó así.** El modelo real, aplicado entre el
+> 5 y el 7 de agosto de 2026, usa **trigger + `GRANT` por columna**, con RLS todavía desactivado en todo
+> el esquema. El informe completo, con la evidencia medida, está en
+> `auditorias-tecnicas/Blindaje_Seguridad_Contenido_2026-08-07.md`. Se conserva la redacción original
+> abajo como registro de lo que se planeó.
+
+**Lo que hay hoy, verificado contra la base:**
+
+- **Capa 1 — ACL.** `anon` solo lee. `authenticated` conserva `SELECT` y escritura **acotada por columna
+  en las dos operaciones**: `INSERT` sobre **9 de 32** columnas (las que envía el editor, más `author_id`
+  y `status`) y `UPDATE` sobre **17 de 32**. Fuera de su alcance quedan siempre `id`, `author_id` (en
+  edición), `created_at`, `updated_at`, `admite_comentarios` y las diez de contenido enriquecido; y en el
+  alta, además, `slug`, `min_plan`, los `meta_*` y toda la trazabilidad. Los otros 6 objetos de contenido
+  (`clinical_guides`, `clinical_guides_meta`, `guides`, `cie11_directory`, `public_tests`,
+  `content_items_meta`) son de **solo lectura** para `authenticated`.
+- **Capa 2 — trigger `trg_content_authorization`.** Es quien distingue *filas* y *personas*, cosa que la
+  ACL no puede hacer: identidad, rol, autoría, transición de estado y columnas de administración. Los
+  errores que devuelve son `CONTENT_AUTHOR_ROLE`, `CONTENT_NOT_AUTHOR`, `CONTENT_IMMUTABLE`,
+  `CONTENT_ADMIN_ONLY`, `CONTENT_INVALID_TRANSITION`, `CONTENT_LOCKED`, `CONTENT_SIGN_SELF`,
+  `CONTENT_AUTHOR_MISMATCH`, `CONTENT_INITIAL_STATE` y `CONTENT_AUTH_REQUIRED` — el frontend los traduce
+  en `contentService.translateWriteError`.
+- **Quién puede crear.** Solo `therapist` y `admin`. Un paciente recibe `CONTENT_AUTHOR_ROLE`. Es una
+  regla del trigger, no de la ACL: un `GRANT` distingue columnas, nunca personas.
+
+Las reglas de negocio de la sección 2 (roles y permisos) **se cumplen tal cual estaban escritas**, con
+dos desviaciones deliberadas y justificadas por el propio panel:
+
+1. **Publicar no exige venir de `aprobado`.** El panel ofrece "Publicar" desde tres sitios con estados
+   distintos (`AdminDashboard:514`, `:568` y `:833`); exigir ese origen habría roto los tres.
+2. **`archivado` no es terminal** y la ventana de edición (`borrador`/`cambios_solicitados`) aplica solo
+   a quien **no** es admin, porque `AdminDashboard:564` ofrece "Editar" sin condición de estado.
+
+**Sigue abierto:** no hay límite de volumen de creación. Un terapeuta legítimo puede crear borradores sin
+tope; ya no es un problema de autorización, sino de abuso interno. Y la regla de "solo tus filas" depende
+únicamente del trigger: sin RLS, ninguna capa de privilegios puede expresarla.
+
+<details>
+<summary>Redacción original (RLS planeado, no implementado)</summary>
 
 - `SELECT` público/paciente: solo `status = 'publicado'` y `plan_rank(min_plan) <= plan_rank(mi_plan)`
   (misma lógica que `clinical_guides`).
@@ -92,6 +131,8 @@ edita lo que envió un terapeuta — recomendable pero no bloqueante para la v1;
 - `UPDATE` a `status='publicado'` o `published_by`: **solo admin** (constraint + policy). Un terapeuta no
   puede autopublicarse aunque manipule el cliente.
 - `UPDATE` de contenido: el autor mientras esté en `borrador`/`cambios_solicitados`; el admin siempre.
+
+</details>
 
 ## 4. Estructura de cada tipo de contenido (qué va en `body_md` y campos)
 
