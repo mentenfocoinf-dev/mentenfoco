@@ -1,0 +1,46 @@
+-- ============================================================================
+-- BACKUP — privilegios de destrucción de `anon` sobre tres tablas con
+-- protección por trigger, ANTES del sprint 4J.
+-- Capturado de `pg_class.relacl` el 2026-08-07.
+--
+-- ── Estado literal de partida ───────────────────────────────────────────────
+--
+--   blog_comments            {postgres=arwdDxtm/postgres,
+--                             anon=arwdDxtm/postgres,
+--                             authenticated=arwdDxtm/postgres,
+--                             service_role=arwdDxtm/postgres}     2 filas
+--
+--   public_test_submissions  {postgres=arwdDxtm/postgres,
+--                             anon=awdDxtm/postgres,      <-- sin `r`
+--                             authenticated=arwdDxtm/postgres,
+--                             service_role=arwdDxtm/postgres}     5 filas
+--
+--   test_scores              {postgres=arwdDxtm/postgres,
+--                             anon=arwdDxtm/postgres,
+--                             authenticated=arwdDxtm/postgres,
+--                             service_role=arwdDxtm/postgres}     0 filas
+--
+-- Letras: a=INSERT r=SELECT w=UPDATE d=DELETE D=TRUNCATE x=REFERENCES
+--         t=TRIGGER m=MAINTAIN
+--
+-- Nota: `public_test_submissions` ya venía SIN `SELECT` para `anon`, a
+-- diferencia de las otras dos. Este backup no lo altera.
+--
+-- Las tres: owner `postgres`, RLS `false`, 0 políticas. Cada una con un único
+-- trigger `FOR EACH ROW` sobre INSERT/UPDATE — ninguno declara el evento
+-- TRUNCATE, y TRUNCATE no recorre filas, así que no los dispara.
+--
+-- ── Qué revierte este archivo ───────────────────────────────────────────────
+--
+-- Devuelve exactamente los dos privilegios que retira la migración: `DELETE` y
+-- `TRUNCATE`, solo para `anon`, solo en estas tres tablas.
+--
+-- No toca `SELECT`, `INSERT`, `UPDATE`, `REFERENCES`, `TRIGGER` ni `MAINTAIN`,
+-- ni ningún otro rol, porque la migración tampoco los toca.
+--
+-- Sin `CASCADE`. `GRANT` es idempotente: repetirlo no cambia nada.
+-- ============================================================================
+
+GRANT DELETE, TRUNCATE ON TABLE public.blog_comments           TO anon;
+GRANT DELETE, TRUNCATE ON TABLE public.public_test_submissions TO anon;
+GRANT DELETE, TRUNCATE ON TABLE public.test_scores             TO anon;

@@ -1,0 +1,65 @@
+-- ============================================================================
+-- Retirada de `TRIGGER` y `REFERENCES` sobre `public.content_items`
+-- para `anon` y `authenticated`.
+--
+-- Alcance: ACL. Nada más. No se tocan triggers, funciones, RLS, políticas,
+-- React, RPC, Edge Functions, `search_path` ni owners.
+--
+-- ── Qué cierra: H-TRIGGER-001 ───────────────────────────────────────────────
+--
+-- La validación independiente del sprint 4B demostró que el privilegio
+-- `TRIGGER` permite esquivar la autorización editorial. Los triggers `BEFORE`
+-- disparan por orden alfabético, así que un trigger llamado `zzz_bypass` corre
+-- DESPUÉS de `trg_content_authorization` y reescribe `NEW` una vez que la
+-- autorización ya lo aprobó. Medido, como paciente:
+--
+--     trigger propio colgado por un PACIENTE: si
+--     1) INSERT como borrador -> quedó en "publicado", min_plan=free,
+--        published_by=el ADMIN
+--
+-- Es decir: autopublicación en el sitio público con la firma del administrador
+-- falsificada. `anon` también conseguía colgar el trigger.
+--
+-- Lo que la validación NO demostró, y por tanto no se afirma aquí: que sea
+-- alcanzable desde la aplicación. `anon` y `authenticated` son NOLOGIN,
+-- PostgREST no ejecuta DDL y no hay ninguna función expuesta que haga
+-- `EXECUTE` dinámico. Explotarlo exige una conexión directa a la base. Esto
+-- es endurecimiento en profundidad, no el cierre de una brecha en producción.
+--
+-- ── Por qué también `REFERENCES` ────────────────────────────────────────────
+--
+-- Es el otro privilegio de definición de esquema que arrastra el reparto por
+-- defecto. Permite colgar claves ajenas contra la tabla, y con ellas provocar
+-- bloqueos o `ON DELETE` no previstos desde una tabla que el atacante controle.
+-- Se retira por el mismo motivo y en el mismo movimiento.
+--
+-- ── Sin consumidores ────────────────────────────────────────────────────────
+--
+-- Comprobado sobre el estado actual, no sobre migraciones:
+--
+--   · React / services / hooks: cero coincidencias de `CREATE TRIGGER`,
+--     `ALTER TABLE`, `ADD CONSTRAINT` o `REFERENCES content_items`.
+--   · Edge Functions (4): ninguna hace DDL.
+--   · Funciones SQL: cero con DDL dinámico. Cero expuestas a `anon` o
+--     `authenticated` con `EXECUTE` dinámico.
+--   · Cron: 1 trabajo, corre como `postgres`, sin DDL.
+--   · Los 2 triggers vivos y las 2 FK entrantes (`blog_comments`,
+--     `content_revisions`) pertenecen a `postgres`. Revocar el privilegio no
+--     afecta a objetos ya creados: `REVOKE` no elimina nada existente.
+--
+-- Precedente en el proyecto: `appointments`, `notifications`,
+-- `therapist_profiles`, `therapist_time_blocks`, `therapist_contact_requests`
+-- y `user_preferences` ya tienen ambos privilegios retirados.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `REVOKE` sobre un privilegio ausente no es un error. Ejecutable las veces
+-- que haga falta.
+--
+-- ── Reversión ───────────────────────────────────────────────────────────────
+--
+-- `supabase/backups/20260807_pre_content_items_trigger_references.sql`
+-- ============================================================================
+
+REVOKE TRIGGER, REFERENCES ON TABLE public.content_items FROM anon;
+REVOKE TRIGGER, REFERENCES ON TABLE public.content_items FROM authenticated;

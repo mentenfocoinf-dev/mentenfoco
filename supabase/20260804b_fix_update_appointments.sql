@@ -1,0 +1,34 @@
+-- ============================================================================
+-- Confirmar y cancelar una cita fallaban con 42501: permission denied.
+--
+-- ── La causa ────────────────────────────────────────────────────────────────
+--
+-- El endurecimiento de acceso (20260803j) dejó `appointments` así:
+--
+--   REVOKE ALL ON public.appointments FROM anon, authenticated;
+--   GRANT INSERT, UPDATE ON public.appointments TO authenticated;
+--
+-- Parece correcto —escribir sí, leer no— pero PostgreSQL exige privilegio
+-- SELECT sobre TODA columna que se lea durante un UPDATE, y eso incluye las
+-- del WHERE. El cliente ejecuta:
+--
+--   UPDATE appointments SET status = 'confirmed' WHERE id = $1
+--
+-- Ese `WHERE id` es una lectura de `id`. Sin SELECT sobre esa columna, el
+-- UPDATE entero se rechaza antes de tocar nada. El INSERT funcionaba porque no
+-- lee ninguna columna, y por eso solicitar cita sí andaba: se rompía solo al
+-- responderla.
+--
+-- ── La corrección ───────────────────────────────────────────────────────────
+--
+-- SELECT a nivel de COLUMNA, únicamente sobre `id`. Basta para el WHERE y no
+-- devuelve la agenda de nadie: ni horas, ni paciente, ni profesional, ni notas.
+-- Es la misma técnica que ya usa este proyecto en `public_test_submissions`
+-- (migración 20260730f), donde se revocó SELECT y se concedió SELECT(id).
+--
+-- La lectura de citas sigue pasando exclusivamente por `list_my_appointments()`
+-- y `list_therapist_appointments()`, que filtran por auth.uid(). Nada de lo que
+-- cerró el sprint de endurecimiento se reabre.
+-- ============================================================================
+
+GRANT SELECT (id) ON public.appointments TO authenticated;

@@ -1,0 +1,69 @@
+-- ============================================================================
+-- Cierre del default privilege de TABLAS en `public`: toda tabla nueva creada
+-- por `postgres` nacerá sin privilegios para `anon` y `authenticated`.
+--
+-- Alcance: UNA entrada de `pg_default_acl` — la de `postgres` sobre TABLES en
+-- `public` — y solo para dos roles. Nada más.
+--
+-- No se tocan: los defaults de FUNCTIONS ni SEQUENCES · las tres entradas de
+-- `supabase_admin` · `service_role` · `postgres` como beneficiario · las 37
+-- tablas existentes · RLS · triggers · funciones · columnas · datos · React.
+--
+-- ── Qué problema cierra ─────────────────────────────────────────────────────
+--
+-- La entrada concedía a `anon` y `authenticated` los ocho privilegios
+-- (`arwdDxtm`) sobre cada tabla nueva. Es decir: la próxima migración que
+-- creara una tabla le devolvía `DELETE`, `TRUNCATE`, `REFERENCES` y `TRIGGER`,
+-- deshaciendo en ella el trabajo de los sprints 4I, 4J, 4L y 4N. El
+-- endurecimiento valía solo para las tablas que ya existían.
+--
+-- ── Por qué no toca FUNCTIONS ni SEQUENCES ──────────────────────────────────
+--
+-- FUNCTIONS tiene consumidor real y frecuente: 273 de las 274 funciones de
+-- `public` tienen `EXECUTE` para `anon` y `authenticated`, y PostgREST no puede
+-- invocar una RPC sin él. Retirarlo obligaría a un `GRANT EXECUTE` en cada RPC
+-- nueva; hoy solo 15 de 35 migraciones lo escriben. Queda fuera.
+--
+-- SEQUENCES no tiene consumidor —cero secuencias en `public` y cero columnas
+-- `serial`/`identity`: todas las claves primarias son `uuid` con
+-- `gen_random_uuid()`— pero tampoco aporta seguridad: una secuencia no expone
+-- datos. Retirarlo solo añadiría una forma de romper un `bigserial` futuro.
+-- Queda fuera.
+--
+-- ── Por qué las de `supabase_admin` quedan fuera ────────────────────────────
+--
+-- `postgres` no es superusuario ni miembro de `supabase_admin`, así que no
+-- puede alterarlas. Y no hace falta: la entrada que se aplica es la del rol que
+-- CREA el objeto, y las 37 tablas de `public` tienen owner `postgres`, igual
+-- que la sesión de migración. Las de `supabase_admin` solo gobernarían objetos
+-- creados por la propia plataforma.
+--
+-- ── Sin efecto sobre lo existente ───────────────────────────────────────────
+--
+-- Los default privileges se copian a la ACL del objeto en el momento de
+-- crearlo; no son una dependencia viva. Las 37 tablas tienen `relacl` propio
+-- (37 de 37), así que esta migración no puede alterarlas. Huella del conjunto
+-- antes del cambio, para comprobarlo después:
+-- md5 `64cdb69b1241ea34ac996556da08dc19`.
+--
+-- ── CONSECUENCIA PARA EL MÉTODO DE TRABAJO ──────────────────────────────────
+--
+-- A partir de aquí, **toda migración que cree una tabla en `public` debe
+-- incluir sus `GRANT` explícitos** para los consumidores legítimos. Si se
+-- olvidan, la aplicación falla con `permission denied` — visible e inmediato,
+-- nunca en silencio. Es la disciplina que ya siguen las 7 migraciones más
+-- recientes que crean tablas (`20260730g` en adelante); las 13 anteriores se
+-- apoyaban en el default.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `REVOKE` sobre un privilegio ausente no es un error. Sin `CASCADE`.
+-- Ejecutable las veces que haga falta: el estado final es el mismo.
+--
+-- ── Reversión ───────────────────────────────────────────────────────────────
+--
+-- `supabase/backups/20260808_pre_default_privileges_tables.sql`
+-- ============================================================================
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  REVOKE ALL ON TABLES FROM anon, authenticated;

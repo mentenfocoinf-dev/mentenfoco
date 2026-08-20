@@ -1,0 +1,38 @@
+-- ============================================================================
+-- BACKUP — ACL de `public.content_items` ANTES del sprint 4B.1.
+-- Capturada de `pg_class.relacl` el 2026-08-07.
+--
+-- ── Estado literal de partida ───────────────────────────────────────────────
+--
+--   {postgres=arwdDxtm/postgres,
+--    anon=rxtm/postgres,
+--    authenticated=arwxtm/postgres,
+--    service_role=arwdDxtm/postgres}
+--
+-- Letras: a=INSERT r=SELECT w=UPDATE d=DELETE D=TRUNCATE x=REFERENCES
+--         t=TRIGGER m=MAINTAIN
+--
+-- Desglosado, con `grantor = postgres` y sin GRANT OPTION en ningún caso:
+--
+--   anon           SELECT · REFERENCES · TRIGGER · MAINTAIN
+--   authenticated  SELECT · INSERT · UPDATE · REFERENCES · TRIGGER · MAINTAIN
+--   service_role   todo
+--   postgres       todo
+--
+-- Sin grants por columna: `information_schema.column_privileges` no contiene
+-- para `anon` ni `authenticated` ningún privilegio que no venga ya del nivel de
+-- tabla. Owner: `postgres`. RLS: `false`.
+--
+-- ── Qué revierte este archivo ───────────────────────────────────────────────
+--
+-- Devuelve exactamente los dos privilegios que retira la migración:
+-- `TRIGGER` y `REFERENCES`, para `anon` y `authenticated`.
+--
+-- No toca `SELECT`, `INSERT`, `UPDATE` ni `MAINTAIN`, porque la migración
+-- tampoco los toca. Ejecutarlo deja la ACL idéntica a la de arriba.
+--
+-- `GRANT` es idempotente: repetirlo no cambia nada.
+-- ============================================================================
+
+GRANT TRIGGER, REFERENCES ON TABLE public.content_items TO anon;
+GRANT TRIGGER, REFERENCES ON TABLE public.content_items TO authenticated;

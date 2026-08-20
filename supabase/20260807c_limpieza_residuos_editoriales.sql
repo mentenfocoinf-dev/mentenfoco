@@ -1,0 +1,46 @@
+-- ============================================================================
+-- Limpieza de residuos heredados del modelo editorial.
+--
+-- Alcance: eliminar una función huérfana. Nada más. No se tocan ACL, ni RLS,
+-- ni columnas, ni triggers, ni la máquina de estados, ni el flujo editorial,
+-- ni el comportamiento de `service_role`, ni `enforce_content_authorization`.
+--
+-- ── Por qué se puede eliminar ───────────────────────────────────────────────
+--
+-- `enforce_content_publish_is_admin()` quedó huérfana en el sprint 4B, cuando
+-- su trigger `trg_content_publish_is_admin` se retiró al consolidar la
+-- autorización editorial. Se conservó entonces para poder revertir el 4B.
+--
+-- Demostrado contra el catálogo antes de borrarla:
+--
+--   · triggers que la invocan .................. NINGUNO
+--   · funciones del esquema que la nombran ..... ninguna
+--   · entradas en pg_depend .................... ninguna
+--   · trabajos de cron que la citan ............ ninguno
+--   · invocable directamente ................... no
+--       "trigger functions can only be called as triggers"
+--       (probado como `authenticated` y como `postgres`; el EXECUTE concedido
+--        a anon/authenticated/service_role es irrelevante para una función que
+--        devuelve `trigger`)
+--
+-- Es además la ÚNICA función del esquema cuyo cuerpo contiene
+-- `CONTENT_PUBLISH_FORBIDDEN`, así que con ella ese código de error desaparece
+-- de la base. Ningún trigger vigente podía emitirlo ya: los dos triggers de
+-- `content_items` son `trg_content_authorization` (que emite los 10 códigos
+-- actuales: CONTENT_ADMIN_ONLY, CONTENT_AUTHOR_MISMATCH, CONTENT_AUTHOR_ROLE,
+-- CONTENT_AUTH_REQUIRED, CONTENT_IMMUTABLE, CONTENT_INITIAL_STATE,
+-- CONTENT_INVALID_TRANSITION, CONTENT_LOCKED, CONTENT_NOT_AUTHOR,
+-- CONTENT_SIGN_SELF) y `trg_content_items_updated_at`, que no emite ninguno.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `DROP FUNCTION IF EXISTS`. Ejecutable las veces que haga falta.
+-- Sin `CASCADE` a propósito: si algún día apareciera un dependiente, esta
+-- migración debe fallar en vez de arrastrarlo.
+--
+-- ── Reversión ───────────────────────────────────────────────────────────────
+--
+-- `supabase/backups/20260807_pre_limpieza_residuos_editoriales.sql`
+-- ============================================================================
+
+DROP FUNCTION IF EXISTS public.enforce_content_publish_is_admin();

@@ -1,0 +1,38 @@
+-- ============================================================================
+-- BACKUP — privilegios de UPDATE sobre `public.content_items` ANTES del 4D.
+-- Capturado de `pg_class.relacl` y `pg_attribute.attacl` el 2026-08-07.
+--
+-- ── Estado literal de partida ───────────────────────────────────────────────
+--
+--   relacl: {postgres=arwdDxtm/postgres,
+--            anon=rm/postgres,
+--            authenticated=arwm/postgres,
+--            service_role=arwdDxtm/postgres}
+--
+--   `authenticated` tiene UPDATE A NIVEL DE TABLA (`w`), concedido por
+--   `postgres`, sin GRANT OPTION.
+--
+--   ACL por columna: NINGUNA. `pg_attribute.attacl` es NULL en las 32 columnas
+--   e `information_schema.column_privileges` devuelve 0 filas para
+--   `anon`/`authenticated` que no vengan del nivel de tabla.
+--
+--   `has_column_privilege(authenticated, ..., 'UPDATE')` = TRUE en las 32,
+--   precisamente porque lo hereda del permiso de tabla.
+--
+--   Owner `postgres` · RLS `false` · 2 triggers:
+--   `trg_content_authorization`, `trg_content_items_updated_at`.
+--
+-- ── Qué revierte este archivo ───────────────────────────────────────────────
+--
+-- Devuelve el permiso de tabla y borra las concesiones por columna que
+-- introduce la migración, dejando `attacl` otra vez en NULL.
+--
+-- El `REVOKE ... ON TABLE` es lo que limpia las concesiones por columna: en
+-- PostgreSQL, revocar un privilegio a nivel de tabla retira también todas las
+-- concesiones de ese mismo privilegio a nivel de columna. Va primero por eso.
+--
+-- Idempotente: ejecutarlo dos veces deja el mismo estado.
+-- ============================================================================
+
+REVOKE UPDATE ON TABLE public.content_items FROM authenticated;
+GRANT  UPDATE ON TABLE public.content_items TO   authenticated;

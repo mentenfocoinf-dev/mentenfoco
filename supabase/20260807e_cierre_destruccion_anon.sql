@@ -1,0 +1,71 @@
+-- ============================================================================
+-- Cierre de la destrucción anónima en las tres tablas que solo estaban
+-- protegidas por triggers de fila.
+--
+-- Alcance: `DELETE` y `TRUNCATE` del rol `anon` en tres tablas. Nada más.
+-- No se tocan `SELECT`, `INSERT`, `UPDATE`, `REFERENCES`, `TRIGGER` ni
+-- `MAINTAIN`; ni `authenticated`, `service_role` o `postgres`; ni RLS, ni
+-- triggers, ni funciones, ni columnas, ni datos, ni React, ni `content_items`,
+-- ni ninguna otra tabla.
+--
+-- ── Por qué los triggers no bastaban ────────────────────────────────────────
+--
+-- Las tres tienen un trigger, y por eso el sprint 4I las dejó fuera:
+--
+--   blog_comments            trg_blog_comment_moderation  BEFORE INSERT/UPDATE
+--   public_test_submissions  trg_submission_append_only   BEFORE UPDATE
+--   test_scores              tr_evaluate_phq9_risk        AFTER  INSERT
+--
+-- Los tres son `FOR EACH ROW` y ninguno declara el evento `TRUNCATE`.
+-- **TRUNCATE no recorre filas, así que no dispara triggers de fila.** Es el
+-- mismo razonamiento que este proyecto ya aplicó a `journey_events` en
+-- `20260804d_journey_events_solo_insert.sql`.
+--
+-- Y `DELETE` tampoco lo cubren: ninguno de los tres se declara sobre `DELETE`.
+--
+-- Medido como `anon`, dentro de una transacción revertida:
+--
+--     blog_comments             !!! VACIO · quedaban 2 filas, ahora 0
+--     public_test_submissions   !!! VACIO · quedaban 5 filas, ahora 0
+--     test_scores               !!! VACIO · quedaban 0 filas, ahora 0
+--
+-- Un visitante sin sesión borraba de un golpe todos los comentarios del blog y
+-- todos los envíos de tests. Con `DELETE` sin `WHERE` conseguía lo mismo fila a
+-- fila, sin que ningún trigger lo impidiera. Por eso se retiran los dos.
+--
+-- ── Qué sigue permitido a `anon`, y por qué ─────────────────────────────────
+--
+--   blog_comments            SELECT  · los comentarios se leen en la ruta
+--                            pública del blog (`BlogComments`, montado en
+--                            `blog.$slug.tsx:125`; la sesión solo gatea
+--                            comentar, no leer)
+--   public_test_submissions  INSERT  · `recordSubmission`
+--                                      (publicTestsService.ts:171, desde
+--                                       TestResult.tsx:55)
+--                            UPDATE  · `attachEmailToSubmission`
+--                                      (:202, desde TestResult.tsx:207)
+--                            (SELECT ya estaba denegado antes de este sprint)
+--   test_scores              sin consumidor conocido en src/, Edge Functions
+--                            ni scripts; sus privilegios de lectura y alta se
+--                            dejan como estaban, fuera de alcance
+--
+-- ── Sin consumidores de lo que se retira ────────────────────────────────────
+--
+-- Cero `TRUNCATE` y cero `DELETE` sobre estas tablas en todo el proyecto: las
+-- coincidencias de "truncate" en `src/` son clases CSS de Tailwind. Cero
+-- funciones SQL escriben en ellas, cero FK entrantes, el trabajo de cron no las
+-- cita, y ni las Edge Functions ni los seeders las mencionan.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `REVOKE` sobre un privilegio ausente no es un error. Sin `CASCADE`.
+-- Ejecutable las veces que haga falta: el estado final es el mismo.
+--
+-- ── Reversión ───────────────────────────────────────────────────────────────
+--
+-- `supabase/backups/20260807_pre_cierre_destruccion_anon.sql`
+-- ============================================================================
+
+REVOKE DELETE, TRUNCATE ON TABLE public.blog_comments           FROM anon;
+REVOKE DELETE, TRUNCATE ON TABLE public.public_test_submissions FROM anon;
+REVOKE DELETE, TRUNCATE ON TABLE public.test_scores             FROM anon;

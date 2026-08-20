@@ -1,0 +1,50 @@
+-- ============================================================================
+-- BACKUP — estado de `push_notification` ANTES del sprint.
+-- Capturado de pg_proc / pg_trigger el 2026-08-05.
+--
+-- Ejecutar este archivo revierte el sprint por completo.
+-- ============================================================================
+--
+-- ── ACL literal capturada ───────────────────────────────────────────────────
+--
+--   postgres=X/postgres | anon=X/postgres | authenticated=X/postgres | service_role=X/postgres
+--
+-- Es decir: EXECUTE concedido explícitamente a los cuatro roles. NO llega por
+-- PUBLIC (`has_function_privilege('public', ...)` = false).
+--
+-- ── Cuerpo de la función: NO SE MODIFICA en este sprint ─────────────────────
+--
+-- Se transcribe solo como referencia del estado de partida. La migración de
+-- este sprint no toca una sola línea del cuerpo: únicamente revoca privilegios.
+--
+--   CREATE OR REPLACE FUNCTION public.push_notification(
+--     p_user_id uuid, p_event_type text, p_title text, p_body text,
+--     p_resource_type text, p_resource_id text, p_relationship_id uuid)
+--   RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public'
+--   AS $function$
+--   BEGIN
+--     IF p_user_id IS NULL THEN RETURN; END IF;
+--     INSERT INTO notifications (user_id, event_type, title, body,
+--                                resource_type, resource_id, relationship_id)
+--     VALUES (p_user_id, p_event_type, p_title, p_body,
+--             p_resource_type, p_resource_id, p_relationship_id)
+--     ON CONFLICT DO NOTHING;
+--   END
+--   $function$;
+--
+-- ── Invocadores (ninguno se toca) ───────────────────────────────────────────
+--
+--   notify_appointment ................ trg_notify_appointment → appointments
+--   notify_contact_request_created .... trg_notify_contact_request_created → therapist_contact_requests
+--   notify_contact_request_resolved ... trg_notify_contact_request_resolved → therapist_contact_requests
+--   notify_from_journey_event ......... trg_notify_from_journey_event → journey_events
+--   notify_message_sent ............... trg_notify_message_sent → messages
+--   notify_therapist_assigned ......... trg_notify_therapist_assigned → patient_therapist
+--
+-- ============================================================================
+-- REVERSIÓN
+-- ============================================================================
+
+GRANT EXECUTE ON FUNCTION public.push_notification(
+  uuid, text, text, text, text, text, uuid
+) TO anon, authenticated;

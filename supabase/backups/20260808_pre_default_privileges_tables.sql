@@ -1,0 +1,60 @@
+-- ============================================================================
+-- BACKUP — default privileges de TABLAS del rol `postgres` en `public`,
+-- ANTES del sprint 4P. Capturado de `pg_default_acl` el 2026-08-08.
+--
+-- ── Estado de partida ───────────────────────────────────────────────────────
+--
+-- Seis entradas en `public`, repartidas entre DOS roles propietarios:
+--
+--   postgres        TABLES     {postgres=arwdDxtm, anon=arwdDxtm,
+--                               authenticated=arwdDxtm, service_role=arwdDxtm}
+--   postgres        SEQUENCES  {postgres=rwU, anon=rwU,
+--                               authenticated=rwU, service_role=rwU}
+--   postgres        FUNCTIONS  {postgres=X, anon=X,
+--                               authenticated=X, service_role=X}
+--   supabase_admin  TABLES     idéntico a la de postgres
+--   supabase_admin  SEQUENCES  idéntico
+--   supabase_admin  FUNCTIONS  idéntico
+--
+-- Letras: a=INSERT r=SELECT w=UPDATE d=DELETE D=TRUNCATE x=REFERENCES
+--         t=TRIGGER m=MAINTAIN · X=EXECUTE · U=USAGE
+--
+-- La migración toca UNA sola de las seis: `postgres` / TABLES, y solo para
+-- `anon` y `authenticated`. Las otras cinco quedan intactas.
+--
+-- ── Por qué las tres de `supabase_admin` no se tocan ────────────────────────
+--
+-- `ALTER DEFAULT PRIVILEGES` solo lo ejecuta el dueño de la entrada o un
+-- superusuario. `postgres` NO es superusuario y NO es miembro de
+-- `supabase_admin`, así que no puede alterarlas.
+--
+-- No hace falta: la entrada que se aplica es la del rol que CREA el objeto.
+-- Las 37 tablas de `public` tienen owner `postgres` y la sesión de migración
+-- es `postgres`, así que la entrada de `postgres` es la que gobierna todo lo
+-- que crea este proyecto. Las de `supabase_admin` solo afectarían a objetos
+-- que creara la propia plataforma.
+--
+-- ── Lo que este backup NO necesita restaurar ────────────────────────────────
+--
+-- Ninguna tabla existente. Los default privileges se materializan en la ACL
+-- del objeto al crearlo: las 37 tablas tienen `relacl` propio (37 de 37), así
+-- que no dependen de la entrada. Huella del conjunto de las 37 ACL antes del
+-- sprint: md5 `64cdb69b1241ea34ac996556da08dc19`.
+--
+-- ── Reversión exacta ────────────────────────────────────────────────────────
+--
+-- Devuelve los ocho privilegios de tabla a `anon` y `authenticated` en la
+-- entrada de `postgres`, que es lo único que la migración retira.
+--
+-- Debe ejecutarse como `postgres`, igual que la migración: `ALTER DEFAULT
+-- PRIVILEGES` sin `FOR ROLE` actúa sobre la entrada del rol de la sesión.
+--
+-- ⚠️ Restaurarlo hace que toda tabla nueva vuelva a nacer con `DELETE`,
+-- `TRUNCATE`, `REFERENCES` y `TRIGGER` para `anon` y `authenticated`, es decir,
+-- deshaciendo en cada tabla futura lo conseguido en 4I, 4J, 4L y 4N.
+--
+-- Idempotente: repetirlo no cambia nada.
+-- ============================================================================
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+  GRANT ALL ON TABLES TO anon, authenticated;
