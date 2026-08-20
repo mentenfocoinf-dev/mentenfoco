@@ -1,0 +1,94 @@
+-- ============================================================================
+-- BACKUP DE REVERSION · Grupo 3B — RLS en appointments
+-- Fecha: 12 de agosto de 2026
+--
+-- Revierte la migracion `20260812_grupo3b_rls.sql`, que activa RLS en UNA
+-- tabla y crea TRES politicas.
+--
+-- ── Estado capturado del catalogo ANTES de la migracion ─────────────────────
+--
+-- Leido de `pg_class`, `pg_policies`, `pg_trigger` y `pg_constraint`, no
+-- transcrito de documentacion.
+--
+--   public.appointments
+--     relrowsecurity      = false
+--     relforcerowsecurity = false
+--     owner               = postgres
+--     relacl = {postgres=arwdDxtm/postgres,
+--               service_role=arwdDxtm/postgres,
+--               authenticated=aw/postgres}
+--     politicas           = 0
+--     filas               = 1
+--     huella de la fila   = dff2e6ec386dc0a4d455fc65d49154f2
+--     indices 6 · CHECK 6 · FK salientes 5 · FK entrantes 2
+--
+--   `authenticated` tiene INSERT y UPDATE de tabla, y SELECT solo sobre la
+--   columna `id`. Esa ACL de columna es la que cierra la lectura directa, no
+--   RLS, y esta migracion no la toca.
+--
+--   Los SEIS triggers, que esta migracion NO toca:
+--     trg_appointment_chain              BEFORE INSERT OR UPDATE
+--       -> enforce_appointment_chain          DEFINER  md5=a4f0a98294e08335c48dc5aefbafe93b
+--     trg_appointment_no_delete          BEFORE DELETE
+--       -> enforce_appointment_no_delete      invoker  md5=21f691db7002bc94c5c63abc53b48f80
+--     trg_appointment_rules              BEFORE INSERT OR UPDATE
+--       -> enforce_appointment_rules          DEFINER  md5=140430cd26af473abe95ce9f9146d61d
+--     trg_appointment_zz_agenda          BEFORE INSERT OR UPDATE
+--       -> enforce_appointment_agenda         DEFINER  md5=ecd8b05e801b198042ede13cdb4b504d
+--     trg_materialize_session_on_confirm AFTER UPDATE
+--       -> materialize_session_on_confirm     DEFINER  md5=53365f96caa7e638da46f076112ead80
+--     trg_notify_appointment             AFTER INSERT OR UPDATE
+--       -> notify_appointment                 DEFINER  md5=827ec921c7578738a5f3fe8e9510200e
+--
+--   FK salientes: created_by/patient_id/therapist_id -> profiles ·
+--                 relationship_id -> patient_therapist (CASCADE) ·
+--                 replaces_appointment_id -> appointments (RESTRICT)
+--   FK entrantes: therapy_sessions.appointment_id · appointments.replaces_appointment_id
+--
+-- ── Huellas del esquema en el momento del backup ────────────────────────────
+--
+--   ACL de las 37 tablas .. 64cdb69b1241ea34ac996556da08dc19
+--   41 triggers ........... 3d2e64ad54494bf5325eb7abb2e204c2
+--   62 foreign keys ....... b9087924187f648a75b1677f7e8cd3ea
+--   273 funciones ......... 6d9ef54e15e81e6708773bdf03daff69
+--   53 politicas .......... 5fb975ed325f589fb77264d2ba398bc8
+--   indices ............... 77e5888324be70b084c854e06cc6c645
+--   estado RLS ............ e13bb373b6ff6c2bafc67492f5387e66   (15 de 37)
+--
+-- ── Advertencia sobre revertir ──────────────────────────────────────────────
+--
+-- Apagar RLS aqui NO reabre una fuga de lectura: la ACL de columna ya impide
+-- leer `appointments` directamente, con RLS o sin el. Lo que se pierde es la
+-- capa que acota el `UPDATE` a las dos partes de la cita — hoy eso lo sostiene
+-- solo el trigger `enforce_appointment_rules`, que sigue en su sitio.
+--
+-- No toca ACL, triggers, FK, funciones, indices ni datos. No toca ninguna otra
+-- tabla: las 15 con RLS del Grupo 3A y anteriores lo conservan, de modo que
+-- revertir deja el conteo global en 15 de 37.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `DROP POLICY IF EXISTS` y `DISABLE ROW LEVEL SECURITY` no fallan si el
+-- objeto ya esta en ese estado. Ejecutable las veces que haga falta.
+-- ============================================================================
+
+-- ─── Reversion ──────────────────────────────────────────────────────────────
+
+DROP POLICY IF EXISTS "Parties change their own appointments"  ON public.appointments;
+DROP POLICY IF EXISTS "Parties request their own appointments" ON public.appointments;
+DROP POLICY IF EXISTS "Parties read their own appointments"    ON public.appointments;
+
+ALTER TABLE public.appointments DISABLE ROW LEVEL SECURITY;
+
+-- ─── Comprobacion posterior a la reversion ──────────────────────────────────
+--
+-- SELECT relrowsecurity, relforcerowsecurity FROM pg_class
+--  WHERE oid = 'public.appointments'::regclass;          -> false, false
+--
+-- SELECT count(*) FROM pg_policies
+--  WHERE schemaname='public' AND tablename='appointments';  -> 0
+--
+-- SELECT count(*) FROM pg_class
+--  WHERE relnamespace='public'::regnamespace AND relkind='r' AND relrowsecurity;  -> 15
+--
+-- SELECT count(*) FROM pg_policies WHERE schemaname='public';  -> 53

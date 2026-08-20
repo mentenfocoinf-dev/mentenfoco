@@ -1,0 +1,83 @@
+-- ============================================================================
+-- BACKUP DE REVERSION · clinical_alerts — activacion de RLS
+-- Fecha: 12 de agosto de 2026
+--
+-- Revierte la migracion `20260812_clinical_alerts_enable_rls.sql`, que contiene
+-- UNA sentencia: `ALTER TABLE public.clinical_alerts ENABLE ROW LEVEL SECURITY`.
+--
+-- ── Estado capturado del catalogo ANTES de la migracion ─────────────────────
+--
+-- Leido de `pg_class` y `pg_policies`, no transcrito de documentacion:
+--
+--   relrowsecurity      = false
+--   relforcerowsecurity = false
+--   owner               = postgres
+--   relacl              = {postgres=arwdDxtm/postgres,
+--                          authenticated=arwm/postgres,
+--                          service_role=arwdDxtm/postgres}
+--   filas               = 2, ambas resueltas el 24-jun-2026
+--   huella de las filas = bc7caec36162f41e504e5b853ffd5798
+--   triggers            = 0
+--   indices             = clinical_alerts_pkey, clinical_alerts_pending_idx
+--   FK salientes 3 · FK entrantes 0
+--
+--   Las SEIS politicas, que esta migracion NO toca:
+--     [INSERT] Patients can insert their own alerts   PERMISSIVE TO authenticated
+--         CHECK  (auth.uid() = patient_id)
+--     [INSERT] Therapists can insert alerts for assigned patients   PERMISSIVE TO authenticated
+--         CHECK  is_therapist_of(patient_id)
+--     [SELECT] Admins can view all alerts   PERMISSIVE TO authenticated
+--         USING  (EXISTS ( SELECT 1 FROM profiles
+--                          WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::user_role))))
+--     [SELECT] Patients can view their own alerts   PERMISSIVE TO authenticated
+--         USING  (auth.uid() = patient_id)
+--     [SELECT] Therapists can view alerts of assigned patients   PERMISSIVE TO authenticated
+--         USING  is_therapist_of(patient_id)
+--     [UPDATE] Therapists resolve alerts of assigned patients   PERMISSIVE TO authenticated
+--         USING  is_therapist_of(patient_id)
+--         CHECK  (is_therapist_of(patient_id) AND (resolved_by = auth.uid()))
+--
+-- ── Huellas del esquema en el momento del backup ────────────────────────────
+--
+--   ACL de las 37 tablas .. 64cdb69b1241ea34ac996556da08dc19
+--   42 triggers ........... 217dffa660659d3cf920f78d1ca5f344
+--   62 foreign keys ....... b9087924187f648a75b1677f7e8cd3ea
+--   274 funciones ......... a093e1446067405c4d51432b46e6f543
+--   52 politicas .......... dd8bfdfc97b8d247fc751ba58633652c
+--   indices ............... 77e5888324be70b084c854e06cc6c645
+--   RLS ................... 11 de 37 · FORCE 0 de 37
+--
+-- ── Efecto de revertir ──────────────────────────────────────────────────────
+--
+-- Apagar RLS devuelve `clinical_alerts` a su estado previo: las seis politicas
+-- siguen definidas pero PostgreSQL deja de evaluarlas, y la tabla vuelve a
+-- quedar gobernada solo por la ACL. Conviene saber lo que eso significa,
+-- porque esta medido: con RLS apagado, **cualquier paciente con sesion puede
+-- leer las alertas de crisis de otros pacientes, resolverlas y alterar su
+-- gravedad**. Revertir reabre esa via.
+--
+-- No toca politicas, ACL, triggers, FK, funciones, indices ni datos. No toca
+-- las otras 36 tablas: las 11 del Grupo 1 y 2 conservan su RLS, de modo que
+-- revertir deja el conteo global en 11 de 37.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `DISABLE ROW LEVEL SECURITY` sobre una tabla con RLS ya apagado no es un
+-- error. Ejecutable las veces que haga falta.
+-- ============================================================================
+
+ALTER TABLE public.clinical_alerts DISABLE ROW LEVEL SECURITY;
+
+-- ─── Comprobacion posterior a la reversion ──────────────────────────────────
+--
+-- SELECT relrowsecurity, relforcerowsecurity FROM pg_class
+--  WHERE oid = 'public.clinical_alerts'::regclass;
+--   -> false, false
+--
+-- SELECT count(*) FROM pg_policies
+--  WHERE schemaname='public' AND tablename='clinical_alerts';
+--   -> 6  (las politicas no se tocan al revertir)
+--
+-- SELECT count(*) FROM pg_class
+--  WHERE relnamespace='public'::regnamespace AND relkind='r' AND relrowsecurity;
+--   -> 11 de 37

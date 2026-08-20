@@ -1,0 +1,58 @@
+-- ============================================================================
+-- clinical_alerts — activacion de RLS.
+--
+-- UNA sentencia. La politica de `UPDATE` que hacia falta se creo y se probo en
+-- el sprint anterior (`20260812_clinical_alerts_update_policy.sql`); aqui solo
+-- se enciende el interruptor.
+--
+-- No crea, modifica ni elimina politicas. No toca ACL, `DEFAULT PRIVILEGES`,
+-- triggers, FK, funciones, RPC, columnas, indices, datos ni React. Sin `FORCE`.
+--
+-- RLS pasa de 11 a 12 de 37 tablas. FORCE sigue en 0.
+--
+-- Reversion: `supabase/backups/20260812_pre_clinical_alerts_enable_rls.sql`
+--
+-- ── Que cierra ──────────────────────────────────────────────────────────────
+--
+-- Hasta ahora la tabla estaba gobernada solo por la ACL, y eso dejaba abierta
+-- una via medida sobre datos reales: un paciente cualquiera con sesion podia
+--
+--   * leer las alertas de crisis de otros pacientes;
+--   * resolverlas, cerrando una crisis ajena;
+--   * firmar la resolucion a nombre del terapeuta;
+--   * cambiar el `status`, es decir la gravedad con la que la alerta nacio.
+--
+-- Con RLS activo, las seis politicas pasan a evaluarse y cada actor queda
+-- acotado a lo suyo.
+--
+-- ── El reparto que queda vigente ────────────────────────────────────────────
+--
+--   paciente ........... crea la suya (`auth.uid() = patient_id`) y la lee.
+--                        NO puede resolverla.
+--   terapeuta asignado . lee y resuelve las de sus pacientes, via
+--                        `is_therapist_of(patient_id)`, firmando siempre con su
+--                        propio `auth.uid()`.
+--   terapeuta ajeno .... nada.
+--   admin .............. lee todas. NO resuelve: decision de producto
+--                        explicita, sin ningun consumidor real en contra.
+--   anon ............... nada; la ACL lo detiene antes que RLS.
+--   service_role ....... todo, por `bypassrls`: el seeder
+--                        `seed_clinical_demo_data.cjs` no se ve afectado.
+--   DELETE ............. cerrado para todos por ACL (`authenticated=arwm`,
+--                        sin `d`). No hay politica de DELETE ni hace falta.
+--
+-- ── La via automatica sigue viva ────────────────────────────────────────────
+--
+-- `evaluate_phq9_risk()` —trigger `AFTER INSERT` sobre `test_scores`— inserta
+-- la alerta cuando el item 9 del PHQ-9 es positivo. Es `SECURITY DEFINER` con
+-- owner `postgres`, que tiene `bypassrls = true`: **RLS no alcanza esa ruta y
+-- no debe alcanzarla.** La creacion automatica de alertas de crisis sigue
+-- funcionando igual.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `ENABLE ROW LEVEL SECURITY` sobre una tabla que ya lo tiene activo no es un
+-- error ni cambia nada. Ejecutable las veces que haga falta.
+-- ============================================================================
+
+ALTER TABLE public.clinical_alerts ENABLE ROW LEVEL SECURITY;

@@ -1,0 +1,87 @@
+-- ============================================================================
+-- BACKUP DE REVERSION · clinical_alerts — politica de UPDATE
+-- Fecha: 12 de agosto de 2026
+--
+-- Revierte la migracion `20260812_clinical_alerts_update_policy.sql`, que crea
+-- UNA politica de UPDATE sobre `public.clinical_alerts` y nada mas.
+--
+-- ── Estado capturado del catalogo ANTES de la migracion ─────────────────────
+--
+-- Leido de `pg_class` y `pg_policies`, no transcrito de documentacion:
+--
+--   public.clinical_alerts
+--     relrowsecurity      = false      <- RLS SIGUE APAGADO, y este sprint no lo enciende
+--     relforcerowsecurity = false
+--     owner               = postgres
+--     politicas           = 5  (2 INSERT + 3 SELECT, ninguna de UPDATE)
+--     triggers            = 0
+--     filas               = 2, ambas resueltas el 24-jun-2026
+--     relacl = {postgres=arwdDxtm/postgres,
+--               authenticated=arwm/postgres,
+--               service_role=arwdDxtm/postgres}
+--
+--   Huella de las 2 filas: bc7caec36162f41e504e5b853ffd5798
+--
+-- ── Huellas del esquema en el momento del backup ────────────────────────────
+--
+--   ACL de las 37 tablas .. 64cdb69b1241ea34ac996556da08dc19
+--   42 triggers ........... 217dffa660659d3cf920f78d1ca5f344
+--   62 foreign keys ....... b9087924187f648a75b1677f7e8cd3ea
+--   274 funciones ......... a093e1446067405c4d51432b46e6f543
+--   51 politicas .......... faa7706dd5cad935072f5113cfca8300
+--   indices ............... 77e5888324be70b084c854e06cc6c645
+--   RLS ................... 11 de 37 · FORCE 0 de 37
+--
+-- ── Reversion ───────────────────────────────────────────────────────────────
+--
+-- Basta con retirar la politica nueva: la migracion no toca las cinco que ya
+-- existian, ni la ACL, ni RLS, ni datos. `DROP POLICY IF EXISTS` no falla si la
+-- politica ya no esta, asi que este archivo es idempotente.
+-- ============================================================================
+
+DROP POLICY IF EXISTS "Therapists resolve alerts of assigned patients"
+  ON public.clinical_alerts;
+
+
+-- ============================================================================
+-- Las CINCO politicas preexistentes, volcadas del catalogo por si alguna vez
+-- hiciera falta reconstruirlas. La migracion NO las modifica: este bloque es
+-- documentacion del estado previo, no se necesita para revertir.
+-- ============================================================================
+--
+-- DROP POLICY IF EXISTS "Patients can insert their own alerts" ON public.clinical_alerts;
+-- CREATE POLICY "Patients can insert their own alerts" ON public.clinical_alerts
+--   AS PERMISSIVE FOR INSERT TO authenticated
+--   WITH CHECK ((auth.uid() = patient_id));
+--
+-- DROP POLICY IF EXISTS "Therapists can insert alerts for assigned patients" ON public.clinical_alerts;
+-- CREATE POLICY "Therapists can insert alerts for assigned patients" ON public.clinical_alerts
+--   AS PERMISSIVE FOR INSERT TO authenticated
+--   WITH CHECK (is_therapist_of(patient_id));
+--
+-- DROP POLICY IF EXISTS "Admins can view all alerts" ON public.clinical_alerts;
+-- CREATE POLICY "Admins can view all alerts" ON public.clinical_alerts
+--   AS PERMISSIVE FOR SELECT TO authenticated
+--   USING ((EXISTS ( SELECT 1
+--    FROM profiles
+--   WHERE ((profiles.id = auth.uid()) AND (profiles.role = 'admin'::user_role)))));
+--
+-- DROP POLICY IF EXISTS "Patients can view their own alerts" ON public.clinical_alerts;
+-- CREATE POLICY "Patients can view their own alerts" ON public.clinical_alerts
+--   AS PERMISSIVE FOR SELECT TO authenticated
+--   USING ((auth.uid() = patient_id));
+--
+-- DROP POLICY IF EXISTS "Therapists can view alerts of assigned patients" ON public.clinical_alerts;
+-- CREATE POLICY "Therapists can view alerts of assigned patients" ON public.clinical_alerts
+--   AS PERMISSIVE FOR SELECT TO authenticated
+--   USING (is_therapist_of(patient_id));
+
+-- ─── Comprobacion posterior a la reversion ──────────────────────────────────
+--
+-- SELECT count(*) FROM pg_policies
+--  WHERE schemaname='public' AND tablename='clinical_alerts';
+--   -> 5
+--
+-- SELECT relrowsecurity, relforcerowsecurity FROM pg_class
+--  WHERE oid = 'public.clinical_alerts'::regclass;
+--   -> false, false

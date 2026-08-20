@@ -1,0 +1,76 @@
+-- ============================================================================
+-- Retirada del trigger muerto del PHQ-9.
+--
+-- DOS objetos: el trigger `tr_evaluate_phq9_risk` sobre `public.test_scores` y
+-- su funcion `public.evaluate_phq9_risk()`, que no tiene ningun otro
+-- consumidor.
+--
+-- No toca RLS, politicas, ACL, FK, columnas, indices, datos, RPC ni React.
+-- No borra la tabla `test_scores`: esa es una decision de limpieza aparte.
+--
+-- Reversion: `supabase/backups/20260812_pre_drop_evaluate_phq9_risk.sql`
+--
+-- ── Que se retira, exactamente ──────────────────────────────────────────────
+--
+--   CREATE TRIGGER tr_evaluate_phq9_risk AFTER INSERT ON public.test_scores
+--     FOR EACH ROW EXECUTE FUNCTION evaluate_phq9_risk();
+--
+--   evaluate_phq9_risk(): IF NEW.item_9_score > 0 THEN
+--     INSERT INTO public.clinical_alerts (patient_id, test_score_id, status)
+--     VALUES (NEW.patient_id, NEW.id, 'high_priority');
+--
+-- ── Por que no puede funcionar, y nunca pudo ────────────────────────────────
+--
+-- El trigger escribe `NEW.id` —un id de `test_scores`— en
+-- `clinical_alerts.test_score_id`, columna cuya FK exige un id de
+-- `psychometric_evaluations`. Ambas tablas generan su clave con
+-- `gen_random_uuid()`, asi que jamas coincidiran. Medido:
+--
+--   item 9 POSITIVO, RLS activo ..... 23503 violates foreign key constraint
+--   item 9 = 0, RLS activo .......... OK (el IF no entra)
+--   item 9 POSITIVO, RLS APAGADO .... 23503, el mismo
+--
+-- El defecto es PREEXISTENTE y ajeno a RLS: se reprodujo con RLS activo y con
+-- RLS apagado, obteniendo el mismo error.
+--
+-- ── De donde viene el desacople ─────────────────────────────────────────────
+--
+-- Lo explica `20260701_fix_clinical_alerts_fk.sql`, del 1 de julio:
+-- `test_scores` era la tabla previa y mas simple; el roadmap especifico
+-- construir sobre `psychometric_evaluations` y la FK se corrigio para apuntar
+-- ahi. `test_scores` quedo sin usar, y **el trigger no se actualizo**. Es un
+-- vestigio del modelo anterior.
+--
+-- Hoy `test_scores` tiene 0 filas, CERO referencias en `src/`, en las Edge
+-- Functions y en los scripts, y ninguna migracion del repositorio la crea.
+--
+-- ── Por que NO se reescribe sobre psychometric_evaluations ──────────────────
+--
+-- Porque la alerta YA se crea, y correctamente. `CssrsModal.tsx:125` y
+-- `PsychometricScaleModal.tsx:44` insertan en `psychometric_evaluations`,
+-- recogen el `id` y, si hay riesgo, insertan la alerta con
+-- `test_score_id` = ese id — justo lo que la FK exige. Comprobado ejecutando
+-- con el JWT del paciente y RLS activo: la alerta se crea, el terapeuta la ve
+-- y la resuelve.
+--
+-- Un trigger equivalente sobre `psychometric_evaluations` crearia una SEGUNDA
+-- alerta por cada evaluacion de riesgo. Duplicar alertas en el modulo de
+-- crisis es peor que retirar codigo muerto.
+--
+-- ── Consecuencia que conviene conocer ───────────────────────────────────────
+--
+-- `test_scores` concede `arwxtm` a `anon`. Hoy, un INSERT anonimo con
+-- `item_9_score > 0` falla por el 23503 del trigger; al retirarlo, esa fila se
+-- creara sin error en una tabla que nadie lee. Es un problema de ACL sobre una
+-- tabla obsoleta, no de este cambio, y queda documentado para su propio sprint.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `DROP TRIGGER IF EXISTS` y `DROP FUNCTION IF EXISTS` no fallan si el objeto
+-- ya no esta. Sin `CASCADE`: si algo dependiera de la funcion, la migracion
+-- fallaria de forma visible en vez de arrastrarlo.
+-- ============================================================================
+
+DROP TRIGGER IF EXISTS tr_evaluate_phq9_risk ON public.test_scores;
+
+DROP FUNCTION IF EXISTS public.evaluate_phq9_risk();

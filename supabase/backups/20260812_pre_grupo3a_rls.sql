@@ -1,0 +1,104 @@
+-- ============================================================================
+-- BACKUP DE REVERSION · Grupo 3A — RLS en profiles, patient_therapist
+--                                  y therapy_sessions
+-- Fecha: 12 de agosto de 2026
+--
+-- Revierte la migracion `20260812_grupo3a_rls.sql`, que activa RLS en TRES
+-- tablas y crea UNA politica.
+--
+-- ── Estado capturado del catalogo ANTES de la migracion ─────────────────────
+--
+-- Leido de `pg_class` y `pg_policies`, no transcrito de documentacion.
+--
+--   profiles             relrowsecurity=false  relforcerowsecurity=false  owner=postgres
+--     relacl = {postgres=arwdDxtm/postgres,authenticated=arm/postgres,service_role=arwdDxtm/postgres}
+--     politicas (5):
+--       [SELECT] Admins read all profiles                   TO authenticated
+--           USING  (get_my_role() = 'admin'::user_role)
+--       [SELECT] Therapists read assigned patient profiles  TO authenticated
+--           USING  is_therapist_of(id)
+--       [SELECT] Users read own profile                     TO authenticated
+--           USING  (auth.uid() = id)
+--       [UPDATE] Admins update all profiles                 TO authenticated
+--           USING  (get_my_role() = 'admin'::user_role)
+--       [UPDATE] Users update own profile                   TO authenticated
+--           USING  (auth.uid() = id)   CHECK (auth.uid() = id)
+--     NINGUNA politica de INSERT ni de DELETE.
+--     trigger: trg_profile_ownership BEFORE INSERT OR UPDATE -> enforce_profile_ownership()
+--     8 filas · huella: 8ae9dbdec3bc156158ebbb5af00126b2
+--
+--   patient_therapist    relrowsecurity=false  relforcerowsecurity=false  owner=postgres
+--     relacl = {postgres=arwdDxtm/postgres,authenticated=wm/postgres,service_role=arwdDxtm/postgres}
+--     politicas (3):
+--       [ALL]    Admins manage all assignments   USING (current_user_role() = 'admin')
+--       [SELECT] Patients view own assignment    USING (auth.uid() = patient_id)
+--       [SELECT] Therapists view own assignments USING (auth.uid() = therapist_id)
+--     NINGUNA politica de UPDATE para quien no sea admin.
+--     triggers: trg_notify_therapist_assigned (AFTER INSERT),
+--               trg_patient_therapist_no_delete (BEFORE DELETE),
+--               trg_patient_therapist_rules (BEFORE INSERT OR UPDATE)
+--     4 filas
+--
+--   therapy_sessions     relrowsecurity=false  relforcerowsecurity=false  owner=postgres
+--     relacl = {postgres=arwdDxtm/postgres,authenticated=awm/postgres,service_role=arwdDxtm/postgres}
+--     politicas (6): ALL admin · DELETE, INSERT, SELECT y UPDATE de terapeuta
+--                    con `is_therapist_of(patient_id)` · SELECT de paciente propio
+--     triggers: trg_session_agenda, trg_therapy_session_ownership,
+--               trg_therapy_sessions_updated_at
+--     21 filas
+--
+-- ── Huellas del esquema en el momento del backup ────────────────────────────
+--
+--   ACL de las 37 tablas .. 64cdb69b1241ea34ac996556da08dc19
+--   41 triggers ........... 3d2e64ad54494bf5325eb7abb2e204c2
+--   62 foreign keys ....... b9087924187f648a75b1677f7e8cd3ea
+--   273 funciones ......... 6d9ef54e15e81e6708773bdf03daff69
+--   52 politicas .......... dd8bfdfc97b8d247fc751ba58633652c
+--   indices ............... 77e5888324be70b084c854e06cc6c645
+--   estado RLS ............ db474297574055ee191e0120e95894ee   (12 de 37)
+--
+-- ── Advertencia sobre revertir ──────────────────────────────────────────────
+--
+-- Apagar RLS en `profiles` reabre una fuga medida: **cualquier paciente con
+-- sesion vuelve a leer los 8 perfiles completos, con `email`, `session_token`
+-- y `role`**. Seis de los ocho tienen `session_token` no nulo. Revertir tiene
+-- ese precio y conviene saberlo antes de hacerlo.
+--
+-- Tambien reabre que un terapeuta cree sesiones de terapia para pacientes que
+-- no son suyos: ni la ACL ni ningun trigger lo impiden, solo la politica de
+-- INSERT que RLS activa.
+--
+-- No toca ACL, triggers, FK, funciones, indices ni datos. No toca
+-- `appointments`, que sigue fuera de alcance hasta el Grupo 3B.
+--
+-- ── Idempotencia ────────────────────────────────────────────────────────────
+--
+-- `DROP POLICY IF EXISTS` y `DISABLE ROW LEVEL SECURITY` no fallan si el
+-- objeto ya esta en ese estado. Ejecutable las veces que haga falta.
+-- ============================================================================
+
+-- ─── Reversion ──────────────────────────────────────────────────────────────
+
+DROP POLICY IF EXISTS "Parties close their own relationship"
+  ON public.patient_therapist;
+
+ALTER TABLE public.profiles          DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.patient_therapist DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.therapy_sessions  DISABLE ROW LEVEL SECURITY;
+
+-- ─── Comprobacion posterior a la reversion ──────────────────────────────────
+--
+-- SELECT relname, relrowsecurity, relforcerowsecurity FROM pg_class
+--  WHERE oid IN ('public.profiles'::regclass,
+--                'public.patient_therapist'::regclass,
+--                'public.therapy_sessions'::regclass);
+--   -> las tres false, false
+--
+-- SELECT tablename, count(*) FROM pg_policies WHERE schemaname='public'
+--   AND tablename IN ('profiles','patient_therapist','therapy_sessions')
+--  GROUP BY tablename;
+--   -> profiles 5 · patient_therapist 3 · therapy_sessions 6
+--
+-- SELECT count(*) FROM pg_class
+--  WHERE relnamespace='public'::regnamespace AND relkind='r' AND relrowsecurity;
+--   -> 12 de 37
