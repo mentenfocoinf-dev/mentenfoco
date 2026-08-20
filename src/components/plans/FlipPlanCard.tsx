@@ -6,7 +6,7 @@
 // que la persona vino a ver— queda enterrado. La cara frontal deja solo la
 // decisión (nombre, precio, una línea) y el detalle se pide a propósito.
 //
-// Que "Adquirir plan" viva únicamente en el reverso también es deliberado:
+// Que el botón de inicio viva únicamente en el reverso también es deliberado:
 // nadie llega al checkout sin haber visto qué incluye.
 //
 // El giro se hace con dos caras apiladas en la misma celda de grid (ver
@@ -28,7 +28,7 @@ export interface FlipPlanCardProps {
   /** Imagen de cabecera en public/. */
   image?: string;
   highlighted?: boolean;
-  /** Nota bajo el botón del reverso (ej. condiciones de la membresía). */
+  /** Nota bajo el botón del reverso (ej. condiciones de la etapa). */
   footnote?: string;
   onSelect?: () => void;
   selected?: boolean;
@@ -106,7 +106,7 @@ export function FlipPlanCard({
                   : "border border-primary/20 text-primary hover:bg-primary/10"
               }`}
             >
-              Descubrir plan
+              Conocer esta etapa
             </button>
           </div>
         </div>
@@ -148,7 +148,7 @@ export function FlipPlanCard({
                 tabIndex={flipped ? 0 : -1}
                 className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary/90"
               >
-                Adquirir plan
+                Empezar esta etapa
               </a>
               <button
                 onClick={() => setFlipped(false)}

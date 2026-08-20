@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef } from "react";
 import { Mail, Phone, MessageCircle, Bot, CheckCircle, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/api";
 import { z } from "zod";
 
 export const Route = createFileRoute("/contactanos")({
@@ -26,7 +27,7 @@ const channels = [
   { icon: Mail, label: "Email", value: "mentenfocoinf@gmail.com" },
   { icon: Phone, label: "Teléfono", value: "3186546057" },
   { icon: MessageCircle, label: "WhatsApp", value: "3186546057" },
-  { icon: Bot, label: "Asistente Alex IA", value: "Próximamente para plan VIP" },
+  { icon: Bot, label: "Asistente Alex IA", value: "En desarrollo" },
 ];
 
 function Contactanos() {
@@ -76,6 +77,7 @@ function Contactanos() {
         return;
       }
 
+      trackEvent("CONTACT_FORM_SENT");
       setSent(true);
       formRef.current?.reset();
     } catch (err) {
@@ -198,7 +200,7 @@ function Contactanos() {
                     <option>Información general</option>
                     <option>Asesoramiento individual</option>
                     <option>Terapia infantil</option>
-                    <option>Membresía</option>
+                    <option>Planes de acompañamiento</option>
                     <option>Otro</option>
                   </select>
                 </div>

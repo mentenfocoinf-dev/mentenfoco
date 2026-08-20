@@ -43,6 +43,14 @@ export interface Profile {
   updated_at: string;
 }
 
+/**
+ * @deprecated Sustituido por `trackEvent()` de `lib/api/journeyService.ts` (30-jul).
+ *
+ * Escribe en `telemetry_events`, una tabla de 5 columnas que ningún módulo llega
+ * a usar. El Journey Engine la reemplaza con `journey_events`: catálogo cerrado
+ * de eventos, identidad anónima, UTM y escritura que no puede bloquear la
+ * navegación. Se conserva para no romper una llamada futura, no para usarse.
+ */
 export async function trackTelemetryEvent(eventType: string, payload: any = {}) {
   try {
     const {

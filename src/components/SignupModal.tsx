@@ -13,6 +13,7 @@
 import { useState } from "react";
 import { CheckCircle, Loader2, UserPlus, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { trackEvent } from "../lib/api";
 import { PrivacyPolicyModal } from "./PrivacyPolicyModal";
 
 interface SignupModalProps {
@@ -84,6 +85,7 @@ export function SignupModal({ open, onClose }: SignupModalProps) {
         return;
       }
 
+      trackEvent("ACCOUNT_CREATED");
       setSuccess(true);
     } catch {
       setErrorMsg("Ocurrió un error inesperado. Intenta de nuevo.");

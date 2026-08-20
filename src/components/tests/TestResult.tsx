@@ -25,6 +25,7 @@ import {
 import {
   attachEmailToSubmission,
   recordSubmission,
+  trackEvent,
   type PublicTest,
   type PublicTestResult,
 } from "../../lib/api";
@@ -53,6 +54,12 @@ export function TestResult({ test, resultado, onReiniciar }: Props) {
     yaRegistrado.current = true;
     void recordSubmission(test.slug, score, banda.etiqueta).then((id) => {
       submissionId.current = id;
+    });
+    // Mismo guard: el resultado se ve una vez, aunque StrictMode monte dos veces.
+    trackEvent("TEST_RESULT_VIEWED", {
+      test_id: test.slug,
+      score,
+      band: banda.etiqueta,
     });
   }, [test.slug, score, banda.etiqueta]);
 

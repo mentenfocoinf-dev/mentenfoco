@@ -36,7 +36,7 @@ export const Route = createRootRoute({
       {
         name: "description",
         content:
-          "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres.",
+          "Centro de salud mental: asesoramiento, guías clínicas y acompañamiento para ti y tu familia.",
       },
       { name: "author", content: "Mente en Foco" },
       { name: "robots", content: "index, follow" },
@@ -44,7 +44,7 @@ export const Route = createRootRoute({
       {
         property: "og:description",
         content:
-          "Centro de salud mental: asesoramiento, guías, membresía y acompañamiento para padres.",
+          "Centro de salud mental: asesoramiento, guías clínicas y acompañamiento para ti y tu familia.",
       },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "/BANNER.jpg" },

@@ -9,10 +9,12 @@
 // esta ruta es la conversación: debajo del texto van los comentarios moderados.
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
 import { ArrowLeft, Clock, Loader2, Tag } from "lucide-react";
-import { getBlogArticleBySlug } from "../lib/api";
+import { trackEvent, getBlogArticleBySlug } from "../lib/api";
 import { BlogComments } from "../components/blog/BlogComments";
+import { RecomendacionesRelacionadas } from "../components/content/RecomendacionesRelacionadas";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: async ({ params }) => await getBlogArticleBySlug(params.slug),
@@ -42,6 +44,11 @@ export const Route = createFileRoute("/blog/$slug")({
 
 
 function BlogArticulo() {
+  const { item: _b } = Route.useLoaderData();
+  useEffect(() => {
+    if (_b) trackEvent("BLOG_VIEW", { resource_id: _b.slug, resource_type: "blog" });
+  }, [_b]);
+
   const { item } = Route.useLoaderData();
 
   if (!item) {
@@ -116,6 +123,15 @@ function BlogArticulo() {
         )}
 
         <BlogComments postId={item.id} admiteComentarios={item.admite_comentarios} />
+
+        <RecomendacionesRelacionadas
+          source="blog"
+          currentId={item.slug ?? ""}
+          categoria={item.categoria}
+          tipoActual="blog"
+          themeKey={item.theme_key}
+          tags={item.tags}
+        />
 
         <div className="mt-14 rounded-3xl border border-primary/15 bg-primary/5 p-8 text-center">
           <h2 className="text-xl font-bold text-primary">

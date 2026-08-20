@@ -9,6 +9,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
+import { RecomendacionesRelacionadas } from "../components/content/RecomendacionesRelacionadas";
+import { JourneyNextStep } from "../components/journey/JourneyNextStep";
 import {
   ArrowLeft,
   BookOpen,
@@ -20,7 +22,7 @@ import {
   Tag,
   Wrench,
 } from "lucide-react";
-import { getContentBySlug, CONTENT_TYPE_LABELS, type ContentType } from "../lib/api";
+import { trackEvent, getContentBySlug, CONTENT_TYPE_LABELS, type ContentType } from "../lib/api";
 
 export const Route = createFileRoute("/contenido/$slug")({
   loader: async ({ params }) => await getContentBySlug(params.slug),
@@ -55,6 +57,11 @@ const TYPE_ICON: Record<ContentType, typeof BookOpen> = {
 
 
 function ContenidoDetalle() {
+  const { item: _i } = Route.useLoaderData();
+  useEffect(() => {
+    if (_i) trackEvent("CONTENT_VIEW", { resource_id: _i.slug, resource_type: _i.content_type });
+  }, [_i]);
+
   const { item, reachableSteps } = Route.useLoaderData();
   // Un paso solo es enlace si su destino está dentro del plan del lector; si no,
   // el enlace terminaría en "no encontrado". Ver resolveReachableSteps().
@@ -133,6 +140,16 @@ function ContenidoDetalle() {
         {/* Cuerpo markdown — mismo renderizado que las guías */}
         {doc.body_md && (
           <ContentBody markdown={doc.body_md} titulo={doc.titulo} />
+        )}
+
+        {/* PROGRAMA: "tu siguiente paso" antes del mapa completo de la ruta.
+            Aquí el motor de recomendaciones está apagado (C1), así que no compiten. */}
+        {doc.content_type === "programa" && (
+          <JourneyNextStep
+            programaId={doc.slug ?? ""}
+            steps={doc.program_steps}
+            alcanzables={reachableSteps}
+          />
         )}
 
         {/* PROGRAMA: pasos ordenados, cada uno puede enlazar a otra pieza */}
@@ -277,6 +294,15 @@ function ContenidoDetalle() {
             .
           </p>
         </div>
+
+        <RecomendacionesRelacionadas
+          source="contenido"
+          currentId={doc.slug ?? ""}
+          categoria={doc.categoria}
+          tipoActual={doc.content_type}
+          themeKey={doc.theme_key}
+          tags={doc.tags}
+        />
 
         <div className="mt-12 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-8">
           <Link

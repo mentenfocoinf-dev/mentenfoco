@@ -19,8 +19,8 @@ function CompraExitosa() {
           <CheckCircle2 size={40} strokeWidth={2} />
         </div>
 
-        <h1 className="mt-8 text-3xl font-bold text-slate-900">¡Pago procesado con éxito!</h1>
-        <p className="mt-3 text-slate-500 text-sm">Bienvenido/a a Mente en Foco Premium.</p>
+        <h1 className="mt-8 text-3xl font-bold text-slate-900">Tu acompañamiento ya está listo</h1>
+        <p className="mt-3 text-slate-500 text-sm">Tu pago quedó confirmado. Te damos la bienvenida a tu proceso.</p>
 
         {/* Paso 1: Revisar email */}
         <div className="mt-6 rounded-2xl bg-white/50 p-6 text-left shadow-sm border border-slate-100">
@@ -47,8 +47,8 @@ function CompraExitosa() {
             <div>
               <h3 className="font-bold text-slate-900">Beneficios activados automáticamente</h3>
               <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                Una vez que confirmes tu cuenta, tendrás acceso inmediato a todas las guías clínicas
-                premium, tu dashboard personal y los recursos de tu plan.
+                Una vez que confirmes tu cuenta, tendrás acceso a las guías clínicas, a tu
+                espacio personal y a los recursos de tu etapa.
               </p>
             </div>
           </div>

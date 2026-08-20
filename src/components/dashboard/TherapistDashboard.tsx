@@ -16,7 +16,7 @@ import {
   BarChart3,
   UserCircle,
   Award,
-  Clock,
+  UserPlus,
   Activity,
   PenLine,
 } from "lucide-react";
@@ -25,26 +25,28 @@ import { supabase, type Profile } from "../../lib/supabase";
 import { CrisisAlertResolutionModal } from "./CrisisAlertResolutionModal";
 import { CognitiveScreeningForm } from "../CognitiveScreeningForm";
 import { TherapistMessages } from "../messaging/TherapistMessages";
-import { WeeklyAgenda } from "../agenda/WeeklyAgenda";
+import { useAgenda } from "../../hooks/useAgenda";
 import { DashboardShell, type ShellNavItem } from "./DashboardShell";
 import { ContentEditorModal } from "../content/ContentEditorModal";
 import { CommentModerationQueue } from "../blog/CommentModerationQueue";
+import { TherapistProfileForm } from "./TherapistProfileForm";
+import { SolicitudesRecibidas } from "./SolicitudesRecibidas";
+import { PacientesActivos } from "./PacientesActivos";
+import { AgendaClinica } from "./AgendaClinica";
+import { AccionesPendientes } from "./AccionesPendientes";
+import { useNovedades } from "../../hooks/useNovedades";
+import { NotificacionesBadge } from "../NotificacionesBadge";
 import {
   getTherapistPatients,
   getPrescriptionsCatalog,
   getHighPriorityAlerts,
   assignPrescriptions,
-  getTherapistSessions,
-  createSession,
-  updateSessionStatus,
-  updateSessionVideoLink,
   getTherapistUnreadCount,
   listMyContent,
   submitForReview,
   CONTENT_STATUS_LABELS,
   CONTENT_STATUS_CLASSES,
   CONTENT_TYPE_LABELS,
-  type TherapistSessionRow,
   type SessionStatus,
   type TherapistConversation,
   type ContentItem,
@@ -86,23 +88,21 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Agenda de sesiones (therapy_sessions) — backend verificado el 2026-07-16.
-  const [sessions, setSessions] = useState<TherapistSessionRow[]>([]);
-  const [sessionsLoading, setSessionsLoading] = useState(true);
-  const [schedulePatientId, setSchedulePatientId] = useState("");
-  const [scheduleDateTime, setScheduleDateTime] = useState("");
-  const [scheduleDuration, setScheduleDuration] = useState(45);
-  const [scheduleVideoLink, setScheduleVideoLink] = useState("");
-  const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
-  const [scheduleMsg, setScheduleMsg] = useState("");
-  const [scheduleError, setScheduleError] = useState("");
-  const [videoLinkDrafts, setVideoLinkDrafts] = useState<Record<string, string>>({});
+  // Agenda de sesiones. La carga y las acciones viven en el hook, compartido con
+  // "Agenda clínica": aquí solo se lee lo que expone.
+  const agenda = useAgenda("therapist");
+  const sessions = agenda.sesiones;
+  const sessionsLoading = agenda.cargando;
 
   // Badge global de mensajes no leídos (se muestra en el ítem "Mensajes" del sidebar).
   const [unreadMessages, setUnreadMessages] = useState(0);
 
   // Sección activa del sidebar. Sustituye a la navegación por scroll del layout anterior.
   const [section, setSection] = useState("inicio");
+
+  // Centro de novedades: única fuente de los badges del menú y de la tarjeta de
+  // acciones pendientes. Ninguna pantalla vuelve a contar por su cuenta.
+  const novedades = useNovedades("therapist", profile.id);
 
   // Propuestas de contenido escritas por este terapeuta.
   const [myContent, setMyContent] = useState<ContentItem[]>([]);
@@ -136,7 +136,6 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
       }
     }
     fetchDashboardData();
-    fetchSessions();
     refreshMyContent().catch((err) =>
       console.error("[TherapistDashboard] Error cargando mis propuestas:", err),
     );
@@ -168,74 +167,6 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
       supabase.removeChannel(unreadChannel);
     };
   }, [profile.id]);
-
-  async function fetchSessions() {
-    setSessionsLoading(true);
-    try {
-      const data = await getTherapistSessions(profile.id);
-      setSessions(data);
-    } catch (err) {
-      console.error("[TherapistDashboard] Error cargando agenda:", err);
-    } finally {
-      setSessionsLoading(false);
-    }
-  }
-
-  async function handleScheduleSession(e: React.FormEvent) {
-    e.preventDefault();
-    setScheduleMsg("");
-    setScheduleError("");
-
-    if (!schedulePatientId || !scheduleDateTime) {
-      setScheduleError("Selecciona un paciente y una fecha/hora.");
-      return;
-    }
-
-    setScheduleSubmitting(true);
-    try {
-      await createSession({
-        patientId: schedulePatientId,
-        therapistId: profile.id,
-        scheduledAt: new Date(scheduleDateTime).toISOString(),
-        durationMinutes: scheduleDuration,
-        videoCallLink: scheduleVideoLink || null,
-      });
-      setScheduleMsg("Sesión programada correctamente.");
-      setSchedulePatientId("");
-      setScheduleDateTime("");
-      setScheduleDuration(45);
-      setScheduleVideoLink("");
-      await fetchSessions();
-      setTimeout(() => setScheduleMsg(""), 3000);
-    } catch (err) {
-      setScheduleError("No se pudo programar la sesión. Verifica tu conexión.");
-      console.error(err);
-    } finally {
-      setScheduleSubmitting(false);
-    }
-  }
-
-  async function handleStatusChange(sessionId: string, status: SessionStatus) {
-    try {
-      await updateSessionStatus(sessionId, status);
-      setSessions((prev) => prev.map((s) => (s.id === sessionId ? { ...s, status } : s)));
-    } catch (err) {
-      console.error("[TherapistDashboard] Error actualizando estado de sesión:", err);
-    }
-  }
-
-  async function handleSaveVideoLink(sessionId: string) {
-    const link = videoLinkDrafts[sessionId];
-    if (!link) return;
-    try {
-      await updateSessionVideoLink(sessionId, link);
-      setSessions((prev) =>
-        prev.map((s) => (s.id === sessionId ? { ...s, video_call_link: link } : s)),
-      );
-    } catch (err) {
-      console.error("[TherapistDashboard] Error guardando enlace de videollamada:", err);
-    }
-  }
 
   // Carga las alertas de crisis pendientes (status "high_priority") de los pacientes asignados a
   // este terapeuta. clinical_alerts no guarda therapist_id directamente, así que cruzamos por
@@ -345,22 +276,29 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
   const NAV: ShellNavItem[] = [
     { key: "inicio", label: "Inicio", icon: Home, badge: crisisAlerts.length },
     { key: "pacientes", label: "Pacientes", icon: Users },
-    { key: "agenda", label: "Agenda", icon: Calendar },
+    { key: "agenda", label: "Agenda", icon: Calendar, badge: novedades.porClave.citas },
     { key: "historia", label: "Historia Clínica", icon: FileText },
     { key: "documentos", label: "Documentos Clínicos", icon: FolderOpen },
     { key: "mensajes", label: "Mensajes", icon: MessageCircle, badge: unreadMessages },
-    { key: "contenido", label: "Contenido", icon: PenLine },
+    {
+      key: "solicitudes",
+      label: "Solicitudes",
+      icon: UserPlus,
+      badge: novedades.porClave.solicitudes,
+    },
+    { key: "activos", label: "Pacientes activos", icon: Activity },
+    { key: "contenido", label: "Contenido", icon: PenLine, badge: novedades.porClave.contenido },
   ];
-  const BOTTOM_NAV: ShellNavItem[] = [
-    { key: "perfil", label: "Mi Perfil", icon: UserCircle },
-  ];
+  const BOTTOM_NAV: ShellNavItem[] = [{ key: "perfil", label: "Mi Perfil", icon: UserCircle }];
   const TITLES: Record<string, string> = {
     inicio: `Hola, ${displayName.split(" ")[0]}`,
     pacientes: "Mis pacientes",
-    agenda: "Agenda de sesiones",
+    agenda: "Agenda",
     historia: "Historia clínica",
     documentos: "Documentos clínicos",
     mensajes: "Mensajes",
+    solicitudes: "Solicitudes recibidas",
+    activos: "Pacientes activos",
     contenido: "Escribir contenido",
     perfil: "Mi perfil profesional",
   };
@@ -453,7 +391,10 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                   </div>
                   <span className="shrink-0 inline-flex items-center gap-1.5 text-xs font-bold text-primary">
                     Ver ficha
-                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                    <ArrowRight
+                      size={14}
+                      className="transition-transform group-hover:translate-x-1"
+                    />
                   </span>
                 </Link>
               </li>
@@ -543,7 +484,10 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
             </p>
             <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
               {selectedPrescriptions.map((sp) => (
-                <div key={sp.id} className="border-b border-primary/10 pb-3 last:border-0 last:pb-0">
+                <div
+                  key={sp.id}
+                  className="border-b border-primary/10 pb-3 last:border-0 last:pb-0"
+                >
                   <p className="text-sm font-bold text-slate-800">{sp.titulo}</p>
                   <p className="text-xs text-slate-600 italic mt-1 line-clamp-2">
                     "{sp.instruccion_paciente}"
@@ -566,174 +510,6 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
           ) : (
             <>
               <Send size={16} /> Enviar Prescripción
-            </>
-          )}
-        </button>
-      </form>
-    </div>
-  );
-
-  const sesionesListCard = (
-    <div className="card-neon-hover rounded-3xl glass-card p-6 border border-white/40">
-      <h3 className="text-sm font-bold text-primary mb-4">Sesiones programadas</h3>
-
-      {!sessionsLoading && sessions.length > 0 && (
-        <div className="mb-5">
-          <WeeklyAgenda
-            items={sessions.map((s) => ({
-              id: s.id,
-              scheduled_at: s.scheduled_at,
-              duration_minutes: s.duration_minutes,
-              status: s.status,
-              label: s.patient?.full_name || s.patient?.email || "Paciente",
-              video_call_link: s.video_call_link,
-            }))}
-          />
-        </div>
-      )}
-
-      {sessionsLoading ? (
-        <p className="text-sm text-muted-foreground animate-pulse">Cargando agenda...</p>
-      ) : sessions.length > 0 ? (
-        <ul className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-          {sessions.map((s) => {
-            const pat = s.patient;
-            return (
-              <li key={s.id} className="rounded-2xl border border-white/50 bg-white/50 p-4 space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-bold text-slate-800">
-                      {pat?.full_name || pat?.email || "Paciente"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(s.scheduled_at).toLocaleString([], {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      })}{" "}
-                      · {s.duration_minutes} min
-                    </p>
-                  </div>
-                  <select
-                    value={s.status}
-                    onChange={(e) => handleStatusChange(s.id, e.target.value as SessionStatus)}
-                    className="rounded-lg border border-white/50 bg-white/70 px-2 py-1 text-xs font-semibold text-primary focus:outline-none"
-                  >
-                    {SESSION_STATUS_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="url"
-                    placeholder="Enlace de videollamada"
-                    defaultValue={s.video_call_link ?? ""}
-                    onChange={(e) =>
-                      setVideoLinkDrafts((prev) => ({ ...prev, [s.id]: e.target.value }))
-                    }
-                    className="flex-1 rounded-lg border border-white/50 bg-white/70 px-2 py-1.5 text-xs focus:border-primary focus:outline-none"
-                  />
-                  <button
-                    onClick={() => handleSaveVideoLink(s.id)}
-                    className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-xs font-bold text-primary hover:bg-primary/20 transition-colors border border-primary/20"
-                  >
-                    <Video size={12} /> Guardar
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <div className="p-6 text-center border border-white/40 border-dashed rounded-2xl">
-          <p className="text-sm text-muted-foreground">No hay sesiones programadas todavía.</p>
-        </div>
-      )}
-    </div>
-  );
-
-  const programarSesionCard = (
-    <div className="card-neon-hover rounded-3xl glass-card p-6 border border-white/40">
-      <h3 className="text-sm font-bold text-primary mb-4">Programar nueva sesión</h3>
-      {scheduleMsg && (
-        <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-sm text-center font-medium">
-          {scheduleMsg}
-        </div>
-      )}
-      {scheduleError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm text-center font-medium">
-          {scheduleError}
-        </div>
-      )}
-      <form onSubmit={handleScheduleSession} className="space-y-4">
-        <div>
-          <label className="text-sm font-semibold text-primary">Paciente</label>
-          <select
-            required
-            value={schedulePatientId}
-            onChange={(e) => setSchedulePatientId(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm"
-          >
-            <option value="">-- Selecciona un paciente --</option>
-            {patients.map((p) => {
-              const pat = p.patient as any;
-              return (
-                <option key={p.patient_id} value={p.patient_id}>
-                  {pat?.full_name || pat?.email}
-                </option>
-              );
-            })}
-          </select>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-sm font-semibold text-primary">Fecha y hora</label>
-            <input
-              required
-              type="datetime-local"
-              value={scheduleDateTime}
-              onChange={(e) => setScheduleDateTime(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-primary">Duración (min)</label>
-            <input
-              type="number"
-              min={15}
-              step={15}
-              value={scheduleDuration}
-              onChange={(e) => setScheduleDuration(Number(e.target.value))}
-              className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm"
-            />
-          </div>
-        </div>
-        <div>
-          <label className="text-sm font-semibold text-primary">
-            Enlace de videollamada (opcional)
-          </label>
-          <input
-            type="url"
-            placeholder="https://meet.google.com/..."
-            value={scheduleVideoLink}
-            onChange={(e) => setScheduleVideoLink(e.target.value)}
-            className="mt-1 w-full rounded-xl border border-white/50 bg-white/50 backdrop-blur px-3 py-3 text-sm focus:border-primary focus:outline-none shadow-sm"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={scheduleSubmitting}
-          className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90 transition-transform hover:scale-[1.02] shadow-lg shadow-primary/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          {scheduleSubmitting ? (
-            <>
-              <Loader2 size={16} className="animate-spin" /> Programando...
-            </>
-          ) : (
-            <>
-              <Calendar size={16} /> Programar sesión
             </>
           )}
         </button>
@@ -800,9 +576,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
                   <FolderOpen size={20} strokeWidth={1.5} />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate font-bold text-primary">
-                    {pat?.full_name || pat?.email}
-                  </p>
+                  <p className="truncate font-bold text-primary">{pat?.full_name || pat?.email}</p>
                   <p className="text-xs text-muted-foreground">Ver documentos clínicos</p>
                 </div>
                 <ArrowRight
@@ -852,7 +626,8 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
       {myContent.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-white/40 p-8 text-center">
           <p className="text-sm text-muted-foreground">
-            Todavía no has propuesto contenido. Empieza por un tema que trabajes seguido en consulta.
+            Todavía no has propuesto contenido. Empieza por un tema que trabajes seguido en
+            consulta.
           </p>
         </div>
       ) : (
@@ -905,23 +680,9 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
   );
 
   // ── Mi Perfil profesional ─────────────────────────────────────────────────
-  // Estructura visual del perfil que más adelante alimentará la recomendación
-  // de terapeutas a pacientes (filtros por especialidad, enfoque, modalidad,
-  // idioma…). Hoy `profiles` solo tiene full_name, avatar_url, email y
-  // professional_card: el resto de campos NO existen en la base todavía, así
-  // que se muestran vacíos y marcados como pendientes en vez de inventar datos.
-  // Cuando exista la migración, cada campo pasa a leerse/escribirse aquí mismo.
-  const PERFIL_PENDIENTE: { label: string; hint: string }[] = [
-    { label: "Descripción profesional", hint: "Presentación breve para tus pacientes." },
-    { label: "Especialidades", hint: "Ej. ansiedad, duelo, neuropsicología." },
-    { label: "Enfoques terapéuticos", hint: "Ej. TCC, sistémico, humanista." },
-    { label: "Población atendida", hint: "Ej. adultos, adolescentes, adultos mayores." },
-    { label: "Modalidad", hint: "Virtual, presencial o mixta." },
-    { label: "Idiomas", hint: "Idiomas en los que atiendes." },
-    { label: "Formación", hint: "Títulos, posgrados y certificaciones." },
-    { label: "Redes profesionales", hint: "Perfiles públicos o sitio web." },
-  ];
-
+  // La identidad (nombre, foto, correo, tarjeta) vive en `profiles` y se muestra
+  // arriba. Los datos profesionales viven en `therapist_profiles` y los edita
+  // <TherapistProfileForm>: son la información que alimenta el matching.
   const perfilCard = (
     <div className="space-y-6">
       {/* Identidad: los únicos campos que hoy existen en profiles */}
@@ -965,40 +726,7 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         </div>
       </div>
 
-      {/* Campos del perfil público, aún sin respaldo en base de datos */}
-      <div className="card-neon-hover rounded-3xl glass-card border border-white/40 p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold text-primary">Perfil público</h2>
-            <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-              Esta información será la que vean los pacientes al buscar especialista, y la que use
-              el sistema para recomendarte según su motivo de consulta.
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
-            <Clock size={12} /> Edición próximamente
-          </span>
-        </div>
-
-        <dl className="mt-5 grid gap-3 sm:grid-cols-2">
-          {PERFIL_PENDIENTE.map(({ label, hint }) => (
-            <div
-              key={label}
-              className="rounded-2xl border border-dashed border-slate-200 bg-white/50 p-4"
-            >
-              <dt className="text-xs font-bold uppercase tracking-wider text-slate-400">{label}</dt>
-              <dd className="mt-1 text-sm text-slate-400 italic">Sin definir</dd>
-              <p className="mt-1 text-xs text-slate-400">{hint}</p>
-            </div>
-          ))}
-        </dl>
-
-        <p className="mt-5 rounded-2xl bg-slate-50 p-4 text-xs leading-relaxed text-slate-500">
-          Estos campos todavía no existen en la base de datos, por eso aparecen vacíos y no son
-          editables aún. La estructura ya está lista para conectarlos cuando se cree la migración
-          del perfil profesional.
-        </p>
-      </div>
+      <TherapistProfileForm />
     </div>
   );
 
@@ -1043,6 +771,8 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
 
   const inicioSection = (
     <div className="space-y-6">
+      {/* 0. Qué está esperando algo del profesional. Debajo de las alertas de
+             riesgo, que siguen siendo lo primero. */}
       {/* 1. Alertas de riesgo — integradas aquí; mantienen resolución y ficha */}
       {crisisAlerts.length > 0 && (
         <div>
@@ -1052,6 +782,13 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
           {alertasBlock}
         </div>
       )}
+
+      {/* Las claves del Notification Center no son claves de sección: "citas"
+          es una fuente de novedades y su sitio es la Agenda. */}
+      <AccionesPendientes
+        pendientes={novedades.pendientes}
+        onIr={(clave) => setSection(clave === "citas" ? "agenda" : clave)}
+      />
 
       {/* 2. Métricas clave */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -1186,17 +923,26 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
 
   const sectionContent: Record<string, React.ReactNode> = {
     inicio: inicioSection,
+    solicitudes: <SolicitudesRecibidas />,
+    activos: <PacientesActivos />,
     pacientes: (
       <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
         {pacientesListCard}
         {asignarTareaCard}
       </div>
     ),
+    // Una sola agenda. Antes eran dos secciones —"Agenda" y "Agenda clínica"—
+    // que leían lo mismo y hacían casi lo mismo; el profesional tenía que saber
+    // en cuál de las dos estaba lo que buscaba.
     agenda: (
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-        {sesionesListCard}
-        {programarSesionCard}
-      </div>
+      <AgendaClinica
+        agenda={agenda}
+        therapistId={profile.id}
+        pacientes={patients.map((p) => {
+          const pat = p.patient as { full_name?: string; email?: string } | null;
+          return { id: p.patient_id, nombre: pat?.full_name || pat?.email || "Paciente" };
+        })}
+      />
     ),
     historia: (
       <div className="space-y-6">
@@ -1242,9 +988,12 @@ export function TherapistDashboard({ profile, onLogout }: Props) {
         userSubtitle="Terapeuta"
         title={TITLES[section] ?? "Inicio"}
         topbarRight={
-          <span className="hidden sm:inline-flex items-center rounded-full border border-blue-200 bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
-            Terapeuta
-          </span>
+          <>
+            <NotificacionesBadge />
+            <span className="hidden sm:inline-flex items-center rounded-full border border-blue-200 bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700">
+              Terapeuta
+            </span>
+          </>
         }
       >
         {sectionContent[section] ?? inicioSection}

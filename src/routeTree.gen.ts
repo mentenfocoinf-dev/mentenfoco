@@ -11,7 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreNosotrosRouteImport } from './routes/sobre-nosotros'
 import { Route as RecursosRouteImport } from './routes/recursos'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NuevaContrasenaRouteImport } from './routes/nueva-contrasena'
+import { Route as NotificacionesRouteImport } from './routes/notificaciones'
 import { Route as MembresiaRouteImport } from './routes/membresia'
 import { Route as LineasDeCrisisRouteImport } from './routes/lineas-de-crisis'
 import { Route as IngresaRouteImport } from './routes/ingresa'
@@ -33,6 +35,7 @@ import { Route as TestsSlugRouteImport } from './routes/tests.$slug'
 import { Route as ServiciosSlugRouteImport } from './routes/servicios.$slug'
 import { Route as PacientesPatientIdRouteImport } from './routes/pacientes.$patientId'
 import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
+import { Route as ConversacionRelationshipIdRouteImport } from './routes/conversacion.$relationshipId'
 import { Route as ContenidoSlugRouteImport } from './routes/contenido.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 
@@ -46,9 +49,19 @@ const RecursosRoute = RecursosRouteImport.update({
   path: '/recursos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NuevaContrasenaRoute = NuevaContrasenaRouteImport.update({
   id: '/nueva-contrasena',
   path: '/nueva-contrasena',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificacionesRoute = NotificacionesRouteImport.update({
+  id: '/notificaciones',
+  path: '/notificaciones',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembresiaRoute = MembresiaRouteImport.update({
@@ -156,6 +169,12 @@ const GuiasGuiaIdRoute = GuiasGuiaIdRouteImport.update({
   path: '/guias/$guiaId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ConversacionRelationshipIdRoute =
+  ConversacionRelationshipIdRouteImport.update({
+    id: '/conversacion/$relationshipId',
+    path: '/conversacion/$relationshipId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ContenidoSlugRoute = ContenidoSlugRouteImport.update({
   id: '/contenido/$slug',
   path: '/contenido/$slug',
@@ -182,11 +201,14 @@ export interface FileRoutesByFullPath {
   '/ingresa': typeof IngresaRoute
   '/lineas-de-crisis': typeof LineasDeCrisisRoute
   '/membresia': typeof MembresiaRoute
+  '/notificaciones': typeof NotificacionesRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
+  '/onboarding': typeof OnboardingRoute
   '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
+  '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -210,11 +232,14 @@ export interface FileRoutesByTo {
   '/ingresa': typeof IngresaRoute
   '/lineas-de-crisis': typeof LineasDeCrisisRoute
   '/membresia': typeof MembresiaRoute
+  '/notificaciones': typeof NotificacionesRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
+  '/onboarding': typeof OnboardingRoute
   '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
+  '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -239,11 +264,14 @@ export interface FileRoutesById {
   '/ingresa': typeof IngresaRoute
   '/lineas-de-crisis': typeof LineasDeCrisisRoute
   '/membresia': typeof MembresiaRoute
+  '/notificaciones': typeof NotificacionesRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
+  '/onboarding': typeof OnboardingRoute
   '/recursos': typeof RecursosRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
+  '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -269,11 +297,14 @@ export interface FileRouteTypes {
     | '/ingresa'
     | '/lineas-de-crisis'
     | '/membresia'
+    | '/notificaciones'
     | '/nueva-contrasena'
+    | '/onboarding'
     | '/recursos'
     | '/sobre-nosotros'
     | '/blog/$slug'
     | '/contenido/$slug'
+    | '/conversacion/$relationshipId'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -297,11 +328,14 @@ export interface FileRouteTypes {
     | '/ingresa'
     | '/lineas-de-crisis'
     | '/membresia'
+    | '/notificaciones'
     | '/nueva-contrasena'
+    | '/onboarding'
     | '/recursos'
     | '/sobre-nosotros'
     | '/blog/$slug'
     | '/contenido/$slug'
+    | '/conversacion/$relationshipId'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -325,11 +359,14 @@ export interface FileRouteTypes {
     | '/ingresa'
     | '/lineas-de-crisis'
     | '/membresia'
+    | '/notificaciones'
     | '/nueva-contrasena'
+    | '/onboarding'
     | '/recursos'
     | '/sobre-nosotros'
     | '/blog/$slug'
     | '/contenido/$slug'
+    | '/conversacion/$relationshipId'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -354,11 +391,14 @@ export interface RootRouteChildren {
   IngresaRoute: typeof IngresaRoute
   LineasDeCrisisRoute: typeof LineasDeCrisisRoute
   MembresiaRoute: typeof MembresiaRoute
+  NotificacionesRoute: typeof NotificacionesRoute
   NuevaContrasenaRoute: typeof NuevaContrasenaRoute
+  OnboardingRoute: typeof OnboardingRoute
   RecursosRoute: typeof RecursosRoute
   SobreNosotrosRoute: typeof SobreNosotrosRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ContenidoSlugRoute: typeof ContenidoSlugRoute
+  ConversacionRelationshipIdRoute: typeof ConversacionRelationshipIdRoute
   GuiasGuiaIdRoute: typeof GuiasGuiaIdRoute
   PacientesPatientIdRoute: typeof PacientesPatientIdRoute
   ServiciosSlugRoute: typeof ServiciosSlugRoute
@@ -384,11 +424,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecursosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/nueva-contrasena': {
       id: '/nueva-contrasena'
       path: '/nueva-contrasena'
       fullPath: '/nueva-contrasena'
       preLoaderRoute: typeof NuevaContrasenaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notificaciones': {
+      id: '/notificaciones'
+      path: '/notificaciones'
+      fullPath: '/notificaciones'
+      preLoaderRoute: typeof NotificacionesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/membresia': {
@@ -538,6 +592,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GuiasGuiaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/conversacion/$relationshipId': {
+      id: '/conversacion/$relationshipId'
+      path: '/conversacion/$relationshipId'
+      fullPath: '/conversacion/$relationshipId'
+      preLoaderRoute: typeof ConversacionRelationshipIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contenido/$slug': {
       id: '/contenido/$slug'
       path: '/contenido/$slug'
@@ -570,11 +631,14 @@ const rootRouteChildren: RootRouteChildren = {
   IngresaRoute: IngresaRoute,
   LineasDeCrisisRoute: LineasDeCrisisRoute,
   MembresiaRoute: MembresiaRoute,
+  NotificacionesRoute: NotificacionesRoute,
   NuevaContrasenaRoute: NuevaContrasenaRoute,
+  OnboardingRoute: OnboardingRoute,
   RecursosRoute: RecursosRoute,
   SobreNosotrosRoute: SobreNosotrosRoute,
   BlogSlugRoute: BlogSlugRoute,
   ContenidoSlugRoute: ContenidoSlugRoute,
+  ConversacionRelationshipIdRoute: ConversacionRelationshipIdRoute,
   GuiasGuiaIdRoute: GuiasGuiaIdRoute,
   PacientesPatientIdRoute: PacientesPatientIdRoute,
   ServiciosSlugRoute: ServiciosSlugRoute,

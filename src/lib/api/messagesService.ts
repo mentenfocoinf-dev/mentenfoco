@@ -6,6 +6,8 @@
 // (patient_id, therapist_id); cada mensaje guarda quién lo envió (sender_id).
 // ============================================================================
 import { supabase } from "../supabase";
+import { trackEvent } from "./journeyService";
+import { getRelationship, type Relationship } from "./patientTherapistService";
 
 export interface Message {
   id: string;
@@ -27,29 +29,23 @@ export interface TherapistConversation {
 }
 
 // ── Conversación (par paciente↔terapeuta) ────────────────────────────────────
-export async function getConversation(
+export async function getConversationByPair(
   patientId: string,
   therapistId: string,
 ): Promise<Message[]> {
-  const { data, error } = await supabase
-    .from("messages")
-    .select("*")
-    .eq("patient_id", patientId)
-    .eq("therapist_id", therapistId)
-    .order("created_at", { ascending: true });
+  const { data, error } = await supabase.rpc("list_pair_messages", {
+    p_patient_id: patientId,
+    p_therapist_id: therapistId,
+  });
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return (data ?? []) as Message[];
 }
 
 // Terapeuta asignado a un paciente (o null si aún no tiene). Útil para que la UI del paciente
 // sepa con quién chatea sin traer toda la conversación.
 export async function getAssignedTherapistId(patientId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from("patient_therapist")
-    .select("therapist_id")
-    .eq("patient_id", patientId)
-    .maybeSingle();
-  return data?.therapist_id ?? null;
+  const { data } = await supabase.rpc("get_assigned_therapist");
+  return (data as string | null) ?? null;
 }
 
 // Conversación del paciente con su terapeuta asignado. Devuelve therapistId nulo
@@ -57,20 +53,16 @@ export async function getAssignedTherapistId(patientId: string): Promise<string 
 export async function getPatientConversation(
   patientId: string,
 ): Promise<{ therapistId: string | null; messages: Message[] }> {
-  const { data: assignment } = await supabase
-    .from("patient_therapist")
-    .select("therapist_id")
-    .eq("patient_id", patientId)
-    .maybeSingle();
-
-  const therapistId = assignment?.therapist_id ?? null;
+  // Lectura por función: el cliente ya no consulta patient_therapist.
+  const { data: asignado } = await supabase.rpc("get_assigned_therapist");
+  const therapistId = (asignado as string | null) ?? null;
   if (!therapistId) return { therapistId: null, messages: [] };
 
-  const messages = await getConversation(patientId, therapistId);
+  const messages = await getConversationByPair(patientId, therapistId);
   return { therapistId, messages };
 }
 
-export async function sendMessage(params: {
+export async function sendMessageByPair(params: {
   patientId: string;
   therapistId: string;
   senderId: string;
@@ -91,7 +83,7 @@ export async function sendMessage(params: {
 }
 
 // Marca como leídos los mensajes de la conversación que NO envió quien lee.
-export async function markConversationAsRead(
+export async function markConversationAsReadByPair(
   patientId: string,
   therapistId: string,
   readerId: string,
@@ -108,58 +100,140 @@ export async function markConversationAsRead(
 
 // ── Contadores de no leídos (para el badge global fuera de la pantalla de mensajes) ─────────────
 export async function getPatientUnreadCount(patientId: string): Promise<number> {
-  const { count, error } = await supabase
-    .from("messages")
-    .select("*", { count: "exact", head: true })
-    .eq("patient_id", patientId)
-    .neq("sender_id", patientId)
-    .is("read_at", null);
+  // La función cuenta los del propio usuario; el parámetro se conserva para no
+  // cambiar la firma de los consumidores.
+  void patientId;
+  const { data, error } = await supabase.rpc("count_my_unread_messages");
   if (error) throw new Error(error.message);
-  return count ?? 0;
+  return (data as number) ?? 0;
 }
 
 export async function getTherapistUnreadCount(therapistId: string): Promise<number> {
-  const { count, error } = await supabase
-    .from("messages")
-    .select("*", { count: "exact", head: true })
-    .eq("therapist_id", therapistId)
-    .neq("sender_id", therapistId)
-    .is("read_at", null);
+  void therapistId;
+  const { data, error } = await supabase.rpc("count_my_unread_messages");
   if (error) throw new Error(error.message);
-  return count ?? 0;
+  return (data as number) ?? 0;
 }
 
 // ── Bandeja del terapeuta ────────────────────────────────────────────────────
-// Resumen por paciente (último mensaje + no leídos). Se trae la lista de mensajes
-// del terapeuta con el nombre del paciente embebido y se reduce en el cliente.
+// El resumen por paciente —último mensaje y no leídos— lo agrega ahora la base:
+// antes se traían TODOS los mensajes del terapeuta al cliente para reducirlos
+// aquí, lo que además de inseguro movía mucha más información de la necesaria.
 export async function getTherapistConversations(
   therapistId: string,
 ): Promise<TherapistConversation[]> {
-  const { data, error } = await supabase
-    .from("messages")
-    .select(
-      `patient_id, sender_id, body, read_at, created_at,
-       patient:profiles!messages_patient_id_fkey (full_name, email)`,
-    )
-    .eq("therapist_id", therapistId)
-    .order("created_at", { ascending: false });
+  void therapistId; // la función filtra por auth.uid()
+  const { data, error } = await supabase.rpc("list_my_conversations");
   if (error) throw new Error(error.message);
+  return (data ?? []) as TherapistConversation[];
+}
 
-  const byPatient = new Map<string, TherapistConversation>();
-  for (const row of (data ?? []) as any[]) {
-    const existing = byPatient.get(row.patient_id);
-    if (!existing) {
-      byPatient.set(row.patient_id, {
-        patient_id: row.patient_id,
-        patient_name: row.patient?.full_name || row.patient?.email || "Paciente",
-        last_message: row.body,
-        last_message_at: row.created_at,
-        unread_count:
-          row.sender_id !== therapistId && row.read_at === null ? 1 : 0,
-      });
-    } else if (row.sender_id !== therapistId && row.read_at === null) {
-      existing.unread_count += 1;
-    }
-  }
-  return Array.from(byPatient.values());
+// ============================================================================
+// Conversación atada a la relación formal.
+//
+// Las funciones de arriba son las del modelo anterior, donde la conversación
+// era el PAR (paciente, terapeuta): siguen ahí porque cinco componentes las
+// usan, y llevan el sufijo `ByPair` para que no se confundan con estas.
+//
+// Estas cuatro trabajan sobre `relationship_id`, que es lo correcto: dos
+// procesos distintos con el mismo profesional son dos conversaciones, no una.
+//
+// Las reglas viven en la base:
+//   · `sender_id` se ignora si llega del cliente — lo pone auth.uid();
+//   · solo escriben las dos partes, y solo con la relación activa;
+//   · un mensaje enviado no se edita ni se borra: del UPDATE solo pasa read_at.
+// ============================================================================
+
+/** Un mensaje dentro de una conversación. */
+export interface ConversationMessage {
+  id: string;
+  relationshipId: string;
+  senderId: string;
+  message: string;
+  readAt: string | null;
+  createdAt: string;
+}
+
+const MAX_MENSAJE = 4000;
+
+const MENSAJES_DE_ERROR: [string, string][] = [
+  ["MESSAGE_APPEND_ONLY", "Un mensaje enviado no se puede borrar."],
+  ["MESSAGE_IMMUTABLE", "Un mensaje enviado no se puede editar."],
+  ["MESSAGE_RELATIONSHIP_CLOSED", "Esta conversación está cerrada."],
+  ["MESSAGE_NO_RELATIONSHIP", "Esta conversación no existe."],
+  ["MESSAGE_FORBIDDEN", "Esta conversación no es tuya."],
+];
+
+function traducirMensaje(mensaje: string): Error {
+  const encontrado = MENSAJES_DE_ERROR.find(([codigo]) => mensaje.includes(codigo));
+  return new Error(encontrado ? encontrado[1] : "No se pudo completar la operación.");
+}
+
+/**
+ * Envía un mensaje.
+ *
+ * No recibe remitente: quién escribe lo decide la sesión en la base. Un
+ * parámetro de autoría sería una puerta para firmar en nombre de otro.
+ */
+export async function sendMessage(relationshipId: string, message: string): Promise<void> {
+  const texto = message.trim();
+  if (!texto) throw new Error("El mensaje no puede estar vacío.");
+
+  const { error } = await supabase.from("messages").insert({
+    relationship_id: relationshipId,
+    body: texto.slice(0, MAX_MENSAJE),
+  });
+  if (error) throw traducirMensaje(error.message);
+
+  trackEvent("MESSAGE_SENT", { resource_id: relationshipId, resource_type: "conversacion" });
+}
+
+/** Los mensajes de una conversación, en orden cronológico. */
+export async function listMessages(relationshipId: string): Promise<ConversationMessage[]> {
+  const { data, error } = await supabase.rpc("list_relationship_messages", {
+    p_relationship_id: relationshipId,
+  });
+  if (error || !data) return [];
+
+  return (data as Record<string, string | null>[]).map((m) => ({
+    id: m.id as string,
+    relationshipId: m.relationship_id as string,
+    senderId: m.sender_id as string,
+    message: (m.body as string) ?? "",
+    readAt: m.read_at,
+    createdAt: m.created_at as string,
+  }));
+}
+
+/** Marca como leídos los mensajes que NO envió quien lee. */
+export async function markAsRead(relationshipId: string): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const lector = session?.user?.id;
+  if (!lector) return;
+
+  const { error } = await supabase
+    .from("messages")
+    .update({ read_at: new Date().toISOString() })
+    .eq("relationship_id", relationshipId)
+    .neq("sender_id", lector)
+    .is("read_at", null);
+  if (error) throw traducirMensaje(error.message);
+
+  trackEvent("MESSAGE_READ", { resource_id: relationshipId, resource_type: "conversacion" });
+}
+
+/**
+ * La conversación completa: con quién es y qué se ha dicho.
+ *
+ * `relationship` en `null` significa que no existe o que quien pregunta no es
+ * parte — la base no distingue entre las dos cosas, y hace bien.
+ */
+export async function getConversation(
+  relationshipId: string,
+): Promise<{ relationship: Relationship | null; messages: ConversationMessage[] }> {
+  const relationship = await getRelationship(relationshipId);
+  if (!relationship) return { relationship: null, messages: [] };
+  return { relationship, messages: await listMessages(relationshipId) };
 }

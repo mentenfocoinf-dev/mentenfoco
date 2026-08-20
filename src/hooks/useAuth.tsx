@@ -5,9 +5,15 @@ import { shouldRedirectToGate, getClinicalConsentState } from "../lib/api";
 
 // Logger condicional: solo activo en desarrollo
 const log = {
-  info: (...args: unknown[]) => { if (import.meta.env.DEV) console.info(...args); },
-  warn: (...args: unknown[]) => { if (import.meta.env.DEV) console.warn(...args); },
-  error: (...args: unknown[]) => { if (import.meta.env.DEV) console.error(...args); },
+  info: (...args: unknown[]) => {
+    if (import.meta.env.DEV) console.info(...args);
+  },
+  warn: (...args: unknown[]) => {
+    if (import.meta.env.DEV) console.warn(...args);
+  },
+  error: (...args: unknown[]) => {
+    if (import.meta.env.DEV) console.error(...args);
+  },
 };
 
 interface AuthContextType {
@@ -90,10 +96,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!localSessionToken || localSessionToken !== profileData.session_token) {
         localSessionToken = crypto.randomUUID();
         localStorage.setItem("mf_session_token", localSessionToken);
-        await supabase
-          .from("profiles")
-          .update({ session_token: localSessionToken })
-          .eq("id", userId);
+        // Por función y no por UPDATE directo: `session_token` dejó de ser una
+        // columna escribible desde el cliente. Con la columna abierta, cualquier
+        // usuario podía reescribir el token de OTRA cuenta —comprobado— y
+        // echarla de su sesión.
+        const { error: tokenError } = await supabase.rpc("claim_session_token", {
+          p_token: localSessionToken,
+        });
+        if (tokenError) {
+          log.error("[useAuth] No se pudo reclamar el dispositivo:", tokenError.message);
+        }
         profileData.session_token = localSessionToken;
       }
 

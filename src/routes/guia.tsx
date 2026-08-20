@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { listGuides } from "../lib/api";
+import { trackEvent } from "../lib/api";
 
 export const Route = createFileRoute("/guia")({
   head: () => ({
@@ -39,6 +40,11 @@ export const Route = createFileRoute("/guia")({
 const PINNED_PILL_COUNT = 5;
 
 function Guia() {
+  // Journey Engine: registro de vista. No bloquea nada y su fallo es silencioso.
+  useEffect(() => {
+    trackEvent("GUIDE_VIEW");
+  }, []);
+
   const { guias } = Route.useLoaderData();
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [moreOpen, setMoreOpen] = useState(false);

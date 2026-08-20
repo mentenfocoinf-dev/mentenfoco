@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroImagen } from "../components/HeroImagen";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, Check, Minus } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import {
+  trackEvent,
   MEMBERSHIP_TIERS,
   PLAN_BENEFITS,
   benefitsForPlan,
@@ -14,7 +15,7 @@ import {
 import type { PlanType } from "../lib/supabase";
 import { FlipPlanCard } from "../components/plans/FlipPlanCard";
 
-/** Cabecera de cada tarjeta de membresía. Ver public/planes/. */
+/** Cabecera de cada tarjeta de etapa. Ver public/planes/. */
 const MEMBERSHIP_IMAGES: Record<string, string> = {
   integral: "/planes/mi-equilibrio.jpg",
   premium: "/planes/mi-mundo-en-foco.jpg",
@@ -23,15 +24,15 @@ const MEMBERSHIP_IMAGES: Record<string, string> = {
 export const Route = createFileRoute("/membresia")({
   head: () => ({
     meta: [
-      { title: "Membresía — Mente en Foco" },
+      { title: "Planes de acompañamiento — Mente en Foco" },
       {
         name: "description",
-        content: "Suscríbete y recibe beneficios exclusivos cada mes sin costo adicional.",
+        content: "Cada etapa de acompañamiento suma recursos, herramientas y contenido para tu proceso.",
       },
-      { property: "og:title", content: "Membresía — Mente en Foco" },
+      { property: "og:title", content: "Planes de acompañamiento — Mente en Foco" },
       {
         property: "og:description",
-        content: "Suscríbete y recibe beneficios exclusivos cada mes sin costo adicional.",
+        content: "Cada etapa de acompañamiento suma recursos, herramientas y contenido para tu proceso.",
       },
     ],
   }),
@@ -43,7 +44,7 @@ const benefits = [
     title: "Alex IA (Próximamente)",
     desc: "Agente inteligente especializado en salud mental — en desarrollo, disponible próximamente.",
   },
-  { title: "Guías premium", desc: "Acceso ilimitado a más de 50 guías exclusivas cada mes." },
+  { title: "Guías clínicas", desc: "Acceso a la biblioteca completa de guías de nuestro equipo." },
   { title: "Webinars en vivo", desc: "2 webinars mensuales con nuestros especialistas." },
   {
     title: "Meditaciones guiadas",
@@ -51,7 +52,7 @@ const benefits = [
   },
   { title: "Test psicológicos", desc: "Evaluaciones validadas con resultados detallados." },
   { title: "Comunidad privada", desc: "Espacio seguro moderado por psicólogos." },
-  { title: "Descuentos exclusivos", desc: "20% en sesiones individuales y talleres." },
+  { title: "Sesiones y talleres", desc: "Condiciones preferentes en sesiones individuales y talleres." },
 ];
 
 // Columnas de la tabla comparativa de niveles de acceso. Los labels se leen de
@@ -59,13 +60,17 @@ const benefits = [
 // de /asesoramiento usen siempre el mismo nombre — quedaban desalineadas si se
 // hardcodeaban por separado y solo se renombraba una de las dos.
 const COMPARE_PLANS: { plan: PlanType; label: string }[] = [
-  { plan: "free", label: PLAN_LABELS.free.replace("Plan ", "") },
+  { plan: "free", label: PLAN_LABELS.free },
   { plan: "esencial", label: PLAN_LABELS.esencial },
   { plan: "integral", label: PLAN_LABELS.integral },
   { plan: "premium", label: PLAN_LABELS.premium },
 ];
 
 function Membresia() {
+  useEffect(() => {
+    trackEvent("PLAN_VIEWED", { resource_type: "contenido" });
+  }, []);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const { profile } = useAuth();
 
@@ -87,8 +92,8 @@ function Membresia() {
             Más recursos, mismo compromiso
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Suscríbete y recibe cada mes contenido exclusivo, herramientas y beneficios que
-            potencian tu bienestar emocional.
+            Cada etapa suma contenido, herramientas y acompañamiento para el momento en el que
+            estás.
           </p>
         </div>
       </HeroImagen>
@@ -101,9 +106,8 @@ function Membresia() {
           Compara los niveles de acceso
         </h2>
         <p className="mb-8 text-center text-sm text-muted-foreground max-w-2xl mx-auto">
-          Cada nivel incluye todo lo del nivel anterior. La membresía mensual te da el nivel{" "}
-          {PLAN_LABELS.integral} de contenido y la anual desbloquea {PLAN_LABELS.premium}{" "}
-          completo.
+          Cada etapa incluye todo lo de la anterior. La opción mensual te acompaña en{" "}
+          {PLAN_LABELS.integral} y la anual, en {PLAN_LABELS.premium} completo.
         </p>
         <div className="overflow-x-auto rounded-3xl border border-white/60 glass-card shadow-sm">
           <table className="w-full text-sm">

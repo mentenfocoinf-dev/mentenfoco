@@ -37,11 +37,9 @@ export function PsychometricScaleModal({ scaleType, patientId, onClose, onSaved 
 
     try {
       // Buscar terapeuta asignado (puede no haber ninguno todavía)
-      const { data: assignment } = await supabase
-        .from("patient_therapist")
-        .select("therapist_id")
-        .eq("patient_id", patientId)
-        .maybeSingle();
+      // Por función: la base filtra por sesión, no este componente.
+      const { data: asignado } = await supabase.rpc("get_assigned_therapist");
+      const assignment = asignado ? { therapist_id: asignado as string } : null;
 
       const { data: inserted, error: insertError } = await supabase
         .from("psychometric_evaluations")

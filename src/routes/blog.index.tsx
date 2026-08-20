@@ -14,6 +14,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Clock, Loader2 } from "lucide-react";
 import { listBlogArticles } from "../lib/api";
+import { useEffect } from "react";
+import { trackEvent } from "../lib/api";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({
@@ -41,6 +43,11 @@ export const Route = createFileRoute("/blog/")({
 });
 
 function BlogHub() {
+  // Journey Engine: registro de vista. No bloquea nada y su fallo es silencioso.
+  useEffect(() => {
+    trackEvent("BLOG_VIEW");
+  }, []);
+
   const { articulos } = Route.useLoaderData();
 
   return (

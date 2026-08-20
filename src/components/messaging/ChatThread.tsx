@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Send, Loader2 } from "lucide-react";
 import { supabase } from "../../lib/supabase";
 import {
-  getConversation,
-  sendMessage,
-  markConversationAsRead,
+  getConversationByPair,
+  sendMessageByPair,
+  markConversationAsReadByPair,
   type Message,
 } from "../../lib/api";
 
@@ -50,10 +50,10 @@ export function ChatThread({
 
     async function load() {
       try {
-        const data = await getConversation(patientId, therapistId);
+        const data = await getConversationByPair(patientId, therapistId);
         if (cancelled) return;
         setMessages(data);
-        markConversationAsRead(patientId, therapistId, currentUserId)
+        markConversationAsReadByPair(patientId, therapistId, currentUserId)
           .then(() => onReadRef.current?.())
           .catch(() => {});
       } finally {
@@ -78,7 +78,7 @@ export function ChatThread({
           if (m.therapist_id !== therapistId) return;
           setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
           if (m.sender_id !== currentUserId) {
-            markConversationAsRead(patientId, therapistId, currentUserId)
+            markConversationAsReadByPair(patientId, therapistId, currentUserId)
               .then(() => onReadRef.current?.())
               .catch(() => {});
           }
@@ -102,7 +102,7 @@ export function ChatThread({
     if (!body || sending) return;
     setSending(true);
     try {
-      const msg = await sendMessage({ patientId, therapistId, senderId: currentUserId, body });
+      const msg = await sendMessageByPair({ patientId, therapistId, senderId: currentUserId, body });
       setMessages((prev) => (prev.some((x) => x.id === msg.id) ? prev : [...prev, msg]));
       setDraft("");
     } catch (err) {

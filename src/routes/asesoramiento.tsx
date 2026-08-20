@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroImagen } from "../components/HeroImagen";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Check,
   ClipboardList,
@@ -13,6 +13,7 @@ import { useAuth } from "../hooks/useAuth";
 import { FlipPlanCard } from "../components/plans/FlipPlanCard";
 import { ProcesoInfografia, type PasoProceso } from "../components/ProcesoInfografia";
 import {
+  trackEvent,
   PLAN_OFFERS,
   DEFAULT_HIGHLIGHTED_OFFER,
   PLAN_BENEFITS,
@@ -23,9 +24,9 @@ import {
 import type { PlanType } from "../lib/supabase";
 
 // Columnas de la tabla comparativa. Labels desde PLAN_LABELS para no duplicar
-// nombres (misma fuente que /membresia).
+// nombres (misma fuente que la página de planes).
 const COMPARE_PLANS: { plan: PlanType; label: string }[] = [
-  { plan: "free", label: PLAN_LABELS.free.replace("Plan ", "") },
+  { plan: "free", label: PLAN_LABELS.free },
   { plan: "esencial", label: PLAN_LABELS.esencial },
   { plan: "integral", label: PLAN_LABELS.integral },
   { plan: "premium", label: PLAN_LABELS.premium },
@@ -64,11 +65,11 @@ const PROCESO: PasoProceso[] = [
 const PLAN_FAQ = [
   {
     q: "¿Puedo cambiar de plan después?",
-    a: "Sí. Puedes subir de plan cuando quieras desde tu portal para desbloquear más sesiones y contenido.",
+    a: "Sí. Puedes ampliar tu acompañamiento cuando quieras desde tu portal, y sumar más sesiones y contenido.",
   },
   {
     q: "¿Qué incluye cada plan exactamente?",
-    a: "La tabla comparativa de arriba muestra qué desbloquea cada nivel. Cada plan incluye todo lo del nivel anterior.",
+    a: "La tabla comparativa de arriba muestra qué incluye cada etapa. Cada una contiene todo lo de la anterior.",
   },
   {
     q: "¿La cuenta gratuita da acceso a sesiones?",
@@ -102,7 +103,7 @@ const PLAN_FEATURES: Record<string, string[]> = {
     "Valoración inicial completa y cercana",
     "Material de apoyo práctico para tu día a día",
     "Seguimiento continuo por nuestra plataforma",
-    "Acceso a las guías clínicas premium",
+    "Acceso a la biblioteca completa de guías clínicas",
   ],
   integral: [
     "4 sesiones terapéuticas al mes",
@@ -124,6 +125,10 @@ const PLAN_FEATURES: Record<string, string[]> = {
 };
 
 function Asesoramiento() {
+  useEffect(() => {
+    trackEvent("PLAN_VIEWED", { resource_type: "asesoramiento" });
+  }, []);
+
   // Deriva el nombre del plan destacado en vez de repetirlo aquí: un nombre
   // hardcodeado ("Integral") dejó de coincidir con plan.name la última vez que
   // se renombraron los planes, y ninguna tarjeta quedaba preseleccionada.

@@ -12,8 +12,8 @@ import {
   ArrowRight,
   FileText,
   TrendingUp,
-  Video,
-  Clock,
+  Compass,
+  UserPlus,
   MessageCircle,
   Stethoscope,
   Library,
@@ -34,7 +34,14 @@ import { ClinicalConsentCard } from "./ClinicalConsentCard";
 import { MoodTrackerCard } from "./MoodTrackerCard";
 import { TrendChart } from "./TrendChart";
 import { DashboardShell, type ShellNavItem } from "./DashboardShell";
+import { MiCaminoSection } from "./MiCaminoSection";
+import { MisSolicitudes } from "./MisSolicitudes";
+import { AgendaPaciente } from "./AgendaPaciente";
+import { useNovedades } from "../../hooks/useNovedades";
+import { NotificacionesBadge } from "../NotificacionesBadge";
+import { TuTerapeutaCard } from "./TuTerapeutaCard";
 import {
+  trackEvent,
   PLAN_LABELS,
   PLAN_OFFERS,
   MEMBERSHIP_TIERS,
@@ -52,14 +59,6 @@ import {
   type PsychometricEvaluation,
   type TherapySession,
 } from "../../lib/api";
-
-const SESSION_STATUS_LABELS: Record<string, string> = {
-  programada: "Programada",
-  confirmada: "Confirmada",
-  completada: "Completada",
-  cancelada: "Cancelada",
-  no_asistio: "No asistió",
-};
 
 const SCALE_LABELS: Record<string, string> = {
   phq9: "PHQ-9 (Depresión)",
@@ -99,6 +98,9 @@ export function PatientDashboard({ profile, onLogout }: Props) {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [serviceRequestOpen, setServiceRequestOpen] = useState(false);
   const [section, setSection] = useState("inicio");
+
+  // Mismo centro de novedades que el portal del terapeuta.
+  const novedades = useNovedades("patient", profile.id);
 
   const isFreePlan = profile.plan_type === "free";
 
@@ -178,7 +180,7 @@ export function PatientDashboard({ profile, onLogout }: Props) {
 
   const displayName = profile.full_name ?? profile.id.slice(0, 8);
   const plan = profile.plan_type ?? "free";
-  const planLabel = PLAN_LABELS[plan] ?? "Plan Gratuito";
+  const planLabel = PLAN_LABELS[plan] ?? PLAN_LABELS.free;
   const isSubscriptionActive = profile.subscription_status === "active";
   const needsPlan = plan === "free" || !isSubscriptionActive;
 
@@ -196,8 +198,19 @@ export function PatientDashboard({ profile, onLogout }: Props) {
 
   const NAV: ShellNavItem[] = [
     { key: "inicio", label: "Inicio", icon: Home },
+    // Continuidad: lo que la persona ya empezó, antes que el seguimiento clínico.
+    { key: "camino", label: "Mi camino", icon: Compass },
+    {
+      key: "solicitudes",
+      label: "Mis solicitudes",
+      icon: UserPlus,
+      badge: novedades.porClave.solicitudes,
+    },
     { key: "progreso", label: "Mi progreso", icon: TrendingUp },
-    { key: "agenda", label: "Agenda", icon: Calendar },
+    // Una sola Agenda. "Mis citas" enseñaba las solicitudes y "Agenda" las
+    // sesiones: ninguna contaba el ciclo entero, y una contraoferta no tenía
+    // dónde aparecer.
+    { key: "agenda", label: "Agenda", icon: Calendar, badge: novedades.porClave.citas },
     { key: "mensajes", label: "Mensajes", icon: MessageCircle, badge: unreadMessages },
     { key: "recursos", label: "Recursos", icon: BookOpen },
     { key: "plan", label: "Mi plan", icon: Sparkles },
@@ -209,6 +222,9 @@ export function PatientDashboard({ profile, onLogout }: Props) {
   ];
   const TITLES: Record<string, string> = {
     inicio: `Hola, ${displayName.split(" ")[0]}`,
+    camino: "Mi camino",
+    solicitudes: "Mis solicitudes de contacto",
+    citas: "Mis citas",
     progreso: "Mi progreso",
     agenda: "Agenda",
     mensajes: "Mensajes",
@@ -240,49 +256,21 @@ export function PatientDashboard({ profile, onLogout }: Props) {
           }))}
         />
       </div>
-      {upcomingSessions.length > 0 ? (
-        <div className="space-y-3">
-          {upcomingSessions.slice(0, 5).map((s) => (
-            <div
-              key={s.id}
-              className="flex flex-col gap-2 rounded-2xl border border-white/50 bg-white/50 p-4 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div>
-                <p className="text-sm font-bold text-slate-800">
-                  {new Date(s.scheduled_at).toLocaleString([], {
-                    dateStyle: "full",
-                    timeStyle: "short",
-                  })}
-                </p>
-                <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock size={12} /> {s.duration_minutes} min ·{" "}
-                  {SESSION_STATUS_LABELS[s.status] ?? s.status}
-                </p>
-              </div>
-              {s.video_call_link ? (
-                <a
-                  href={s.video_call_link}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/20 transition-colors border border-primary/20"
-                >
-                  <Video size={14} /> Unirme a la videollamada
-                </a>
-              ) : (
-                <span className="shrink-0 text-xs text-slate-400 italic">
-                  Enlace de videollamada aún no disponible
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="rounded-2xl border border-dashed border-slate-200 bg-white/40 p-4 text-center">
-          <p className="text-sm text-muted-foreground">
-            Aún no tienes sesiones programadas. Tu terapeuta las agenda desde su panel.
-          </p>
-        </div>
+      {/* Un vistazo, no una segunda agenda. La ficha de cada sesión —enlace,
+          estado, ciclo de vida— vive solo en Agenda: tenerla también aquí era
+          repetir el mismo hecho en dos sitios que podían no coincidir. */}
+      {upcomingSessions.length === 0 && (
+        <p className="mb-4 text-sm text-muted-foreground">
+          Aún no tienes sesiones programadas.
+        </p>
       )}
+      <button
+        type="button"
+        onClick={() => setSection("agenda")}
+        className="inline-flex items-center gap-1.5 rounded-xl border border-primary/20 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/10"
+      >
+        Ver mi agenda <ArrowRight size={14} />
+      </button>
     </div>
   );
 
@@ -297,12 +285,10 @@ export function PatientDashboard({ profile, onLogout }: Props) {
               : "bg-amber-50 border-amber-200 text-amber-700"
           }`}
         >
-          {isSubscriptionActive ? "Suscripción activa" : "Suscripción inactiva"}
+          {isSubscriptionActive ? "Acompañamiento activo" : "Acompañamiento en pausa"}
         </span>
       </div>
-      <p className="text-sm text-muted-foreground mb-4">
-        Esto es lo que incluye tu {planLabel.toLowerCase()}:
-      </p>
+      <p className="text-sm text-muted-foreground mb-4">Esto es lo que incluye {planLabel}:</p>
       <ul className="grid gap-2 sm:grid-cols-2">
         {included.map((b) => (
           <li key={b.label} className="flex items-start gap-2 text-sm" title={b.detail}>
@@ -343,11 +329,11 @@ export function PatientDashboard({ profile, onLogout }: Props) {
     <div className="rounded-3xl glass-card border border-primary/20 bg-primary/5 p-8">
       <div className="flex items-center gap-2 mb-1">
         <Sparkles size={20} className="text-amber-500" />
-        <h2 className="text-xl font-bold text-primary">Aún no tienes un plan activo</h2>
+        <h2 className="text-xl font-bold text-primary">Actualmente estás en {PLAN_LABELS.free}</h2>
       </div>
       <p className="text-sm text-muted-foreground mb-6 max-w-2xl">
-        Elige el acompañamiento que mejor se ajuste a tu momento. Puedes empezar con una membresía de
-        contenido o con un plan de asesoramiento con especialistas.
+        Cuando quieras dar el siguiente paso, elige la etapa que mejor se ajuste a tu momento.
+        Puedes avanzar hacia más contenido o hacia el acompañamiento con especialistas.
       </p>
       <div className="grid gap-4 md:grid-cols-3">
         {PLAN_OFFERS.map((offer) => (
@@ -355,7 +341,9 @@ export function PatientDashboard({ profile, onLogout }: Props) {
             key={offer.plan}
             href={buildCheckoutLink(offer.link, profile)}
             className={`group rounded-2xl border p-5 transition-all hover:-translate-y-0.5 hover:shadow-lg ${
-              offer.highlighted ? "border-primary/40 bg-white shadow-md" : "border-white/60 bg-white/60"
+              offer.highlighted
+                ? "border-primary/40 bg-white shadow-md"
+                : "border-white/60 bg-white/60"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -378,7 +366,9 @@ export function PatientDashboard({ profile, onLogout }: Props) {
         ))}
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-        <span className="text-muted-foreground">¿Prefieres solo el contenido de la plataforma?</span>
+        <span className="text-muted-foreground">
+          ¿Prefieres solo el contenido de la plataforma?
+        </span>
         {MEMBERSHIP_TIERS.map((t) => (
           <a
             key={t.name}
@@ -476,7 +466,16 @@ export function PatientDashboard({ profile, onLogout }: Props) {
           <summary className="flex cursor-pointer items-center justify-between p-4 text-sm font-semibold text-primary">
             <span>Ver historial completo ({evaluationHistory.length})</span>
             <span className="transition duration-300 group-open:-rotate-180">
-              <svg fill="none" height="18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="18">
+              <svg
+                fill="none"
+                height="18"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1.5"
+                viewBox="0 0 24 24"
+                width="18"
+              >
                 <path d="M6 9l6 6 6-6"></path>
               </svg>
             </span>
@@ -623,7 +622,16 @@ export function PatientDashboard({ profile, onLogout }: Props) {
                     Ver Historial de Tareas ({recommendations.length - 1})
                   </span>
                   <span className="transition duration-300 group-open:-rotate-180">
-                    <svg fill="none" height="24" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" viewBox="0 0 24 24" width="24">
+                    <svg
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.5"
+                      viewBox="0 0 24 24"
+                      width="24"
+                    >
                       <path d="M6 9l6 6 6-6"></path>
                     </svg>
                   </span>
@@ -722,7 +730,11 @@ export function PatientDashboard({ profile, onLogout }: Props) {
   const serviciosCard = (
     <div className="max-w-2xl">
       <button
-        onClick={() => setServiceRequestOpen(true)}
+        onClick={() => {
+          // Intención, no reserva: se registra al abrir, no al enviar.
+          trackEvent("SESSION_BOOKING_STARTED");
+          setServiceRequestOpen(true);
+        }}
         className="group w-full rounded-3xl border border-primary/20 bg-primary p-6 text-left shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 hover:shadow-xl hover:shadow-primary/30"
       >
         <div className="flex items-center gap-3">
@@ -742,8 +754,8 @@ export function PatientDashboard({ profile, onLogout }: Props) {
         </div>
       </button>
       <p className="mt-4 text-sm text-muted-foreground">
-        Estos servicios están por fuera de lo que incluye tu plan. Al solicitarlos, nuestro equipo te
-        contacta para coordinar la fecha y el costo.
+        Estos servicios están por fuera de lo que incluye tu plan. Al solicitarlos, nuestro equipo
+        te contacta para coordinar la fecha y el costo.
       </p>
     </div>
   );
@@ -826,6 +838,8 @@ export function PatientDashboard({ profile, onLogout }: Props) {
       {needsPlanBanner}
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
+          {/* Si no hay relación activa no se dibuja nada. */}
+          <TuTerapeutaCard />
           {recomendacionesCard}
           {agendaCard}
         </div>
@@ -839,6 +853,8 @@ export function PatientDashboard({ profile, onLogout }: Props) {
 
   const sectionContent: Record<string, React.ReactNode> = {
     inicio: inicioSection,
+    camino: <MiCaminoSection />,
+    solicitudes: <MisSolicitudes />,
     progreso: (
       <div className="space-y-6">
         {evaluacionesCard}
@@ -846,7 +862,7 @@ export function PatientDashboard({ profile, onLogout }: Props) {
         {anamnesisCard}
       </div>
     ),
-    agenda: agendaCard,
+    agenda: <AgendaPaciente />,
     mensajes: <PatientMessages patientId={profile.id} onRead={() => setUnreadMessages(0)} />,
     recursos: recursosCard,
     plan: (
@@ -872,9 +888,12 @@ export function PatientDashboard({ profile, onLogout }: Props) {
         userSubtitle={planLabel}
         title={TITLES[section] ?? "Inicio"}
         topbarRight={
-          <span className="hidden sm:inline-flex items-center rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
-            {planLabel}
-          </span>
+          <>
+            <NotificacionesBadge />
+            <span className="hidden sm:inline-flex items-center rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-xs font-semibold text-primary">
+              {planLabel}
+            </span>
+          </>
         }
       >
         {sectionContent[section] ?? inicioSection}
@@ -911,15 +930,10 @@ export function PatientDashboard({ profile, onLogout }: Props) {
         </div>
       )}
 
-      {upgradeOpen && (
-        <PlanUpgradeModal profile={profile} onClose={() => setUpgradeOpen(false)} />
-      )}
+      {upgradeOpen && <PlanUpgradeModal profile={profile} onClose={() => setUpgradeOpen(false)} />}
 
       {serviceRequestOpen && (
-        <ServiceRequestModal
-          patientId={profile.id}
-          onClose={() => setServiceRequestOpen(false)}
-        />
+        <ServiceRequestModal patientId={profile.id} onClose={() => setServiceRequestOpen(false)} />
       )}
 
       {(activeScale === "phq9" || activeScale === "gad7") && (

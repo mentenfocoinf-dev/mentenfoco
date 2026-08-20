@@ -13,6 +13,14 @@ export interface AgendaItem {
 
 interface Props {
   items: AgendaItem[];
+  /**
+   * Semana a mostrar. Si viene, el componente deja de navegar por su cuenta:
+   * manda quien lo monta. Sin ella conserva sus propios controles, que es como
+   * lo usa el panel del paciente.
+   */
+  semanaDe?: Date;
+  /** Pinchar un día lo abre en la vista de día de quien lo monta. */
+  onElegirDia?: (dia: Date) => void;
 }
 
 const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -45,8 +53,10 @@ function sameDay(a: Date, b: Date): boolean {
 // Vista semanal reutilizable (paciente o terapeuta) sobre la agenda ya verificada
 // (therapy_sessions). Solo lectura + navegación entre semanas — la edición sigue viviendo
 // en la lista/formulario existente de cada dashboard.
-export function WeeklyAgenda({ items }: Props) {
-  const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
+export function WeeklyAgenda({ items, semanaDe, onElegirDia }: Props) {
+  const [weekStartPropio, setWeekStart] = useState(() => startOfWeek(new Date()));
+  const controlado = semanaDe !== undefined;
+  const weekStart = controlado ? startOfWeek(semanaDe) : weekStartPropio;
 
   const days = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
@@ -77,39 +87,44 @@ export function WeeklyAgenda({ items }: Props) {
 
   return (
     <div>
-      <div className="mb-3 flex items-center justify-between">
-        <button
-          onClick={() => goToWeek(-7)}
-          className="rounded-lg border border-white/50 bg-white/50 p-2 text-primary hover:bg-white/70 transition-colors"
-          aria-label="Semana anterior"
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <div className="flex flex-col items-center">
-          <span className="text-sm font-bold text-primary">{rangeLabel}</span>
+      {/* Cuando la semana la manda quien monta el componente, estos controles
+          serían un segundo juego de flechas para lo mismo. */}
+      {!controlado && (
+        <div className="mb-3 flex items-center justify-between">
           <button
-            onClick={() => setWeekStart(startOfWeek(new Date()))}
-            className="text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors"
+            onClick={() => goToWeek(-7)}
+            className="rounded-lg border border-white/50 bg-white/50 p-2 text-primary hover:bg-white/70 transition-colors"
+            aria-label="Semana anterior"
           >
-            Volver a hoy
+            <ChevronLeft size={16} />
+          </button>
+          <div className="flex flex-col items-center">
+            <span className="text-sm font-bold text-primary">{rangeLabel}</span>
+            <button
+              onClick={() => setWeekStart(startOfWeek(new Date()))}
+              className="text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors"
+            >
+              Volver a hoy
+            </button>
+          </div>
+          <button
+            onClick={() => goToWeek(7)}
+            className="rounded-lg border border-white/50 bg-white/50 p-2 text-primary hover:bg-white/70 transition-colors"
+            aria-label="Semana siguiente"
+          >
+            <ChevronRight size={16} />
           </button>
         </div>
-        <button
-          onClick={() => goToWeek(7)}
-          className="rounded-lg border border-white/50 bg-white/50 p-2 text-primary hover:bg-white/70 transition-colors"
-          aria-label="Semana siguiente"
-        >
-          <ChevronRight size={16} />
-        </button>
-      </div>
+      )}
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-7">
         {days.map((day, i) => (
           <div
             key={day.toISOString()}
+            onClick={onElegirDia ? () => onElegirDia(day) : undefined}
             className={`rounded-2xl border p-2 ${
               sameDay(day, today) ? "border-primary/40 bg-primary/5" : "border-white/50 bg-white/40"
-            }`}
+            } ${onElegirDia ? "cursor-pointer transition-colors hover:border-primary/40" : ""}`}
           >
             <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {DAY_LABELS[i]} <span className="text-slate-400">{day.getDate()}</span>

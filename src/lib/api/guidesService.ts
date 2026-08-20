@@ -12,7 +12,8 @@
 // La columna se conserva porque describe la vitrina de captación de leads.
 // ============================================================================
 import { supabase, type PlanType } from "../supabase";
-import { PLAN_RANK } from "./plans";
+import { allowedPlans } from "./plans";
+import type { ThemeKey } from "./themes";
 
 export interface GuideMeta {
   id: string;
@@ -25,6 +26,8 @@ export interface GuideMeta {
   es_premium: boolean;
   min_plan: PlanType;
   visible_en_plan_gratis: boolean;
+  /** Eje temático interno. Mismo enum que el contenido: es lo que cruza secciones. */
+  theme_key: ThemeKey | null;
 }
 
 export interface GuideFull extends GuideMeta {
@@ -33,35 +36,77 @@ export interface GuideFull extends GuideMeta {
   contenidoCompleto: string | null;
 }
 
+// ── Resolución del plan del viewer ──────────────────────────────────────────
+//
+// La resuelven guidesService, contentService y recommendationsService, varias
+// veces por navegación: un hub, un detalle y un bloque de recomendaciones eran
+// tres resoluciones para el mismo dato, que no cambia entre ellas.
+//
+// La caché vive AQUÍ, junto a la función, y no en cada consumidor: así los tres
+// se benefician sin cambiar ninguna interfaz pública.
+//
+// TTL corto a propósito. Un cambio de etapa hecho por el admin debe reflejarse
+// sin que la persona tenga que recargar del todo; y el caso que de verdad
+// importa —entrar o salir de la sesión— se invalida de forma explícita desde
+// authService, no por vencimiento.
+const VIEWER_PLAN_TTL_MS = 60_000;
+let viewerPlanCache: { valor: PlanType; expira: number } | null = null;
+/** Resolución en vuelo: dos llamadas simultáneas comparten la misma petición. */
+let viewerPlanEnVuelo: Promise<PlanType> | null = null;
+
+/** Invalida el plan cacheado. Se llama al iniciar y al cerrar sesión. */
+export function clearViewerPlanCache(): void {
+  viewerPlanCache = null;
+  viewerPlanEnVuelo = null;
+}
+
 /**
  * Plan efectivo del usuario para decidir qué contenido ve.
  *
  * Terapeutas y admin obtienen el nivel máximo: necesitan ver todo el material
  * que trabajan con sus pacientes, y en la base figuran con plan_type='free'.
  * Sin sesión = 'free'.
+ *
+ * Cacheada y con deduplicación de llamadas concurrentes: el detalle de una
+ * pieza y su bloque de recomendaciones arrancan a la vez, y sin esto lanzaban
+ * dos resoluciones en paralelo del mismo dato.
  */
 export async function getViewerPlan(): Promise<PlanType> {
+  const ahora = Date.now();
+  if (viewerPlanCache && viewerPlanCache.expira > ahora) return viewerPlanCache.valor;
+  if (viewerPlanEnVuelo) return viewerPlanEnVuelo;
+
+  viewerPlanEnVuelo = resolverViewerPlan()
+    .then((valor) => {
+      viewerPlanCache = { valor, expira: Date.now() + VIEWER_PLAN_TTL_MS };
+      return valor;
+    })
+    .finally(() => {
+      viewerPlanEnVuelo = null;
+    });
+
+  return viewerPlanEnVuelo;
+}
+
+async function resolverViewerPlan(): Promise<PlanType> {
+  // getSession() lee de memoria; getUser() valida contra el servidor. Para saber
+  // qué contenido mostrar basta el id de la sesión, y esto ahorra una petición
+  // de red en cada resolución.
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return "free";
+    data: { session },
+  } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) return "free";
 
   const { data } = await supabase
     .from("profiles")
     .select("role, plan_type")
-    .eq("id", user.id)
+    .eq("id", userId)
     .maybeSingle();
 
   if (!data) return "free";
   if (data.role === "admin" || data.role === "therapist") return "premium";
   return (data.plan_type as PlanType) ?? "free";
-}
-
-/** Planes cuyo contenido alcanza a ver quien tiene `plan`. */
-function allowedPlans(plan: PlanType): PlanType[] {
-  return (Object.keys(PLAN_RANK) as PlanType[]).filter(
-    (p) => PLAN_RANK[p] <= PLAN_RANK[plan],
-  );
 }
 
 /**

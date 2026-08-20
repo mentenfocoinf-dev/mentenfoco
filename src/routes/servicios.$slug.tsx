@@ -1,5 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { HeroImagen } from "../components/HeroImagen";
+import { trackEvent } from "../lib/api";
 import {
   ArrowRight,
   Brain,
@@ -188,6 +190,11 @@ export const Route = createFileRoute("/servicios/$slug")({
 });
 
 function ServicioDetalle() {
+  const { service: _s } = Route.useLoaderData();
+  useEffect(() => {
+    if (_s) trackEvent("SERVICES_VIEW", { resource_id: _s.slug });
+  }, [_s]);
+
   const { service } = Route.useLoaderData();
   const Icon = service.icon;
 

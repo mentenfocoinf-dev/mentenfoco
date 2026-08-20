@@ -18,7 +18,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { FileSignature, Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
-import { acceptClinicalConsent } from "../lib/api";
+import { acceptClinicalConsent, trackEvent } from "../lib/api";
 import {
   ClinicalConsentContent,
   CLINICAL_CONSENT_TITLE,
@@ -48,6 +48,7 @@ function ConsentimientoClinico() {
     setErrorMsg(null);
     try {
       await acceptClinicalConsent(userId);
+      trackEvent("CONSENT_ACCEPTED", { resource_type: "clinico" });
       // Recarga completa: useAuth vuelve a resolver el gate y decide el siguiente
       // paso (la anamnesis) en vez de asumirlo desde aquí.
       window.location.href = "/ingresa";

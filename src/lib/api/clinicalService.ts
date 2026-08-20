@@ -230,17 +230,24 @@ export async function getPatientPrescriptions(patientId: string) {
 
 // ── Pacientes del terapeuta ─────────────────────────────────────────────────
 export async function getTherapistPatients(therapistId: string) {
-  const { data, error } = await supabase
-    .from("patient_therapist")
-    .select(
-      `patient_id, therapist_id, created_at,
-       patient:profiles!patient_therapist_patient_id_fkey (
-         id, full_name, email, plan_type, subscription_status
-       )`,
-    )
-    .eq("therapist_id", therapistId);
+  // Por función: devuelve solo los pacientes de quien llama. El parámetro se
+  // conserva para no cambiar la firma de los consumidores, pero ya no filtra —
+  // filtra auth.uid() dentro de la base.
+  void therapistId;
+  const { data, error } = await supabase.rpc("list_my_patients_detail");
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return (data ?? []).map((r: Record<string, unknown>) => ({
+    patient_id: r.patient_id,
+    therapist_id: r.therapist_id,
+    created_at: r.created_at,
+    patient: {
+      id: r.patient_id,
+      full_name: r.full_name,
+      email: r.email,
+      plan_type: r.plan_type,
+      subscription_status: r.subscription_status,
+    },
+  }));
 }
 
 // ── Alertas de crisis ───────────────────────────────────────────────────────

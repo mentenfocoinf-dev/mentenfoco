@@ -15,6 +15,7 @@ import { Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../hooks/useAuth";
 import { PrivacyPolicyContent, PRIVACY_POLICY_VERSION } from "../components/PrivacyPolicyModal";
+import { trackEvent } from "../lib/api";
 
 export const Route = createFileRoute("/consentimiento")({
   head: () => ({
@@ -48,6 +49,7 @@ function Consentimiento() {
         })
         .eq("id", userId);
       if (error) throw new Error(error.message);
+      trackEvent("CONSENT_ACCEPTED", { resource_type: "datos" });
 
       // Recarga completa: useAuth vuelve a leer el perfil y decide el siguiente
       // paso pendiente (datos mínimos o anamnesis) en vez de asumirlo aquí.

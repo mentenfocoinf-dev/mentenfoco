@@ -3,7 +3,7 @@
 //
 // Flujo editorial: el terapeuta redacta y envía a revisión; SOLO el admin
 // publica. Esa regla no depende de esta capa: la impone el trigger
-// enforce_content_publish_is_admin en la base, así que sigue vigente aunque
+// enforce_content_authorization en la base, así que sigue vigente aunque
 // alguien manipule el cliente. Aquí se refleja para que la UI no ofrezca
 // acciones que el servidor va a rechazar.
 //
@@ -12,8 +12,9 @@
 // escritas y comentadas en supabase/20260724_content_items.sql.
 // ============================================================================
 import { supabase, type PlanType } from "../supabase";
-import { PLAN_RANK } from "./plans";
+import { allowedPlans } from "./plans";
 import { getViewerPlan } from "./guidesService";
+import type { ThemeKey } from "./themes";
 
 export type ContentType = "articulo" | "programa" | "herramienta" | "audio" | "blog";
 
@@ -94,6 +95,8 @@ export interface ContentMeta {
   tags: string[] | null;
   status: ContentStatus;
   published_at: string | null;
+  /** Eje temático interno. `null` mientras la pieza no esté clasificada. */
+  theme_key: ThemeKey | null;
 }
 
 export interface ContentItem extends ContentMeta {
@@ -123,11 +126,6 @@ export interface ContentItem extends ContentMeta {
 // completas las piezas que su plan incluye; el resto no se devuelve. `min_plan`
 // sigue decidiendo desde qué plan aparece cada pieza, pero se aplica FILTRANDO,
 // no bloqueando. No hay paywall en ningún camino de contenido.
-
-/** Planes cuyo contenido alcanza a ver quien tiene `plan`. */
-function allowedPlans(plan: PlanType): PlanType[] {
-  return (Object.keys(PLAN_RANK) as PlanType[]).filter((p) => PLAN_RANK[p] <= PLAN_RANK[plan]);
-}
 
 /**
  * Lista las piezas publicadas que el plan del usuario incluye. Lo que no
@@ -309,9 +307,6 @@ export function slugify(text: string): string {
 }
 
 function translateWriteError(message: string): string {
-  if (message.includes("CONTENT_PUBLISH_FORBIDDEN")) {
-    return "Solo un administrador puede publicar contenido.";
-  }
   if (message.includes("content_items_slug_key") || message.includes("duplicate key")) {
     return "Ya existe una pieza con esa URL (slug). Cambia el título o el slug.";
   }
@@ -417,7 +412,7 @@ export async function requestContentChanges(
  * Publica una pieza fijando, en el mismo paso, la URL, el SEO y el tier — son
  * decisiones del admin, no del autor. La base rechaza publicar sin slug
  * (content_items_published_needs_slug_check) y rechaza que publique alguien que
- * no sea admin (trigger enforce_content_publish_is_admin).
+ * no sea admin (trigger enforce_content_authorization).
  */
 export async function publishContent(
   id: string,

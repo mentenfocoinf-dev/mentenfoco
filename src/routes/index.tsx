@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroImagen } from "../components/HeroImagen";
+import { ContinuaDondeLoDejaste } from "../components/home/ContinuaDondeLoDejaste";
+import { NotificacionesBadge } from "../components/NotificacionesBadge";
 import {
   Star,
   ShieldCheck,
@@ -15,6 +17,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { listGuides } from "../lib/api";
+import { useEffect } from "react";
+import { trackEvent } from "../lib/api";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -49,7 +53,7 @@ const features = [
     image: "/images/guias.jpg",
   },
   {
-    title: "Membresía exclusiva",
+    title: "Biblioteca de tu etapa",
     desc: "Beneficios mensuales sin costo adicional.",
     to: "/membresia",
     image: "/images/membresia.jpg",
@@ -127,6 +131,11 @@ const comoFunciona = [
 ];
 
 function Index() {
+  // Journey Engine: registro de vista. No bloquea nada y su fallo es silencioso.
+  useEffect(() => {
+    trackEvent("HOME_VIEW");
+  }, []);
+
   const { guias } = Route.useLoaderData();
 
   return (
@@ -163,6 +172,16 @@ function Index() {
           </div>
         </div>
       </HeroImagen>
+
+      {/* ── Continuidad ──
+          Va justo debajo del hero: quien ya empezó algo debe encontrarlo antes
+          que la presentación del centro. Si no hay nada que retomar, no se
+          dibuja y la Home queda exactamente como estaba. */}
+      <div className="mx-auto flex max-w-6xl justify-end px-4 pt-4 md:px-6">
+        <NotificacionesBadge />
+      </div>
+
+      <ContinuaDondeLoDejaste />
 
       {/* ── Barra de confianza (NUEVO) ── */}
       <section className="border-y border-border bg-primary/5">

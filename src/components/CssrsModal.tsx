@@ -118,11 +118,9 @@ export function CssrsModal({ patientId, onClose, onSaved }: Props) {
     const totalScore = Object.values(answers).filter((v) => v === "yes").length;
 
     try {
-      const { data: assignment } = await supabase
-        .from("patient_therapist")
-        .select("therapist_id")
-        .eq("patient_id", patientId)
-        .maybeSingle();
+      // Por función: la base filtra por sesión, no este componente.
+      const { data: asignado } = await supabase.rpc("get_assigned_therapist");
+      const assignment = asignado ? { therapist_id: asignado as string } : null;
 
       const { data: inserted, error: insertError } = await supabase
         .from("psychometric_evaluations")

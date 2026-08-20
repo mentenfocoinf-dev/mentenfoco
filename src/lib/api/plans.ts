@@ -12,12 +12,15 @@ export const PLAN_RANK: Record<PlanType, number> = {
   premium: 3,
 };
 
-// Nombres cálidos de framing de proceso en vez de nomenclatura de SaaS
-// (Esencial/Integral/Premium) — decisión de negocio, ver
-// analisis-neuromarketing-planes-22-jul-2026.md. `free` se deja sin cambios:
-// no estaba en el pedido y "Plan Gratuito" ya cumple su función.
+// Nombres de etapa del acompañamiento, no de nivel de producto (ADR-003). El
+// renombrado desde la nomenclatura de SaaS (Esencial/Integral/Premium) viene de
+// analisis-neuromarketing-planes-22-jul-2026.md.
+//
+// `free` pasó de "Plan Gratuito" a "Primer Contacto" el 30-jul: era la única
+// etapa que se nombraba por su modelo de precio en vez de por el momento del
+// proceso, y esa excepción rompía el sistema. El identificador técnico no cambia.
 export const PLAN_LABELS: Record<PlanType, string> = {
-  free: "Plan Gratuito",
+  free: "Primer Contacto",
   esencial: "Primeros Pasos",
   integral: "Mi Equilibrio",
   premium: "Mi Mundo en Foco",
@@ -25,6 +28,18 @@ export const PLAN_LABELS: Record<PlanType, string> = {
 
 export function planRank(plan?: PlanType | null): number {
   return PLAN_RANK[plan ?? "free"] ?? 0;
+}
+
+/**
+ * Etapas cuyo contenido alcanza a ver quien está en `plan`.
+ *
+ * El filtro de etapa es acumulativo (ADR-002): avanzar nunca quita acceso. Vive
+ * aquí y no en cada servicio porque contenido, guías y recomendaciones tienen
+ * que filtrar con exactamente el mismo criterio — si divergen, el motor podría
+ * recomendar una pieza que el lector luego no encuentra.
+ */
+export function allowedPlans(plan: PlanType): PlanType[] {
+  return (Object.keys(PLAN_RANK) as PlanType[]).filter((p) => PLAN_RANK[p] <= PLAN_RANK[plan]);
 }
 
 /**
@@ -102,8 +117,8 @@ export const PLAN_BENEFITS: PlanBenefit[] = [
     minPlan: "free",
   },
   {
-    label: "Guías clínicas premium",
-    detail: "Protocolos completos, ejercicios descargables y material exclusivo.",
+    label: "Biblioteca completa de guías clínicas",
+    detail: "Protocolos completos, ejercicios descargables y material de apoyo.",
     minPlan: "esencial",
   },
   {
@@ -152,8 +167,8 @@ export const PLAN_BENEFITS: PlanBenefit[] = [
     minPlan: "premium",
   },
   {
-    label: "Comunidad privada y descuentos exclusivos",
-    detail: "Espacio moderado por psicólogos y 20% de descuento en talleres.",
+    label: "Comunidad privada y condiciones preferentes",
+    detail: "Espacio moderado por psicólogos y condiciones preferentes en talleres.",
     minPlan: "premium",
   },
   {
@@ -168,7 +183,7 @@ export function benefitsForPlan(plan: PlanType): PlanBenefit[] {
   return PLAN_BENEFITS.filter((b) => PLAN_RANK[b.minPlan] <= PLAN_RANK[plan]);
 }
 
-/** Beneficios que el usuario desbloquearía al subir de plan. */
+/** Beneficios que se suman al avanzar de etapa. */
 export function lockedBenefitsForPlan(plan: PlanType): PlanBenefit[] {
   return PLAN_BENEFITS.filter((b) => PLAN_RANK[b.minPlan] > PLAN_RANK[plan]);
 }
@@ -215,7 +230,7 @@ export const PLAN_OFFERS: PlanOffer[] = [
 /** El plan que aparece pre-seleccionado en /asesoramiento al cargar la página. */
 export const DEFAULT_HIGHLIGHTED_OFFER = PLAN_OFFERS.find((o) => o.highlighted) ?? PLAN_OFFERS[0];
 
-// La membresía de contenido se mapea al eje único de planes:
+// La opción de solo contenido se mapea al eje único de etapas:
 // mensual -> nivel Integral de contenido, anual -> nivel Premium (acceso total).
 export const MEMBERSHIP_TIERS = [
   {
@@ -231,7 +246,7 @@ export const MEMBERSHIP_TIERS = [
     name: "Mi Mundo en Foco, todo el año",
     price: "$700.000",
     period: "/año",
-    note: "Ahorra 2 meses y desbloquea todo el contenido de la plataforma.",
+    note: "Equivale a 10 meses e incluye todo el contenido de la plataforma.",
     link: STRIPE_LINKS.membresiaAnual,
     highlight: true,
   },

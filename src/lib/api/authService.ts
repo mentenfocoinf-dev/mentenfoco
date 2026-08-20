@@ -2,15 +2,26 @@
 // Servicio de autenticación: único punto de entrada/salida de sesión.
 // ============================================================================
 import { supabase } from "../supabase";
+import { trackEvent, resetJourneySession } from "./journeyService";
+import { clearRecommendationCache } from "./recommendationsService";
 
 export async function signIn(email: string, password: string) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw new Error("Credenciales incorrectas. Verifica tu correo y contraseña.");
+  // La etapa cambia al entrar: lo cacheado como anónimo ya no aplica.
+  clearRecommendationCache();
+  trackEvent("LOGIN");
 }
 
 export async function signOut() {
+  // El evento se registra ANTES de cerrar la sesión: después ya no hay user_id
+  // que asociar y el recorrido quedaría cortado.
+  trackEvent("LOGOUT");
   localStorage.removeItem("mf_session_token");
   await supabase.auth.signOut();
+  // Nueva visita a partir de aquí. El anonymous_id se conserva a propósito.
+  resetJourneySession();
+  clearRecommendationCache();
 }
 
 export async function requestPasswordReset(email: string) {

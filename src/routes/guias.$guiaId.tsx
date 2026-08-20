@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Clock, Tag, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
-import { getGuide } from "../lib/api";
+import { RecomendacionesRelacionadas } from "../components/content/RecomendacionesRelacionadas";
+import { trackEvent, getGuide } from "../lib/api";
 
 export const Route = createFileRoute("/guias/$guiaId")({
   loader: async ({ params }) => {
@@ -31,6 +32,11 @@ export const Route = createFileRoute("/guias/$guiaId")({
 });
 
 function GuiaDetalle() {
+  const { guia: _g } = Route.useLoaderData();
+  useEffect(() => {
+    if (_g) trackEvent("GUIDE_VIEW", { resource_id: _g.id, resource_type: "guia" });
+  }, [_g]);
+
   const { guia } = Route.useLoaderData();
 
   // Protección de Propiedad Intelectual (solo para guías con contenido accesible)
@@ -151,6 +157,15 @@ ${guia.ejercicioPractico}
             className="transition-all duration-700"
           />
         </div>
+
+        <RecomendacionesRelacionadas
+          source="guia"
+          currentId={guia.id}
+          categoria={guia.categoria}
+          tipoActual="guia"
+          themeKey={guia.theme_key}
+          tags={guia.etiquetas}
+        />
 
         <div className="mt-16 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-8">
           <Link

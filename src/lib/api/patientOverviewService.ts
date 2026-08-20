@@ -111,13 +111,12 @@ export async function getPatientPlanUsage(
   const from = new Date(now.getFullYear(), now.getMonth(), 1);
   const to = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 
-  const { count } = await supabase
-    .from("therapy_sessions")
-    .select("id", { count: "exact", head: true })
-    .eq("patient_id", patientId)
-    .eq("status", "completada")
-    .gte("scheduled_at", from.toISOString())
-    .lt("scheduled_at", to.toISOString());
+  // Por función: cuenta solo las sesiones de quien llama.
+  void patientId;
+  const { data: count } = await supabase.rpc("count_my_completed_sessions", {
+    p_desde: from.toISOString(),
+    p_hasta: to.toISOString(),
+  });
 
   return {
     plan,

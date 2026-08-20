@@ -6,9 +6,10 @@
 // listPublishedContent() ya aplica ese filtro.
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { BookOpen, Headphones, Loader2, Route as RouteIcon, Wrench } from "lucide-react";
 import {
+  trackEvent,
   listPublishedContent,
   CONTENT_TYPE_LABELS,
   type ContentMeta,
@@ -56,6 +57,11 @@ const FILTERS: { key: ContentType | "todos"; label: string }[] = [
 ];
 
 function ContenidoHub() {
+  // Journey Engine: registro de vista. No bloquea nada y su fallo es silencioso.
+  useEffect(() => {
+    trackEvent("CONTENT_VIEW");
+  }, []);
+
   const { items } = Route.useLoaderData();
   const [filter, setFilter] = useState<ContentType | "todos">("todos");
 

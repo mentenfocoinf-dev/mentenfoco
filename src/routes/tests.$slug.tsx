@@ -13,7 +13,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, Clock, Loader2 } from "lucide-react";
-import { getPublicTest, isComplete, scorePublicTest, type PublicTestResult } from "../lib/api";
+import {
+  getPublicTest,
+  isComplete,
+  scorePublicTest,
+  trackEvent,
+  type PublicTestResult,
+} from "../lib/api";
 import { TestResult } from "../components/tests/TestResult";
 
 export const Route = createFileRoute("/tests/$slug")({
@@ -67,6 +73,11 @@ function TestPublico() {
   const progreso = Math.round((respondidas / total) * 100);
 
   function responder(valor: number) {
+    // Primera respuesta = el test empezó de verdad. Abrir la página no basta.
+    if (Object.keys(respuestas).length === 0) {
+      trackEvent("TEST_STARTED", { test_id: test!.slug });
+    }
+
     const siguientes = { ...respuestas, [item.n]: valor };
     setRespuestas(siguientes);
 
@@ -76,7 +87,15 @@ function TestPublico() {
     }
     // Última pregunta: se calcula aquí, en el cliente, y se muestra sin pedir nada.
     if (isComplete(test!, siguientes)) {
-      setResultado(scorePublicTest(test!, siguientes));
+      const r = scorePublicTest(test!, siguientes);
+      setResultado(r);
+      // Solo el agregado: puntaje y banda. Las respuestas no salen del navegador.
+      trackEvent("TEST_COMPLETED", {
+        test_id: test!.slug,
+        score: r.score,
+        band: r.banda.etiqueta,
+        completed: true,
+      });
     }
   }
 

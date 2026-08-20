@@ -63,12 +63,19 @@ export async function setUserPlan(userId: string, plan: PlanType, status = "acti
   if (error) throw new Error(error.message);
 }
 
-/** Activa o desactiva una cuenta (sin tocar su plan). */
+/**
+ * Activa o desactiva una cuenta (sin tocar su plan).
+ *
+ * Por función y no por UPDATE directo: `subscription_status` dejó de ser una
+ * columna escribible desde el cliente. Con la columna abierta, cualquier
+ * usuario podía activarse la suscripción a sí mismo —comprobado—. La función
+ * comprueba que quien llama sea administrador, igual que `admin_set_plan`.
+ */
 export async function setUserStatus(userId: string, status: "active" | "inactive") {
-  const { error } = await supabase
-    .from("profiles")
-    .update({ subscription_status: status, updated_at: new Date().toISOString() })
-    .eq("id", userId);
+  const { error } = await supabase.rpc("admin_set_status", {
+    p_user: userId,
+    p_status: status,
+  });
   if (error) throw new Error(error.message);
 }
 

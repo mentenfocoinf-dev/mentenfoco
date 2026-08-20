@@ -47,11 +47,8 @@ export async function isInClinicalProcess(profile: Profile): Promise<boolean> {
   if (profile.role !== "patient") return false;
   if (profile.plan_type && profile.plan_type !== "free") return true;
 
-  const { data } = await supabase
-    .from("patient_therapist")
-    .select("therapist_id")
-    .eq("patient_id", profile.id)
-    .maybeSingle();
+  // Por función: el propio paciente pregunta por su terapeuta asignado.
+  const { data } = await supabase.rpc("get_assigned_therapist");
 
   return Boolean(data);
 }

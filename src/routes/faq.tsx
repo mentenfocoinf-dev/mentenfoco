@@ -67,7 +67,7 @@ const CATEGORIES: { title: string; items: QA[] }[] = [
       },
       {
         q: "¿Puedo cambiar de plan más adelante?",
-        a: "Sí. Puedes subir de plan cuando quieras desde tu portal para desbloquear más acompañamiento y contenido.",
+        a: "Sí. Puedes ampliar tu acompañamiento cuando quieras desde tu portal, y sumar más sesiones y contenido.",
       },
     ],
   },
