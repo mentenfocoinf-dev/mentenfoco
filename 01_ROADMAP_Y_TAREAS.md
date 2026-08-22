@@ -225,7 +225,7 @@ Ver sección de seguridad abajo. No se arranca hasta que lo indiques.
 
 ---
 
-## 🔒 Fase de seguridad final — EN CURSO (RLS + R4/R5 cerrados; bloqueo nuevo: gobernanza de git)
+## 🔒 Fase de seguridad final — EN CURSO (RLS + R4/R5 + Commit B cerrados; R3 backend aplicado y captcha escrito pendiente de claves; R6 esperando R2)
 
 El sprint de RLS (5–14 ago) ya se ejecutó: **33/37 tablas con RLS, 98 políticas**. El diagnóstico
 `Diagnostico_Seguridad_Post_RLS_2026-08-14.md` dejó el riesgo dominante (cero backups) y el orden
@@ -242,22 +242,46 @@ R4+R5. Detalle completo en `Remediacion_Seguridad_2026-08-18.md`.
 - [x] **Commit A (18-ago, SHA `f3f9701`).** 65 archivos: 24 migraciones de seguridad (`20260812`–`818`) +
   24 backups de ACL + 17 auditorías técnicas. Verificado sin secretos, sin tocar `src/`, `.agents/`,
   `.claude/` ni `.gitignore`. **Rama local 14 commits por delante de `origin/main` — falta el `git push`.**
-- [ ] **🆕 Bloqueo descubierto (18-ago): gobernanza de git del resto del producto.** Fuera de lo ya
-  commiteado, quedan **~246 rutas sin commitear** en el árbol: los **87 archivos de `src/`** y **~35
-  migraciones de `supabase/`** de TODO lo construido en agosto (agenda unificada, perfiles de terapeuta +
-  matching, notificaciones, Journey Engine) **nunca llegaron a un commit** — existen solo en disco, sin
-  historial de git y sin backup de base de datos (el mismo riesgo de R1, pero para el código). `R3`
-  (rate-limit/captcha en `public-signup`) está bloqueado porque los archivos que necesita tocar
-  (`SignupModal.tsx`, `public-signup/index.ts`) están mezclados en ese backlog sin commitear.
-  Prompt de gobernanza (Commit B) preparado — ver `prompts-claude-code/`.
+- [x] **Commit B (18-ago) — gobernanza de git del resto del producto, cerrada.** Los ~246 archivos sin
+  commitear (código de agosto + migraciones de features + docs) se agruparon en 3 commits temáticos tras
+  confirmar tests 220/220 y build verde: **B1** `86c68a1` (90 archivos — `src/` completo, agenda unificada,
+  matching, notificaciones, Journey Engine), **B2** `8423611` (65 archivos — historia retroactiva de
+  migraciones de features, ya aplicadas en la base real), **B3** `2acd278` (14 archivos — docs y los
+  maestros de raíz). Se descartaron 74 archivos de ruido puro LF→CRLF (`.agents/`, `.claude/`, config) tras
+  confirmar 0 cambio real. Rama quedó 17 commits por delante de `origin/main`; **push autorizado (20-ago)
+  pero pendiente de ejecución manual** — el clasificador de permisos del harness bloqueó `git push` desde
+  Claude Code; hay que correr `git push origin main` a mano o habilitar el permiso.
 - [ ] **R1 · Backups + PITR (CRÍTICO — bloquea todo lo demás).** PITR off y **cero copias**: hoy cualquier
   `TRUNCATE`/`DROP`/corrupción es pérdida permanente de historias clínicas. Requiere plan Pro de Supabase
   → **decisión de producto tuya, la ejecutas tú en el panel**, el agente solo verifica después.
-- [ ] **R2 · Rotar la clave de Resend (ALTO).** Comprometida y sin rotar desde el 19-jul. **La rotas tú** en
-  Resend y actualizas el secret `RESEND_API_KEY` en el mismo paso.
-- [ ] **R3 · Rate-limit + captcha en `public-signup` (ALTO).** Bloqueado por la gobernanza de git de arriba.
-  Toca frontend (token de captcha) + Edge Function.
-- [ ] **R6 · Retirar `DEV_MAIL_REDIRECT`** (limpieza, panel de secretos). Bloqueado por lo mismo.
+- [ ] **R2 · Rotar la clave de Resend + verificar dominio propio (ALTO).** Comprometida y sin rotar desde el
+  19-jul. **Confirmado (18-ago): sigue pendiente** — el dominio de envío todavía no está verificado (Resend
+  sigue en modo prueba). **La ejecutas tú** en Resend + actualizas el secret `RESEND_API_KEY`. **R6 depende
+  de esto.**
+- [~] **R3 · Rate-limit + captcha en `public-signup` (ALTO) — BACKEND APLICADO, captcha escrito pendiente
+  de claves (20-ago).** Detalle: `Remediacion_R3_Rate_Limit_Captcha_2026-08-20.md`.
+  - **Backend de rate-limit APLICADO:** `supabase/20260820_signup_rate_limit.sql` (+ backup) crea la tabla
+    `signup_rate_limit(ip_hash, window_start, count)` con **RLS activo sin políticas** (deny-all) y la
+    función atómica `enforce_signup_rate_limit` (`SECURITY DEFINER`, execute solo `service_role`) con
+    umbral **5/hora, 20/día por IP**. Disciplina completa: baseline → backup → prueba en tx revertida →
+    4 pasadas idempotencia → validación viva → invariantes → rollback real (vuelve exacto a baseline) →
+    reaplicación. Un DEFECTO DE SCRIPT (REVOKE FROM PUBLIC no quitaba EXECUTE a `anon`/`authenticated` por
+    default privileges a roles nombrados) fue aislado y corregido. Estado base: tablas 38, RLS 34,
+    políticas 98, funciones 274. R4/R5 intactos.
+  - **Captcha (Turnstile) + cableado ESCRITO:** `public-signup/index.ts` verifica el token contra
+    Cloudflare y aplica el rate-limit por IP hasheada antes de crear cuenta (403 sin captcha válido, 429
+    sobre el límite); `SignupModal.tsx` renderiza el widget y manda `captcha_token`. Ambos lados están
+    **gated por su env**: sin claves, el widget no aparece y el backend omite el captcha (fail-safe), pero
+    **el rate-limit sigue activo**. build ✓ + tests 220/220.
+  - **Falta (responsable):** crear el widget en Cloudflare y cargar **`VITE_TURNSTILE_SITE_KEY`** (frontend,
+    público) y **`TURNSTILE_SECRET_KEY`** (env del Edge Function, nunca por chat), y **desplegar
+    `public-signup`**. Sin esto, el captcha no está verificado end-to-end. Los archivos de R3 quedan
+    **sin commitear** a la espera de aprobación.
+- [ ] **R6 · Retirar `DEV_MAIL_REDIRECT`** (limpieza, panel de secretos). **Bloqueado por R2 — reconfirmado
+  20-ago:** el dominio propio de Resend sigue sin verificar (modo prueba). El código lo usa para redirigir
+  correos mientras el dominio no está verificado; quitarlo antes rompería el envío a leads reales.
+  **No se tocó el código de `DEV_MAIL_REDIRECT`.** Retomar solo cuando R2 (rotación + dominio verificado)
+  quede cerrado.
 - [ ] Stripe a modo real; corregir webhook (hoy crea cuenta con contraseña = correo).
 - [ ] Solo **después de R1**: retomar los DROP aplazados de `test_scores` y `guides`.
 - [ ] Dominio propio + verificación de la app en Google Cloud.

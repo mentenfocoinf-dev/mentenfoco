@@ -10,7 +10,7 @@
 // desplazable. El estilo `glass` es para tarjetas sobre el fondo de página, no
 // sobre un overlay — ahí se ve apagado.
 // ============================================================================
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle, Loader2, UserPlus, X } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { trackEvent } from "../lib/api";
@@ -24,6 +24,83 @@ interface SignupModalProps {
 const inputClass =
   "mt-1 w-full rounded-xl border border-slate-200 px-3 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-primary focus:outline-none transition-colors";
 
+// ============================================================================
+// R3 · Cloudflare Turnstile (captcha anti-bot en el signup público).
+//
+// El site key es PÚBLICO y viaja al frontend por env: VITE_TURNSTILE_SITE_KEY.
+// El secret vive solo en el Edge Function (TURNSTILE_SECRET_KEY). Mientras el
+// site key no esté configurado, el widget NO se renderiza y el formulario
+// funciona igual (el backend, sin su secret, también omite la verificación).
+// En cuanto se cargan ambas claves, el captcha se exige de punta a punta.
+// ============================================================================
+const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
+const TURNSTILE_SCRIPT = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        el: HTMLElement,
+        opts: {
+          sitekey: string;
+          callback: (token: string) => void;
+          "expired-callback"?: () => void;
+          "error-callback"?: () => void;
+        },
+      ) => string;
+      reset: (id?: string) => void;
+      remove: (id?: string) => void;
+    };
+  }
+}
+
+function ensureTurnstileScript(): void {
+  if (document.querySelector(`script[src="${TURNSTILE_SCRIPT}"]`)) return;
+  const s = document.createElement("script");
+  s.src = TURNSTILE_SCRIPT;
+  s.async = true;
+  s.defer = true;
+  document.head.appendChild(s);
+}
+
+// Renderiza el widget y entrega el token por onToken (null al expirar o fallar).
+// Remontarlo (cambiando su prop key) fuerza un desafío nuevo tras un intento
+// fallido, porque los tokens de Turnstile son de un solo uso.
+function TurnstileWidget({ onToken }: { onToken: (t: string | null) => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const widgetId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return;
+    ensureTurnstileScript();
+    let cancelled = false;
+    const tryRender = () => {
+      if (cancelled) return;
+      if (window.turnstile && ref.current && widgetId.current === null) {
+        widgetId.current = window.turnstile.render(ref.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          callback: (token: string) => onToken(token),
+          "expired-callback": () => onToken(null),
+          "error-callback": () => onToken(null),
+        });
+      } else if (!window.turnstile) {
+        setTimeout(tryRender, 200);
+      }
+    };
+    tryRender();
+    return () => {
+      cancelled = true;
+      if (widgetId.current && window.turnstile) {
+        window.turnstile.remove(widgetId.current);
+        widgetId.current = null;
+      }
+    };
+  }, [onToken]);
+
+  if (!TURNSTILE_SITE_KEY) return null;
+  return <div ref={ref} className="mt-5 flex justify-center" />;
+}
+
 export function SignupModal({ open, onClose }: SignupModalProps) {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -34,8 +111,14 @@ export function SignupModal({ open, onClose }: SignupModalProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [policyOpen, setPolicyOpen] = useState(false);
+  // R3 · token de Turnstile; captchaNonce remonta el widget para un desafío
+  // nuevo tras un intento fallido (los tokens son de un solo uso).
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaNonce, setCaptchaNonce] = useState(0);
 
   if (!open) return null;
+
+  const captchaRequired = Boolean(TURNSTILE_SITE_KEY);
 
   function handleClose() {
     setFullName("");
@@ -45,6 +128,8 @@ export function SignupModal({ open, onClose }: SignupModalProps) {
     setMarketingConsent(false);
     setErrorMsg(null);
     setSuccess(false);
+    setCaptchaToken(null);
+    setCaptchaNonce((n) => n + 1);
     onClose();
   }
 
@@ -61,6 +146,7 @@ export function SignupModal({ open, onClose }: SignupModalProps) {
           phone: phone || null,
           terms_accepted: true,
           marketing_consent: marketingConsent,
+          captcha_token: captchaToken,
         },
       });
 
@@ -78,10 +164,15 @@ export function SignupModal({ open, onClose }: SignupModalProps) {
           }
         }
         setErrorMsg(message);
+        // Token de un solo uso: tras un fallo, pide un desafío nuevo.
+        setCaptchaToken(null);
+        setCaptchaNonce((n) => n + 1);
         return;
       }
       if (data?.error) {
         setErrorMsg(data.error);
+        setCaptchaToken(null);
+        setCaptchaNonce((n) => n + 1);
         return;
       }
 
@@ -89,6 +180,8 @@ export function SignupModal({ open, onClose }: SignupModalProps) {
       setSuccess(true);
     } catch {
       setErrorMsg("Ocurrió un error inesperado. Intenta de nuevo.");
+      setCaptchaToken(null);
+      setCaptchaNonce((n) => n + 1);
     } finally {
       setLoading(false);
     }
@@ -261,9 +354,19 @@ export function SignupModal({ open, onClose }: SignupModalProps) {
                 </label>
               </div>
 
+              {/* R3 · captcha. Solo aparece si VITE_TURNSTILE_SITE_KEY está
+                  configurado; si no, no se renderiza y el submit no lo exige. */}
+              <TurnstileWidget key={captchaNonce} onToken={setCaptchaToken} />
+
               <button
                 type="submit"
-                disabled={loading || !termsAccepted || !fullName || !email}
+                disabled={
+                  loading ||
+                  !termsAccepted ||
+                  !fullName ||
+                  !email ||
+                  (captchaRequired && !captchaToken)
+                }
                 className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? (

@@ -28,6 +28,14 @@ const DEV_MAIL_REDIRECT = Deno.env.get("DEV_MAIL_REDIRECT");
 // es la version del texto que el lead acepto y queda guardada en profiles.terms_version.
 const TERMS_VERSION = "2026-07-21-v3";
 
+// R3 — Cloudflare Turnstile (captcha). Secreto del lado servidor. MIENTRAS NO
+// este configurado, el captcha queda DESHABILITADO y la verificacion se omite
+// (fase previa a aprovisionar las claves). El rate-limit por IP sigue activo
+// siempre, asi que nunca se queda sin proteccion. En cuanto se cargue este
+// secret, la verificacion se exige automaticamente. El site key publico vive en
+// el frontend como VITE_TURNSTILE_SITE_KEY.
+const TURNSTILE_SECRET_KEY = Deno.env.get("TURNSTILE_SECRET_KEY");
+
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
 const CORS = {
@@ -61,16 +69,84 @@ function fail(message: string, status: number): Response {
   return new Response(JSON.stringify({ error: message }), { status, headers: CORS });
 }
 
+// IP del cliente a partir de x-forwarded-for (primer salto). Se usa hasheada
+// para el rate-limit y como remoteip opcional de Turnstile.
+function clientIp(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for") ?? "";
+  const first = xff.split(",")[0].trim();
+  return first || "unknown";
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Verifica el token de Turnstile contra Cloudflare. true = captcha valido.
+// Si TURNSTILE_SECRET_KEY no esta configurado, el captcha esta deshabilitado y
+// se omite (devuelve true). Con secret configurado, un token ausente o invalido
+// devuelve false y el signup se corta con 403.
+async function verifyTurnstile(token: string | undefined, ip: string): Promise<boolean> {
+  if (!TURNSTILE_SECRET_KEY) return true; // captcha aun no aprovisionado
+  if (!token) return false;
+  const form = new URLSearchParams();
+  form.set("secret", TURNSTILE_SECRET_KEY);
+  form.set("response", token);
+  if (ip && ip !== "unknown") form.set("remoteip", ip);
+  try {
+    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form.toString(),
+    });
+    const out = await res.json();
+    return out?.success === true;
+  } catch (err) {
+    console.error("[public-signup] Turnstile verify error:", err);
+    return false; // ante un fallo de red con el captcha activo, fail-closed.
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
 
   try {
-    const { email, full_name, phone, terms_accepted, marketing_consent } = await req.json();
+    const { email, full_name, phone, terms_accepted, marketing_consent, captcha_token } =
+      await req.json();
 
     if (!email || !isValidEmail(email)) return fail("Correo inválido.", 400);
     if (!full_name || String(full_name).trim().length < 2) return fail("Nombre inválido.", 400);
     if (terms_accepted !== true) {
       return fail("Debes aceptar el tratamiento de datos para continuar.", 400);
+    }
+
+    const ip = clientIp(req);
+
+    // R3 · Captcha (Turnstile). Si esta aprovisionado, un token ausente o
+    // invalido corta aqui antes de tocar la base o crear cuenta.
+    const captchaOk = await verifyTurnstile(captcha_token, ip);
+    if (!captchaOk) {
+      return fail(
+        "No pudimos verificar que no eres un robot. Recarga la página e inténtalo de nuevo.",
+        403,
+      );
+    }
+
+    // R3 · Rate-limit por IP (5/hora, 20/día). Se cuenta este intento y se
+    // decide antes de crear nada. La IP viaja hasheada; la tabla no es legible
+    // por el cliente (RLS deny-all).
+    const ipHash = await sha256Hex(ip);
+    const { data: rl, error: rlError } = await admin.rpc("enforce_signup_rate_limit", {
+      p_ip_hash: ipHash,
+    });
+    if (rlError) throw new Error(rlError.message);
+    const gate = Array.isArray(rl) ? rl[0] : rl;
+    if (gate && gate.allowed === false) {
+      return fail(
+        "Has hecho demasiados intentos desde esta conexión. Espera un momento e inténtalo más tarde.",
+        429,
+      );
     }
 
     const cleanEmail = String(email).trim().toLowerCase();
