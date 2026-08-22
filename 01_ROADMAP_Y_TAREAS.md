@@ -282,7 +282,21 @@ R4+R5. Detalle completo en `Remediacion_Seguridad_2026-08-18.md`.
   correos mientras el dominio no está verificado; quitarlo antes rompería el envío a leads reales.
   **No se tocó el código de `DEV_MAIL_REDIRECT`.** Retomar solo cuando R2 (rotación + dominio verificado)
   quede cerrado.
-- [ ] Stripe a modo real; corregir webhook (hoy crea cuenta con contraseña = correo).
+- [x] **Webhook de Stripe — contraseña = correo, cerrado (20-ago).** `stripe-webhook/index.ts` creaba la
+  cuenta del paciente con `password = customerEmail` (adivinable por cualquiera que supiera el correo;
+  ADR-013, expone a un tercero). Fix: contraseña **aleatoria cripto** (nunca el email) + `must_change_password:
+  true` solo para cuentas nuevas del webhook + envío del **enlace `recovery` por Resend** para que el usuario
+  cree su propia clave — es lo que `/compra-exitosa` ya prometía (se alineó backend↔frontend, ADR-006). Sin
+  migración (columna y gate ya existían). 0 cuentas afectadas hoy (Stripe en test). build ✓ + tests 220/220.
+  Nota: la entrega del correo depende de R2 (dominio Resend); la seguridad no. Detalle en
+  `auditorias-tecnicas/Fix_Stripe_Webhook_Password_2026-08-20.md`.
+- [ ] **`admin-create-user` — no fuerza cambio de contraseña (severidad BAJA, item aparte).** La contraseña
+  la fija el admin (mín. 8 chars, no derivada del email) y la comunica directamente, así que no es la
+  vulnerabilidad del webhook; pero tampoco setea `must_change_password`. Atender después, sin bloquear.
+- [ ] **Copy vs expiración del enlace de recovery (menor, frente aparte).** `/compra-exitosa` promete que el
+  enlace es *"válido por 24 horas"*, pero los enlaces de recovery de Supabase caducan por defecto en ~1 h.
+  Alinear: subir la expiración en el panel de Auth a 24 h **o** corregir el copy de la página. No urgente.
+- [ ] Stripe a modo real (depende de que el responsable cargue las claves live; aparte de este fix de código).
 - [ ] Solo **después de R1**: retomar los DROP aplazados de `test_scores` y `guides`.
 - [ ] Dominio propio + verificación de la app en Google Cloud.
 - [ ] Revisión jurídica de la política de tratamiento de datos (Ley 1581/2012).

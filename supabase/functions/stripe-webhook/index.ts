@@ -8,6 +8,23 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
 
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
+// Contraseña aleatoria cripto (NUNCA derivada del email). Nadie la conoce: la
+// cuenta se activa con el enlace de recuperación que se envía por correo, y el
+// usuario define su propia contraseña. Mismo patrón que public-signup.
+function generatePassword(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  const body = Array.from(bytes, (b) => b.toString(36)).join("").slice(0, 14);
+  return `Mf-${body}`;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 Deno.serve(async (req) => {
   const signature = req.headers.get("Stripe-Signature");
 
@@ -43,17 +60,18 @@ Deno.serve(async (req) => {
 
       const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-      let generatedPassword = null;
+      let createdViaWebhook = false;
 
       // LÓGICA TRANSACCIONAL: Si no hay userId (compra directa sin cuenta), creamos el usuario
       if (!userId && customerEmail) {
-        // Credenciales Espejo: el correo funciona como contraseña inicial
-        generatedPassword = customerEmail;
+        // Contraseña ALEATORIA, nunca el email. La cuenta se activa con el enlace
+        // de recuperación que se envía más abajo; el usuario elige su propia clave.
+        const password = generatePassword();
 
         // 1. Creación de cuenta puenteando el bloqueo público (API Admin)
         const { data: authData, error: authError } = await supabase.auth.admin.createUser({
           email: customerEmail,
-          password: generatedPassword,
+          password,
           email_confirm: true,
           user_metadata: { full_name: customerName },
         });
@@ -64,23 +82,29 @@ Deno.serve(async (req) => {
         }
 
         userId = authData.user.id;
+        createdViaWebhook = true;
         console.log(`✅ Nuevo usuario creado exitosamente vía transacción: ${userId}`);
       }
 
       if (userId) {
         // 2. UPSERT en tabla profiles
-        const { error: profileError } = await supabase.from("profiles").upsert(
-          {
-            id: userId,
-            full_name: customerName,
-            plan_type: "premium",
-            subscription_status: "active",
-            stripe_customer_id: customerId as string,
-            role: "patient",
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" },
-        );
+        const profileData: Record<string, unknown> = {
+          id: userId,
+          full_name: customerName,
+          plan_type: "premium",
+          subscription_status: "active",
+          stripe_customer_id: customerId as string,
+          role: "patient",
+          updated_at: new Date().toISOString(),
+        };
+        // Solo para cuentas NUEVAS creadas por el webhook: forzar que el usuario
+        // defina su contraseña (defensa en profundidad; el gate ya existe en el
+        // portal — onboardingGates). No se aplica a cuentas existentes que compran.
+        if (createdViaWebhook) profileData.must_change_password = true;
+
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .upsert(profileData, { onConflict: "id" });
 
         if (profileError) {
           console.error(`Error en UPSERT del perfil ${userId}:`, profileError);
@@ -89,11 +113,51 @@ Deno.serve(async (req) => {
 
         console.log(`✅ Perfil sincronizado y marcado como Premium: ${userId}`);
 
-        // 3. Log de Credenciales Espejo.
-        if (generatedPassword && customerEmail) {
-          console.log(
-            `✅ Cuenta configurada bajo modelo de Credenciales Espejo. Usuario accederá con su email.`,
-          );
+        // 3. Cuenta nueva: enviar el enlace para que el usuario cree su contraseña
+        //    —es lo que /compra-exitosa ya promete—. La entrega real depende de que
+        //    el dominio de Resend esté verificado (R2); si el correo falla, la cuenta
+        //    sigue segura (contraseña aleatoria) y el usuario puede pedir el enlace
+        //    desde "¿Olvidaste tu contraseña?". No se hace fatal el webhook por esto.
+        if (createdViaWebhook && customerEmail) {
+          const SITE_URL = Deno.env.get("SITE_URL") ?? "https://mente-en-foco.com";
+          const { data: linkData, error: linkError } = await supabase.auth.admin.generateLink({
+            type: "recovery",
+            email: customerEmail,
+            options: { redirectTo: `${SITE_URL}/ingresa` },
+          });
+
+          const actionLink = linkData?.properties?.action_link;
+          if (linkError || !actionLink) {
+            console.error("No se pudo generar el enlace de activación:", linkError);
+          } else {
+            const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+            const FROM_EMAIL =
+              Deno.env.get("REMINDER_FROM_EMAIL") ?? "Mente en Foco <onboarding@resend.dev>";
+            const emailRes = await fetch("https://api.resend.com/emails", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${RESEND_API_KEY}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                from: FROM_EMAIL,
+                to: [customerEmail],
+                subject: "Activa tu cuenta y crea tu contraseña — Mente en Foco",
+                html: `
+                  <p>Hola ${escapeHtml(customerName)},</p>
+                  <p>Tu pago quedó confirmado y tu acompañamiento ya está activo.</p>
+                  <p>Para entrar a tu espacio, crea tu contraseña con este enlace:</p>
+                  <p><a href="${actionLink}">Crear mi contraseña</a></p>
+                  <p>Por seguridad el enlace caduca. Si expira, puedes pedir uno nuevo desde
+                     "¿Olvidaste tu contraseña?" en la pantalla de ingreso.</p>
+                  <p style="color:#888;font-size:12px;">Si no reconoces esta compra, escríbenos.</p>
+                `,
+              }),
+            });
+            if (!emailRes.ok) {
+              console.error("[stripe-webhook] Resend error:", await emailRes.text());
+            }
+          }
         }
       } else {
         console.warn(
