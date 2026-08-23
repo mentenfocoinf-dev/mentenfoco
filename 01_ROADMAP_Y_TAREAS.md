@@ -129,9 +129,20 @@ componentes. Se documenta aquí para que el tracker vuelva a reflejar la realida
 - [x] **Motor de matching** (`matchingService.matchTherapists`) + `therapistContactService` (crear/aceptar/
   rechazar/cancelar solicitud). Se usa hoy dentro del portal en **"Mi camino"** del paciente
   (`MiCaminoSection` → `MatchingPreview`).
-- [ ] **Pendiente para cerrar la Ola 3:** directorio público navegable de especialistas (perfil profesional
-  público, reseñas) y decidir el flujo definitivo (¿el paciente elige o sigue asignación admin?). Hoy el
-  matching vive dentro del portal, no como página pública de captación.
+- [~] **Directorio público de especialistas (Ola 3) — BACKEND APLICADO (21-ago), falta frontend.** Decisión
+  de negocio: el paciente elige. Backend: `supabase/20260821_public_therapist_directory.sql` — **corrección
+  de seguridad (ADR-013)** además de Ola 3: `therapist_profiles` exponía a `anon` la tabla entera (incl.
+  `license_number`, `availability`, perfiles inactivos). Cerrado con **vista `public_therapist_directory`**
+  (11 columnas allowlist, `active+verified`) + política SELECT de la base solo `authenticated` + `REVOKE`
+  a anon. Contacto sigue exigiendo cuenta. Disciplina completa (tx revertida, 4 idempotencia, round-trip).
+  Detalle: `auditorias-tecnicas/Backend_Journaling_y_Directorio_2026-08-21.md`. **Falta:** ruta pública
+  `/especialistas` que consuma la vista. **No commiteado.**
+
+### Journaling estructurado (autocuidado) — ✅ backend (21-ago) / ⏳ falta frontend
+- [~] **`journal_entries` — diario privado del paciente.** `supabase/20260821_journal_entries.sql`: tabla
+  owner-only espejo de `mood_entries` **+ DELETE del propietario**, RLS activo (anon denegado), prompts
+  guiados como constante estática (sin tabla). Disciplina completa. Vive dentro de "Mi camino". **Falta:**
+  subsección de UI en `MiCaminoSection`. **No commiteado.**
 
 ### Notificaciones y "Mi camino" (Journey Engine) — ✅ construido
 - [x] `notifications` (escucha hechos ya registrados: solicitudes, asignaciones, mensajes, pasos ofrecidos)
@@ -290,9 +301,10 @@ R4+R5. Detalle completo en `Remediacion_Seguridad_2026-08-18.md`.
   migración (columna y gate ya existían). 0 cuentas afectadas hoy (Stripe en test). build ✓ + tests 220/220.
   Nota: la entrega del correo depende de R2 (dominio Resend); la seguridad no. Detalle en
   `auditorias-tecnicas/Fix_Stripe_Webhook_Password_2026-08-20.md`.
-- [ ] **`admin-create-user` — no fuerza cambio de contraseña (severidad BAJA, item aparte).** La contraseña
-  la fija el admin (mín. 8 chars, no derivada del email) y la comunica directamente, así que no es la
-  vulnerabilidad del webhook; pero tampoco setea `must_change_password`. Atender después, sin bloquear.
+- [x] **`admin-create-user` — `must_change_password` añadido (21-ago).** Ahora el UPDATE de perfil setea
+  `must_change_password: true` para paciente y terapeuta creados por admin, forzando que el usuario cree su
+  propia clave en el primer acceso (gate existente). Una línea, sin migración. build ✓ + tests 220/220.
+  **No commiteado** (junto con el resto de la cola de backend).
 - [ ] **Copy vs expiración del enlace de recovery (menor, frente aparte).** `/compra-exitosa` promete que el
   enlace es *"válido por 24 horas"*, pero los enlaces de recovery de Supabase caducan por defecto en ~1 h.
   Alinear: subir la expiración en el panel de Auth a 24 h **o** corregir el copy de la página. No urgente.
