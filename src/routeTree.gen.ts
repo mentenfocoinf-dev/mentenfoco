@@ -19,6 +19,7 @@ import { Route as LineasDeCrisisRouteImport } from './routes/lineas-de-crisis'
 import { Route as IngresaRouteImport } from './routes/ingresa'
 import { Route as GuiaRouteImport } from './routes/guia'
 import { Route as FaqRouteImport } from './routes/faq'
+import { Route as EspecialistasRouteImport } from './routes/especialistas'
 import { Route as EmpresasRouteImport } from './routes/empresas'
 import { Route as ContactanosRouteImport } from './routes/contactanos'
 import { Route as ConsentimientoClinicoRouteImport } from './routes/consentimiento-clinico'
@@ -87,6 +88,11 @@ const GuiaRoute = GuiaRouteImport.update({
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EspecialistasRoute = EspecialistasRouteImport.update({
+  id: '/especialistas',
+  path: '/especialistas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EmpresasRoute = EmpresasRouteImport.update({
@@ -196,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/consentimiento-clinico': typeof ConsentimientoClinicoRoute
   '/contactanos': typeof ContactanosRoute
   '/empresas': typeof EmpresasRoute
+  '/especialistas': typeof EspecialistasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/consentimiento-clinico': typeof ConsentimientoClinicoRoute
   '/contactanos': typeof ContactanosRoute
   '/empresas': typeof EmpresasRoute
+  '/especialistas': typeof EspecialistasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -259,6 +267,7 @@ export interface FileRoutesById {
   '/consentimiento-clinico': typeof ConsentimientoClinicoRoute
   '/contactanos': typeof ContactanosRoute
   '/empresas': typeof EmpresasRoute
+  '/especialistas': typeof EspecialistasRoute
   '/faq': typeof FaqRoute
   '/guia': typeof GuiaRoute
   '/ingresa': typeof IngresaRoute
@@ -292,6 +301,7 @@ export interface FileRouteTypes {
     | '/consentimiento-clinico'
     | '/contactanos'
     | '/empresas'
+    | '/especialistas'
     | '/faq'
     | '/guia'
     | '/ingresa'
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
     | '/consentimiento-clinico'
     | '/contactanos'
     | '/empresas'
+    | '/especialistas'
     | '/faq'
     | '/guia'
     | '/ingresa'
@@ -354,6 +365,7 @@ export interface FileRouteTypes {
     | '/consentimiento-clinico'
     | '/contactanos'
     | '/empresas'
+    | '/especialistas'
     | '/faq'
     | '/guia'
     | '/ingresa'
@@ -386,6 +398,7 @@ export interface RootRouteChildren {
   ConsentimientoClinicoRoute: typeof ConsentimientoClinicoRoute
   ContactanosRoute: typeof ContactanosRoute
   EmpresasRoute: typeof EmpresasRoute
+  EspecialistasRoute: typeof EspecialistasRoute
   FaqRoute: typeof FaqRoute
   GuiaRoute: typeof GuiaRoute
   IngresaRoute: typeof IngresaRoute
@@ -478,6 +491,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/especialistas': {
+      id: '/especialistas'
+      path: '/especialistas'
+      fullPath: '/especialistas'
+      preLoaderRoute: typeof EspecialistasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/empresas': {
@@ -626,6 +646,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConsentimientoClinicoRoute: ConsentimientoClinicoRoute,
   ContactanosRoute: ContactanosRoute,
   EmpresasRoute: EmpresasRoute,
+  EspecialistasRoute: EspecialistasRoute,
   FaqRoute: FaqRoute,
   GuiaRoute: GuiaRoute,
   IngresaRoute: IngresaRoute,

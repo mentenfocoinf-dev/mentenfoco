@@ -49,6 +49,7 @@ import {
 import { ContinuaDondeLoDejaste } from "../home/ContinuaDondeLoDejaste";
 import { RecomendacionesRelacionadas } from "../content/RecomendacionesRelacionadas";
 import { MatchingPreview } from "../matching/MatchingPreview";
+import { JournalSection } from "../journal/JournalSection";
 
 type EstadoPrograma = "empezado" | "terminado" | "disponible";
 
@@ -234,6 +235,9 @@ export function MiCaminoSection() {
           </ul>
         </section>
       )}
+
+      {/* 3.5 — Diario privado. Siempre disponible: escribir no depende de nada. */}
+      <JournalSection />
 
       {/* 4 — sin recurso reciente no hay nada sobre lo que recomendar */}
       {datos.ancla && (
