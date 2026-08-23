@@ -78,6 +78,9 @@ Deno.serve(async (req) => {
         full_name,
         email,
         onboarding_completed: role === "therapist",
+        // La contraseña la eligió el admin: forzar que el usuario cree la suya
+        // en el primer acceso (el gate ya existe — onboardingGates.ts:79).
+        must_change_password: true,
       })
       .eq("id", created.user.id);
     if (profileError) return json({ error: profileError.message }, 500);
