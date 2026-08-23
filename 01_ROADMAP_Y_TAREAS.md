@@ -228,7 +228,15 @@ Lo que falta es la cara pública y la decisión de negocio.
 
 ### Paso 5 — Producto complementario (cuando toque)
 - [ ] Programas por situación ampliados; terapia de pareja; orientación para padres.
-- [ ] B2B / Empresas funcional (hoy landing → `crm_leads`).
+- [~] **B2B / Empresas — backend INERTE aplicado (21-ago), pendiente de revisión legal + frontend.**
+  `supabase/20260821_b2b_companies.sql`: entidad `companies` (estado de negociación, sin precios), vínculo
+  `company_members`, consentimiento **separado y revocable** `employer_link_consents` (nunca reutiliza
+  `clinical_consents`, ADR-008), y función `company_aggregate_metrics` con **k-anonimato (umbral 5)** —
+  solo conteos, nunca desagregado. RLS admin-only en `companies`; sin rol `company_admin` nuevo. Disciplina
+  completa (tx revertida 8/8, 4 idempotencia, round-trip). **INERTE: 0 filas, sin UI, sin flujo real.**
+  ⚠️ El **texto del consentimiento** y toda conexión a producción quedan **PENDIENTES DE REVISIÓN JURÍDICA**
+  (patrón del consentimiento clínico). Detalle: `auditorias-tecnicas/Backend_B2B_Empresas_2026-08-21.md`.
+  Commiteado como sprint propio; **falta revisión legal + frontend antes de activar**.
 - [ ] Paridad móvil del terapeuta (app Expo, hoy solo Fase 1 paciente).
 
 ### Paso FINAL — Fase de seguridad (antes de cualquier lanzamiento real; agrupada, espera tu señal) 🔒
