@@ -32,7 +32,8 @@ function CompraExitosa() {
               <h3 className="font-bold text-slate-900">Revisa tu correo electrónico</h3>
               <p className="mt-1 text-sm text-slate-600 leading-relaxed">
                 En los próximos minutos recibirás un correo con un enlace para <strong>activar tu
-                cuenta y establecer tu contraseña</strong>. El enlace es válido por 24 horas.
+                cuenta y establecer tu contraseña</strong>. Por seguridad el enlace caduca al cabo de
+                un rato; si expira, puedes pedir uno nuevo desde “¿Olvidaste tu contraseña?”.
               </p>
             </div>
           </div>
