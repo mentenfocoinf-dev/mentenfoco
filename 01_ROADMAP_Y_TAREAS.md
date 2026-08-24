@@ -257,12 +257,25 @@ Ver sección de seguridad abajo. No se arranca hasta que lo indiques.
 
 ---
 
-## 🔒 Fase de seguridad final — EN CURSO (RLS + R4/R5 + Commit B cerrados; R3 backend aplicado y captcha escrito pendiente de claves; R6 esperando R2)
+## 🔒 Fase de seguridad final — EN CURSO (RLS + R4/R5 + Commit B + cola de backend cerrados; entrando a la fase de "configuraciones")
 
-El sprint de RLS (5–14 ago) ya se ejecutó: **33/37 tablas con RLS, 98 políticas**. El diagnóstico
-`Diagnostico_Seguridad_Post_RLS_2026-08-14.md` dejó el riesgo dominante (cero backups) y el orden
-R1–R6. **18-ago:** Commit A cerró la gobernanza de git de todo lo relacionado a seguridad/RLS y aplicó
-R4+R5. Detalle completo en `Remediacion_Seguridad_2026-08-18.md`.
+El sprint de RLS (5–14 ago) ya se ejecutó: **33/37 tablas con RLS, 98 políticas** en su momento — estado
+actual real tras la cola de backend del 22-24 ago: **42 tablas, RLS en 38, 108 políticas, 275 funciones,
+20 enums**. El diagnóstico `Diagnostico_Seguridad_Post_RLS_2026-08-14.md` dejó el riesgo dominante (cero
+backups) y el orden R1–R6. **18-ago:** Commit A cerró la gobernanza de git de todo lo relacionado a
+seguridad/RLS y aplicó R4+R5. Detalle completo en `Remediacion_Seguridad_2026-08-18.md`.
+
+> **Nota (24-ago):** el número "33/37" queda como registro histórico de ese sprint, no como baseline
+> vigente — cada migración desde entonces tomó su propio baseline en vivo (nunca heredado), y cualquier
+> sprint de base de datos futuro debe seguir haciendo lo mismo, no asumir un número de un reporte anterior.
+
+**Orden de prioridad acordado para la fase de configuraciones (24-ago), del más al menos crítico:**
+**P0 Backups/PITR → P0b Exportación lógica cifrada (retención legal 15 años) → P1 Resend (rotar +
+verificar dominio) → P1 Turnstile E2E → P2 `DEV_MAIL_REDIRECT` → P3 Stripe a modo real → P4 dominio propio
++ Google Cloud → P5 revisión jurídica → P6 DROP de tablas muertas → P7 producto posterior (móvil,
+contenido).** Regla firme: no se declara el sistema
+"production-ready" ni se reabren los DROP aplazados mientras P0 no esté cerrado. No se vuelve a invertir
+tiempo en subir el porcentaje de RLS salvo que un diagnóstico nuevo encuentre una vulnerabilidad real.
 
 - [x] **RLS activado y verificado (33/37).** Guardas admin medidas efectivas; sin secretos hardcodeados.
 - [x] **R4 · H-JE-001 cerrado (18-ago).** `REVOKE TRUNCATE ON journey_events FROM service_role`. Probado
@@ -283,9 +296,22 @@ R4+R5. Detalle completo en `Remediacion_Seguridad_2026-08-18.md`.
   confirmar 0 cambio real. Rama quedó 17 commits por delante de `origin/main`; **push autorizado (20-ago)
   pero pendiente de ejecución manual** — el clasificador de permisos del harness bloqueó `git push` desde
   Claude Code; hay que correr `git push origin main` a mano o habilitar el permiso.
-- [ ] **R1 · Backups + PITR (CRÍTICO — bloquea todo lo demás).** PITR off y **cero copias**: hoy cualquier
-  `TRUNCATE`/`DROP`/corrupción es pérdida permanente de historias clínicas. Requiere plan Pro de Supabase
-  → **decisión de producto tuya, la ejecutas tú en el panel**, el agente solo verifica después.
+- [~] **P0 · R1 · Backups + PITR (CRÍTICO — bloquea todo lo demás). Guía + script listos (24-ago); falta la
+  activación del responsable.** Estado verificado hoy por Management API: `pitr_enabled: false`, **0 copias
+  recuperables**, add-on `pitr` disponible pero no aplicado. Requiere plan **Pro/Team/Enterprise** + compute
+  Small; add-on de pago (7d ~$100 / 14d ~$200 / 28d ~$400 al mes). **Recomendación: 28 días** (dato clínico
+  irreemplazable; Ley 1581/2012 principio de seguridad). Guía paso a paso para el responsable:
+  `auditorias-tecnicas/Guia_R1_Backups_PITR.md`. Verificación de solo lectura: `node scripts/verify-pitr.cjs`.
+  **La activación (upgrade + panel) la hace el responsable; el agente solo verifica.** **Compuerta:** hasta
+  que el script confirme ≥1 copia recuperable, siguen bloqueados los DROP de `test_scores`/`guides` y toda
+  operación estructural irreversible. *(Ítem separado: ver P0b abajo.)*
+- [ ] **P0b · Exportación lógica periódica cifrada — retención legal de 15 años (CRÍTICO, componente legal).**
+  PITR (P0) es recuperación operativa con ventana móvil (28 días máx.); **no** cubre la conservación de la
+  historia clínica que exige la **Resolución 1995/1999 (mod. 839/2017): mínimo 15 años desde la última
+  atención**. Hace falta un mecanismo aparte de **dumps lógicos periódicos cifrados, conservados fuera de
+  Supabase**, con su política de retención y prueba de restauración. Tiene componente jurídico → coordinar
+  con P5. No estaba en el roadmap antes del 24-ago; nace del hallazgo de la guía R1
+  (`auditorias-tecnicas/Guia_R1_Backups_PITR.md`). Sin diseñar aún — pendiente de decisión de alcance.
 - [ ] **R2 · Rotar la clave de Resend + verificar dominio propio (ALTO).** Comprometida y sin rotar desde el
   19-jul. **Confirmado (18-ago): sigue pendiente** — el dominio de envío todavía no está verificado (Resend
   sigue en modo prueba). **La ejecutas tú** en Resend + actualizas el secret `RESEND_API_KEY`. **R6 depende
