@@ -15,12 +15,14 @@ import {
   Eye,
   MessageCircle,
   ClipboardList,
+  Building2,
 } from "lucide-react";
 import { supabase, type Profile, type CrmLead, type PlanType } from "../../lib/supabase";
 import { ContentEditorModal } from "../content/ContentEditorModal";
 import { PublishContentModal } from "../content/PublishContentModal";
 import { CommentModerationQueue } from "../blog/CommentModerationQueue";
 import { TestSubmissionsPanel } from "./TestSubmissionsPanel";
+import { CompaniesPanel } from "./CompaniesPanel";
 import {
   countPendingComments,
   getAdminDirectory,
@@ -50,7 +52,14 @@ interface Props {
   onLogout: () => void;
 }
 
-type TabType = "leads" | "therapists" | "patients" | "contenido" | "comentarios" | "tests";
+type TabType =
+  | "leads"
+  | "empresas"
+  | "therapists"
+  | "patients"
+  | "contenido"
+  | "comentarios"
+  | "tests";
 
 const PLAN_OPTIONS: PlanType[] = ["free", "esencial", "integral", "premium"];
 
@@ -256,6 +265,7 @@ export function AdminDashboard({ profile, onLogout }: Props) {
     { key: "patients", label: "Pacientes", icon: <UserRound size={18} /> },
     { key: "therapists", label: "Terapeutas", icon: <Users size={18} /> },
     { key: "leads", label: "Leads (CRM)", icon: <Contact size={18} /> },
+    { key: "empresas", label: "Empresas", icon: <Building2 size={18} /> },
     { key: "contenido", label: "Contenido", icon: <FileText size={18} /> },
     {
       key: "comentarios",
@@ -591,6 +601,9 @@ export function AdminDashboard({ profile, onLogout }: Props) {
                     </div>
                   </div>
                 )}
+
+                {/* ── EMPRESAS (B2B) ── */}
+                {activeTab === "empresas" && <CompaniesPanel />}
 
                 {/* ── LEADS ── */}
                 {activeTab === "leads" &&
