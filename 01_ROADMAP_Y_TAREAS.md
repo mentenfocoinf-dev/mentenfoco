@@ -4,10 +4,11 @@
 > `- [x]` lo hecho y `- [ ]` lo pendiente. Está pensado para que tengas siempre a la mano qué falta, sin
 > tener que pedir que se actualice nada. Complementa a `00_CONTEXTO_MAESTRO_MENTE_EN_FOCO.md` (el contexto
 > completo) y reemplaza al viejo `diagnostico_sitio.html` como tracker del día a día.
-> Última actualización: **18 de agosto de 2026** (puesta al día tras el trabajo de agosto: agenda unificada,
-> perfiles de terapeuta + motor de matching, notificaciones y el sprint de RLS 33/37). El cuerpo previo del
-> 29-jul se conserva intacto abajo; lo nuevo va en la sección **"✅ Cerrado en agosto"** y en los estados
-> actualizados del plan de trabajo.
+> Última actualización: **21 de agosto de 2026** (puesta al día tras el trabajo de agosto: agenda unificada,
+> perfiles de terapeuta + motor de matching, notificaciones, el sprint de RLS 33/37, y la cola de backend
+> del 20-21 ago: journaling, directorio público Ola 3 + cierre de sobre-exposición ADR-013, fix de
+> `admin-create-user`, backend B2B inerte). El cuerpo previo del 29-jul se conserva intacto abajo; lo nuevo
+> va en la sección **"✅ Cerrado en agosto"** y en los estados actualizados del plan de trabajo.
 
 ---
 
@@ -129,20 +130,22 @@ componentes. Se documenta aquí para que el tracker vuelva a reflejar la realida
 - [x] **Motor de matching** (`matchingService.matchTherapists`) + `therapistContactService` (crear/aceptar/
   rechazar/cancelar solicitud). Se usa hoy dentro del portal en **"Mi camino"** del paciente
   (`MiCaminoSection` → `MatchingPreview`).
-- [~] **Directorio público de especialistas (Ola 3) — BACKEND APLICADO (21-ago), falta frontend.** Decisión
-  de negocio: el paciente elige. Backend: `supabase/20260821_public_therapist_directory.sql` — **corrección
-  de seguridad (ADR-013)** además de Ola 3: `therapist_profiles` exponía a `anon` la tabla entera (incl.
-  `license_number`, `availability`, perfiles inactivos). Cerrado con **vista `public_therapist_directory`**
-  (11 columnas allowlist, `active+verified`) + política SELECT de la base solo `authenticated` + `REVOKE`
-  a anon. Contacto sigue exigiendo cuenta. Disciplina completa (tx revertida, 4 idempotencia, round-trip).
-  Detalle: `auditorias-tecnicas/Backend_Journaling_y_Directorio_2026-08-21.md`. **Falta:** ruta pública
-  `/especialistas` que consuma la vista. **No commiteado.**
+- [x] **Directorio público de especialistas (Ola 3) — CERRADO (21-ago), backend + frontend commiteados y
+  publicados.** Decisión de negocio: el paciente elige. Backend: `supabase/20260821_public_therapist_directory.sql`
+  — **corrección de seguridad (ADR-013)** además de Ola 3: `therapist_profiles` exponía a `anon` la tabla
+  entera (incl. `license_number`, `availability`, perfiles inactivos). Cerrado con **vista
+  `public_therapist_directory`** (11 columnas allowlist, `active+verified`) + política SELECT de la base
+  solo `authenticated` + `REVOKE` a anon. Contacto sigue exigiendo cuenta. Disciplina completa (tx
+  revertida, 4 idempotencia, round-trip). Frontend: ruta pública `/especialistas` consumiendo la vista.
+  Detalle: `auditorias-tecnicas/Backend_Journaling_y_Directorio_2026-08-21.md`. Commits `fff1b26` (backend
+  + docs) y `6c4f174` (frontend) — ambos en `origin/main`.
 
-### Journaling estructurado (autocuidado) — ✅ backend (21-ago) / ⏳ falta frontend
-- [~] **`journal_entries` — diario privado del paciente.** `supabase/20260821_journal_entries.sql`: tabla
+### Journaling estructurado (autocuidado) — ✅ CERRADO (21-ago), backend + frontend
+- [x] **`journal_entries` — diario privado del paciente.** `supabase/20260821_journal_entries.sql`: tabla
   owner-only espejo de `mood_entries` **+ DELETE del propietario**, RLS activo (anon denegado), prompts
-  guiados como constante estática (sin tabla). Disciplina completa. Vive dentro de "Mi camino". **Falta:**
-  subsección de UI en `MiCaminoSection`. **No commiteado.**
+  guiados como constante estática (sin tabla). Disciplina completa. Vive dentro de "Mi camino"
+  (`JournalSection` en `MiCaminoSection`). Commits `183b80c` (backend) y `6c4f174` (frontend) — ambos en
+  `origin/main`.
 
 ### Notificaciones y "Mi camino" (Journey Engine) — ✅ construido
 - [x] `notifications` (escucha hechos ya registrados: solicitudes, asignaciones, mensajes, pasos ofrecidos)
@@ -206,28 +209,33 @@ Completitud clínico-legal (Ley 1090/2006), distinto del consentimiento de datos
 - [ ] **Tu validación:** recorrer logueado como `paciente.esencial@test.com` (dejado con consentimiento
   aceptado v1). Texto pendiente de revisión jurídica (fase de seguridad).
 
-### Paso 3 — Ola 3: Encontrar especialista + matching + directorio 🟡 PARCIAL (backend hecho en agosto)
-El gap más grande vs. competencia. **El motor ya existe:** `therapist_profiles`, `user_preferences`,
-`therapist_contact_requests` y `matchingService.matchTherapists`, usados dentro del portal en "Mi camino".
-Lo que falta es la cara pública y la decisión de negocio.
+### Paso 3 — Ola 3: Encontrar especialista + matching + directorio ✅ CERRADO (21-ago)
+El gap más grande vs. competencia, cerrado. Decisión de negocio: **el paciente elige**. Directorio público
+`/especialistas` construido sobre la vista `public_therapist_directory` (ver sección de arriba); de paso
+cerró una sobre-exposición real de datos (ADR-013). Reseñas de terapeutas no incluidas en este alcance —
+quedan como posible mejora futura, no bloqueante.
 - [x] Backend del matching + solicitudes de contacto + perfiles de terapeuta (agosto).
 - [x] Matching dentro del portal (paciente logueado, sección "Mi camino").
-- [ ] **Directorio público navegable** de especialistas (perfil profesional público + reseñas) como página
-  de captación fuera del login.
-- [ ] **Decisión de negocio pendiente (tuya):** ¿el paciente elige terapeuta desde el directorio, o sigue la
-  asignación por admin y el matching es solo una sugerencia? De esto depende el flujo final.
-- [ ] Spec + prompt de la parte pública una vez tomada la decisión.
+- [x] Directorio público navegable (`/especialistas`), decisión de negocio resuelta, backend + frontend
+  commiteados y publicados (21-ago).
 
 ### Paso 4 — Contenido en marcha (incremental, en paralelo)
 - [ ] Automatización de 1 guía/artículo cada 2 días (prompt generador ya existe en `guias-bienestar/`).
 - [ ] Audio real: grabar/enchufar meditaciones y podcast (hoy "Audio próximamente").
 - [ ] 5 categorías nuevas de guías (Personalidad, Sueño, Estrés/Burnout, Adicciones, Perinatal), previa
   investigación — respetando la regla de no repetir temas entre secciones.
-- [ ] Capa de autocuidado tipo Terapi: journaling estructurado.
+- [x] ~~Capa de autocuidado tipo Terapi: journaling estructurado.~~ Cerrado 21-ago, ver sección de arriba.
 - [ ] (Futuro) Más piezas por tier para diferenciar aún más integral vs. premium.
 
 ### Paso 5 — Producto complementario (cuando toque)
-- [ ] Programas por situación ampliados; terapia de pareja; orientación para padres.
+- [~] **Programas ampliados (terapia de pareja, orientación para padres) — v1 NO requiere desarrollo (21-ago).**
+  Decisión: v1 = especialización + contenido, sin tocar el modelo de sesión (que asume un `patient_id`), sin
+  anamnesis conjunta, sin precio diferenciado. Verificado: `specializations` es `theme_key[]` (enum cerrado,
+  no free-text), y el enum **ya incluye** `relaciones_vinculos` (pareja) y `crianza_infancia` (padres). Por
+  tanto **no hace falta código**: es operativo/de contenido — un terapeuta marca esas especialidades y se crean
+  guías/contenido que las respalden. *(Caveat: `theme_key` es un ámbito de la experiencia, no un formato de
+  servicio; si se quisiera un eje "formato" distinto —p.ej. mostrar "Terapia de pareja" como servicio— sería
+  su propio sprint, no v1.)* Un modelo de sesión multi-persona queda para v2 si hay demanda real.
 - [~] **B2B / Empresas — backend INERTE aplicado (21-ago), pendiente de revisión legal + frontend.**
   `supabase/20260821_b2b_companies.sql`: entidad `companies` (estado de negociación, sin precios), vínculo
   `company_members`, consentimiento **separado y revocable** `employer_link_consents` (nunca reutiliza
@@ -236,7 +244,12 @@ Lo que falta es la cara pública y la decisión de negocio.
   completa (tx revertida 8/8, 4 idempotencia, round-trip). **INERTE: 0 filas, sin UI, sin flujo real.**
   ⚠️ El **texto del consentimiento** y toda conexión a producción quedan **PENDIENTES DE REVISIÓN JURÍDICA**
   (patrón del consentimiento clínico). Detalle: `auditorias-tecnicas/Backend_B2B_Empresas_2026-08-21.md`.
-  Commiteado como sprint propio; **falta revisión legal + frontend antes de activar**.
+  Commit `319625e`, publicado en `origin/main`.
+- [x] **UI admin del pipeline B2B (21-ago).** Tab "Empresas" en el panel admin: crear empresa, ver, mover el
+  estado (prospecto → negociando → contrato_activo → pausado/cerrado) y notas. Lee/escribe `companies`
+  (RLS admin-only), sin migración. **No toca** el vínculo empleado↔empresa ni los reportes (siguen bloqueados
+  por la revisión legal). Commit `2dd378e`. **Falta (post-legal):** revisión jurídica del consentimiento +
+  frontend del vínculo empleado↔empresa antes de activar esa parte.
 - [ ] Paridad móvil del terapeuta (app Expo, hoy solo Fase 1 paciente).
 
 ### Paso FINAL — Fase de seguridad (antes de cualquier lanzamiento real; agrupada, espera tu señal) 🔒
@@ -293,9 +306,9 @@ R4+R5. Detalle completo en `Remediacion_Seguridad_2026-08-18.md`.
     **gated por su env**: sin claves, el widget no aparece y el backend omite el captcha (fail-safe), pero
     **el rate-limit sigue activo**. build ✓ + tests 220/220.
   - **Falta (responsable):** crear el widget en Cloudflare y cargar **`VITE_TURNSTILE_SITE_KEY`** (frontend,
-    público) y **`TURNSTILE_SECRET_KEY`** (env del Edge Function, nunca por chat), y **desplegar
-    `public-signup`**. Sin esto, el captcha no está verificado end-to-end. Los archivos de R3 quedan
-    **sin commitear** a la espera de aprobación.
+    público) y **`TURNSTILE_SECRET_KEY`** (env del Edge Function, nunca por chat). Sin esto, el captcha no
+    está verificado end-to-end. Código commiteado y publicado (`469ab23`); `public-signup` ya está
+    desplegado (`ACTIVE`, version 5) — falta cargar las claves y la prueba de rechazo (403 sin token).
 - [ ] **R6 · Retirar `DEV_MAIL_REDIRECT`** (limpieza, panel de secretos). **Bloqueado por R2 — reconfirmado
   20-ago:** el dominio propio de Resend sigue sin verificar (modo prueba). El código lo usa para redirigir
   correos mientras el dominio no está verificado; quitarlo antes rompería el envío a leads reales.
@@ -312,10 +325,11 @@ R4+R5. Detalle completo en `Remediacion_Seguridad_2026-08-18.md`.
 - [x] **`admin-create-user` — `must_change_password` añadido (21-ago).** Ahora el UPDATE de perfil setea
   `must_change_password: true` para paciente y terapeuta creados por admin, forzando que el usuario cree su
   propia clave en el primer acceso (gate existente). Una línea, sin migración. build ✓ + tests 220/220.
-  **No commiteado** (junto con el resto de la cola de backend).
-- [ ] **Copy vs expiración del enlace de recovery (menor, frente aparte).** `/compra-exitosa` promete que el
-  enlace es *"válido por 24 horas"*, pero los enlaces de recovery de Supabase caducan por defecto en ~1 h.
-  Alinear: subir la expiración en el panel de Auth a 24 h **o** corregir el copy de la página. No urgente.
+  Commit `d0ba4f0`, publicado en `origin/main`.
+- [x] **Copy del enlace de recovery alineado (21-ago).** `/compra-exitosa` prometía *"válido por 24 horas"*
+  pero el recovery de Supabase caduca en ~1 h. Copy corregido: dice que el enlace caduca y cómo pedir otro,
+  sin afirmar una duración concreta ni urgencia. Commit `29cb72e`. *(Opción futura opcional: subir la
+  expiración en el panel de Auth a 24 h — configuración de panel, no de código.)*
 - [ ] Stripe a modo real (depende de que el responsable cargue las claves live; aparte de este fix de código).
 - [ ] Solo **después de R1**: retomar los DROP aplazados de `test_scores` y `guides`.
 - [ ] Dominio propio + verificación de la app en Google Cloud.
