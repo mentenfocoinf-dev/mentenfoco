@@ -313,9 +313,10 @@ tiempo en subir el porcentaje de RLS salvo que un diagnóstico nuevo encuentre u
   con P5. No estaba en el roadmap antes del 24-ago; nace del hallazgo de la guía R1
   (`auditorias-tecnicas/Guia_R1_Backups_PITR.md`). Sin diseñar aún — pendiente de decisión de alcance.
 - [ ] **R2 · Rotar la clave de Resend + verificar dominio propio (ALTO).** Comprometida y sin rotar desde el
-  19-jul. **Confirmado (18-ago): sigue pendiente** — el dominio de envío todavía no está verificado (Resend
-  sigue en modo prueba). **La ejecutas tú** en Resend + actualizas el secret `RESEND_API_KEY`. **R6 depende
-  de esto.**
+  19-jul. **Confirmado (25-ago) por `node scripts/verify-resend.cjs`: sigue SIN rotar** (`RESEND_API_KEY`
+  updated 2026-07-19) y el dominio de envío todavía no está verificado (Resend en modo prueba). **La ejecutas
+  tú** en Resend + actualizas el secret `RESEND_API_KEY`; luego el script confirma la fecha nueva. **R6
+  depende de esto.**
 - [~] **R3 · Rate-limit + captcha en `public-signup` (ALTO) — BACKEND APLICADO, captcha escrito pendiente
   de claves (20-ago).** Detalle: `Remediacion_R3_Rate_Limit_Captcha_2026-08-20.md`.
   - **Backend de rate-limit APLICADO:** `supabase/20260820_signup_rate_limit.sql` (+ backup) crea la tabla
@@ -332,8 +333,10 @@ tiempo en subir el porcentaje de RLS salvo que un diagnóstico nuevo encuentre u
     **gated por su env**: sin claves, el widget no aparece y el backend omite el captcha (fail-safe), pero
     **el rate-limit sigue activo**. build ✓ + tests 220/220.
   - **Falta (responsable):** crear el widget en Cloudflare y cargar **`VITE_TURNSTILE_SITE_KEY`** (frontend,
-    público) y **`TURNSTILE_SECRET_KEY`** (env del Edge Function, nunca por chat). Sin esto, el captcha no
-    está verificado end-to-end. Código commiteado y publicado (`469ab23`); `public-signup` ya está
+    público) y **`TURNSTILE_SECRET_KEY`** (env del Edge Function, nunca por chat). Confirmado (25-ago) por
+    `node scripts/verify-turnstile.cjs`: `TURNSTILE_SECRET_KEY` **AUSENTE** → captcha inerte. Cuando se cargue,
+    el script lo confirma y se hace la prueba de rechazo E2E (403 sin token, sin bypass, sin crear cuentas).
+    Sin esto, el captcha no está verificado end-to-end. Código commiteado y publicado (`469ab23`); `public-signup` ya está
     desplegado (`ACTIVE`, version 5) — falta cargar las claves y la prueba de rechazo (403 sin token).
 - [ ] **R6 · Retirar `DEV_MAIL_REDIRECT`** (limpieza, panel de secretos). **Bloqueado por R2 — reconfirmado
   20-ago:** el dominio propio de Resend sigue sin verificar (modo prueba). El código lo usa para redirigir
