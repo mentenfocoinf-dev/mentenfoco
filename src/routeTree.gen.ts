@@ -27,9 +27,11 @@ import { Route as MembresiaRouteImport } from './routes/membresia'
 import { Route as NotificacionesRouteImport } from './routes/notificaciones'
 import { Route as NuevaContrasenaRouteImport } from './routes/nueva-contrasena'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as PoliticaPrivacidadRouteImport } from './routes/politica-privacidad'
 import { Route as RecursosRouteImport } from './routes/recursos'
 import { Route as RehabilitacionCognitivaRouteImport } from './routes/rehabilitacion-cognitiva'
 import { Route as SobreNosotrosRouteImport } from './routes/sobre-nosotros'
+import { Route as TerminosYCondicionesRouteImport } from './routes/terminos-y-condiciones'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ContenidoIndexRouteImport } from './routes/contenido.index'
@@ -132,6 +134,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoliticaPrivacidadRoute = PoliticaPrivacidadRouteImport.update({
+  id: '/politica-privacidad',
+  path: '/politica-privacidad',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecursosRoute = RecursosRouteImport.update({
   id: '/recursos',
   path: '/recursos',
@@ -145,6 +152,11 @@ const RehabilitacionCognitivaRoute = RehabilitacionCognitivaRouteImport.update({
 const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
   id: '/sobre-nosotros',
   path: '/sobre-nosotros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TerminosYCondicionesRoute = TerminosYCondicionesRouteImport.update({
+  id: '/terminos-y-condiciones',
+  path: '/terminos-y-condiciones',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -223,9 +235,11 @@ export interface FileRoutesByFullPath {
   '/notificaciones': typeof NotificacionesRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/onboarding': typeof OnboardingRoute
+  '/politica-privacidad': typeof PoliticaPrivacidadRoute
   '/recursos': typeof RecursosRoute
   '/rehabilitacion-cognitiva': typeof RehabilitacionCognitivaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/terminos-y-condiciones': typeof TerminosYCondicionesRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
   '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
@@ -257,9 +271,11 @@ export interface FileRoutesByTo {
   '/notificaciones': typeof NotificacionesRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/onboarding': typeof OnboardingRoute
+  '/politica-privacidad': typeof PoliticaPrivacidadRoute
   '/recursos': typeof RecursosRoute
   '/rehabilitacion-cognitiva': typeof RehabilitacionCognitivaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/terminos-y-condiciones': typeof TerminosYCondicionesRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
   '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
@@ -292,9 +308,11 @@ export interface FileRoutesById {
   '/notificaciones': typeof NotificacionesRoute
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/onboarding': typeof OnboardingRoute
+  '/politica-privacidad': typeof PoliticaPrivacidadRoute
   '/recursos': typeof RecursosRoute
   '/rehabilitacion-cognitiva': typeof RehabilitacionCognitivaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
+  '/terminos-y-condiciones': typeof TerminosYCondicionesRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
   '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
@@ -328,9 +346,11 @@ export interface FileRouteTypes {
     | '/notificaciones'
     | '/nueva-contrasena'
     | '/onboarding'
+    | '/politica-privacidad'
     | '/recursos'
     | '/rehabilitacion-cognitiva'
     | '/sobre-nosotros'
+    | '/terminos-y-condiciones'
     | '/blog/$slug'
     | '/contenido/$slug'
     | '/conversacion/$relationshipId'
@@ -362,9 +382,11 @@ export interface FileRouteTypes {
     | '/notificaciones'
     | '/nueva-contrasena'
     | '/onboarding'
+    | '/politica-privacidad'
     | '/recursos'
     | '/rehabilitacion-cognitiva'
     | '/sobre-nosotros'
+    | '/terminos-y-condiciones'
     | '/blog/$slug'
     | '/contenido/$slug'
     | '/conversacion/$relationshipId'
@@ -396,9 +418,11 @@ export interface FileRouteTypes {
     | '/notificaciones'
     | '/nueva-contrasena'
     | '/onboarding'
+    | '/politica-privacidad'
     | '/recursos'
     | '/rehabilitacion-cognitiva'
     | '/sobre-nosotros'
+    | '/terminos-y-condiciones'
     | '/blog/$slug'
     | '/contenido/$slug'
     | '/conversacion/$relationshipId'
@@ -431,9 +455,11 @@ export interface RootRouteChildren {
   NotificacionesRoute: typeof NotificacionesRoute
   NuevaContrasenaRoute: typeof NuevaContrasenaRoute
   OnboardingRoute: typeof OnboardingRoute
+  PoliticaPrivacidadRoute: typeof PoliticaPrivacidadRoute
   RecursosRoute: typeof RecursosRoute
   RehabilitacionCognitivaRoute: typeof RehabilitacionCognitivaRoute
   SobreNosotrosRoute: typeof SobreNosotrosRoute
+  TerminosYCondicionesRoute: typeof TerminosYCondicionesRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ContenidoSlugRoute: typeof ContenidoSlugRoute
   ConversacionRelationshipIdRoute: typeof ConversacionRelationshipIdRoute
@@ -575,6 +601,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/politica-privacidad': {
+      id: '/politica-privacidad'
+      path: '/politica-privacidad'
+      fullPath: '/politica-privacidad'
+      preLoaderRoute: typeof PoliticaPrivacidadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recursos': {
       id: '/recursos'
       path: '/recursos'
@@ -594,6 +627,13 @@ declare module '@tanstack/react-router' {
       path: '/sobre-nosotros'
       fullPath: '/sobre-nosotros'
       preLoaderRoute: typeof SobreNosotrosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terminos-y-condiciones': {
+      id: '/terminos-y-condiciones'
+      path: '/terminos-y-condiciones'
+      fullPath: '/terminos-y-condiciones'
+      preLoaderRoute: typeof TerminosYCondicionesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -695,9 +735,11 @@ const rootRouteChildren: RootRouteChildren = {
   NotificacionesRoute: NotificacionesRoute,
   NuevaContrasenaRoute: NuevaContrasenaRoute,
   OnboardingRoute: OnboardingRoute,
+  PoliticaPrivacidadRoute: PoliticaPrivacidadRoute,
   RecursosRoute: RecursosRoute,
   RehabilitacionCognitivaRoute: RehabilitacionCognitivaRoute,
   SobreNosotrosRoute: SobreNosotrosRoute,
+  TerminosYCondicionesRoute: TerminosYCondicionesRoute,
   BlogSlugRoute: BlogSlugRoute,
   ContenidoSlugRoute: ContenidoSlugRoute,
   ConversacionRelationshipIdRoute: ConversacionRelationshipIdRoute,

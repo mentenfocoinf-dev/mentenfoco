@@ -392,6 +392,14 @@ function Footer() {
       </div>
       <div className="border-t border-primary-foreground/10 px-4 py-4 text-center text-xs text-primary-foreground/60">
         © {new Date().getFullYear()} Mente en Foco. Todos los derechos reservados.
+        <span className="mx-2" aria-hidden="true">·</span>
+        <Link to="/politica-privacidad" className="hover:underline">
+          Política de privacidad
+        </Link>
+        <span className="mx-2" aria-hidden="true">·</span>
+        <Link to="/terminos-y-condiciones" className="hover:underline">
+          Términos y condiciones
+        </Link>
       </div>
     </footer>
   );
