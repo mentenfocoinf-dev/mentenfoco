@@ -42,6 +42,17 @@ export const Route = createRootRoute({
       },
       { name: "author", content: "Mente en Foco" },
       { name: "robots", content: "index, follow" },
+      // Verificación de Google Search Console: se emite solo si el código está en
+      // VITE_GSC_VERIFICATION. Pégalo (como variable de entorno del deploy) el día
+      // que registres la propiedad — ver GUIA_ACTIVACIONES_MANUALES.
+      ...(import.meta.env.VITE_GSC_VERIFICATION
+        ? [
+            {
+              name: "google-site-verification",
+              content: import.meta.env.VITE_GSC_VERIFICATION as string,
+            },
+          ]
+        : []),
       { property: "og:title", content: "Mente en Foco — Salud Mental Integral" },
       {
         property: "og:description",
