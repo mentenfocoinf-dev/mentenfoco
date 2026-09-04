@@ -1,0 +1,15 @@
+{
+  "name": "Mente en Foco",
+  "short_name": "Mente en Foco",
+  "description": "Cuidamos tu bienestar emocional con un enfoque humano y profesional.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f7f5",
+  "theme_color": "#26374d",
+  "icons": [
+    { "src": "/GOLO.png", "sizes": "438x438", "type": "image/png", "purpose": "any" },
+    { "src": "/GOLO.png", "sizes": "438x438", "type": "image/png", "purpose": "maskable" }
+  ]
+}
