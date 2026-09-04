@@ -41,3 +41,7 @@ supabase/.temp/
 
 # Expo (estado local del CLI)
 mobile/.expo/
+
+# Claude Code — estado local por máquina (las skills compartidas SÍ se versionan)
+.claude/*
+!.claude/skills/
