@@ -65,7 +65,7 @@ const RESOURCES: ResourceCard[] = [
 
 function Recursos() {
   return (
-    <>
+    <div className="reveal-scope">
       <HeroImagen image="/recursos.jpg">
         <div className="mx-auto max-w-4xl px-4 text-center glass-card mx-4 rounded-3xl py-14 shadow-lg border border-white/40">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">Recursos</h1>
@@ -123,6 +123,6 @@ function Recursos() {
           })}
         </div>
       </section>
-    </>
+    </div>
   );
 }

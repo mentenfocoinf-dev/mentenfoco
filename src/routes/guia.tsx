@@ -75,7 +75,7 @@ function Guia() {
     activeFilter === "Todas" ? guias : guias.filter((g) => g.categoria === activeFilter);
 
   return (
-    <>
+    <div className="reveal-scope">
       <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">
@@ -195,6 +195,6 @@ function Guia() {
           ))}
         </div>
       </section>
-    </>
+    </div>
   );
 }

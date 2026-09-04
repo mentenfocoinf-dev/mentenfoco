@@ -67,7 +67,7 @@ function BlogArticulo() {
   }
 
   return (
-    <>
+    <div className="reveal-scope">
       <section
         className="relative bg-cover bg-center bg-no-repeat py-20"
         style={
@@ -157,6 +157,6 @@ function BlogArticulo() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

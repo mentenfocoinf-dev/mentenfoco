@@ -1,7 +1,8 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { AuthProvider } from "../hooks/useAuth";
+import { CursorGlow } from "../components/home/CursorGlow";
 
 import appCss from "../styles.css?url";
 
@@ -72,6 +73,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="es">
       <head>
         <HeadContent />
+        {/* Sin JavaScript, el contenido con aparición diferida se muestra igual
+            (no queda invisible): este estilo SOLO aplica cuando no hay JS. Con JS,
+            el observador añade .is-visible después de hidratar (sin mismatch). */}
+        <noscript>
+          <style>{`.reveal,.reveal-scope > section{opacity:1 !important;transform:none !important}`}</style>
+        </noscript>
       </head>
       <body>
         {children}
@@ -105,6 +112,7 @@ const SERVICIOS_MENU: MenuItem[] = [
 
 const RECURSOS_MENU: MenuItem[] = [
   { to: "/tests", label: "Tests de bienestar" },
+  { to: "/rehabilitacion-cognitiva", label: "Rehabilitación cognitiva" },
   { to: "/contenido", label: "Contenido" },
   { to: "/guia", label: "Guías de bienestar" },
   { to: "/blog", label: "Blog y artículos" },
@@ -180,9 +188,10 @@ function NavDropdown({ label, items }: { label: string; items: MenuItem[] }) {
 function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Navbar "liquid glass" flotante en todo el sitio. Ver src/styles.css → .glass-navbar.
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
+    <header className="sticky top-3 z-50 w-full px-3 md:px-4">
+      <div className="glass-navbar mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-6">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
           <img src="/GOLO.png" alt="Mente en Foco" className="h-9 w-auto object-contain" />
@@ -372,13 +381,69 @@ function Footer() {
   );
 }
 
+// Reveal por scroll para páginas públicas: observa cada <section> dentro de un
+// contenedor .reveal-scope y le añade .is-visible al entrar en pantalla. Un solo
+// IntersectionObserver por navegación (no listeners de scroll). Respeta
+// prefers-reduced-motion (muestra todo de una). Las dashboards no usan
+// .reveal-scope: entran con .page-fade-in (una vez al cargar), no por scroll.
+function useScrollReveal() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+    let observer: IntersectionObserver | null = null;
+    const scan = () => {
+      const targets = Array.from(
+        document.querySelectorAll<HTMLElement>(
+          ".reveal-scope > section:not(:first-of-type):not(.is-visible)",
+        ),
+      );
+      if (reduce) {
+        targets.forEach((t) => t.classList.add("is-visible"));
+        return;
+      }
+      if (!observer) {
+        observer = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add("is-visible");
+                observer?.unobserve(e.target);
+              }
+            }
+          },
+          { threshold: 0.1, rootMargin: "0px 0px -8% 0px" },
+        );
+      }
+      targets.forEach((t) => observer!.observe(t));
+    };
+
+    // Se difiere con doble rAF: así el DOM NO se toca mientras React hidrata
+    // (evita el "hydration mismatch"). El HTML de SSR ya trae las secciones, así
+    // que un par de frames después siguen ahí para observarlas.
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(scan);
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+      observer?.disconnect();
+    };
+  }, [pathname]);
+}
+
 function RootComponent() {
   // La Navbar y el Footer institucionales permanecen en TODAS las rutas, también
   // en las autenticadas: Mente en Foco es una plataforma clínica con identidad
   // institucional permanente. El sidebar del dashboard vive dentro de <main>,
   // como layout interno del área autenticada (ver DashboardShell).
+  useScrollReveal();
   return (
     <AuthProvider>
+      {/* Luz bajo el cursor — global (solo mouse real; ver CursorGlow). */}
+      <CursorGlow />
       <div className="flex min-h-screen flex-col bg-background">
         <Header />
         <main className="flex-1">

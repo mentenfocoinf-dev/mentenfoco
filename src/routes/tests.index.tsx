@@ -52,7 +52,7 @@ function TestsHub() {
   const { tests } = Route.useLoaderData();
 
   return (
-    <>
+    <div className="reveal-scope">
       <HeroImagen image="/tests.jpg">
         <div className="mx-auto max-w-7xl px-4 text-center">
           <div className="glass-card mx-4 rounded-3xl border border-white/40 py-16 shadow-lg">
@@ -103,7 +103,7 @@ function TestsHub() {
           </p>
         </div>
       </section>
-    </>
+    </div>
   );
 }
 

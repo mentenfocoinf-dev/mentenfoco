@@ -138,7 +138,7 @@ function Asesoramiento() {
   const { profile } = useAuth();
 
   return (
-    <>
+    <div className="reveal-scope">
       <HeroImagen image="/cabecera-planes.jpg">
         <div className="mx-auto max-w-7xl px-4 py-16 text-center md:px-6 md:py-20 glass-card mx-4 rounded-3xl mt-8">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">
@@ -268,6 +268,6 @@ function Asesoramiento() {
           </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }

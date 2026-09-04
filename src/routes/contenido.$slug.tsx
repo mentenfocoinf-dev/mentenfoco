@@ -86,7 +86,7 @@ function ContenidoDetalle() {
   const hasAudioSource = Boolean(doc.audio_url || doc.external_embed_url);
 
   return (
-    <>
+    <div className="reveal-scope">
       <Hero meta={doc} />
 
       <section className="mx-auto max-w-4xl px-4 py-14 md:px-6">
@@ -319,7 +319,7 @@ function ContenidoDetalle() {
           </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }
 

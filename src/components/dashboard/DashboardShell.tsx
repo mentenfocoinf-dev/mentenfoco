@@ -99,7 +99,7 @@ export function DashboardShell({
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 md:px-6">
+    <section className="page-fade-in mx-auto max-w-7xl px-4 py-8 md:px-6">
       {/* Navegación en píldoras (móvil) */}
       <div className="mb-5 -mx-4 overflow-x-auto px-4 pb-1 hide-scrollbar lg:hidden">
         <div className="flex w-max gap-2">

@@ -111,7 +111,7 @@ ${guia.ejercicioPractico}
   const contentToRender = guia.contenidoCompleto ? guia.contenidoCompleto : oldContent;
 
   return (
-    <>
+    <div className="reveal-scope">
       {/* Hero con imagen dinámica */}
       <section
         className="relative bg-cover bg-center bg-no-repeat py-20"
@@ -182,6 +182,6 @@ ${guia.ejercicioPractico}
           </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }

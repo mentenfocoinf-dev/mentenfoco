@@ -383,7 +383,7 @@ export function AdminDashboard({ profile, onLogout }: Props) {
         </div>
       )}
 
-      <section className="gradient-soft border-b border-white/30 shadow-sm">
+      <section className="page-fade-in gradient-soft border-b border-white/30 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
           <div className="flex items-center justify-between glass-card p-6 rounded-3xl border border-white/40 shadow-sm">
             <div>
@@ -411,7 +411,7 @@ export function AdminDashboard({ profile, onLogout }: Props) {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-12 md:px-6">
+      <section className="page-fade-in mx-auto max-w-7xl px-4 py-12 md:px-6">
         {feedback && (
           <div
             className={`mb-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium animate-in fade-in slide-in-from-top-2 ${

@@ -82,7 +82,7 @@ function Membresia() {
   };
 
   return (
-    <>
+    <div className="reveal-scope">
       <HeroImagen image="/cabecera-planes.jpg">
         <div className="mx-auto max-w-7xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
           <span className="inline-block rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 px-4 py-1.5 text-xs font-medium text-primary shadow-sm">
@@ -231,6 +231,6 @@ function Membresia() {
           </p>
         </div>
       </section>
-    </>
+    </div>
   );
 }

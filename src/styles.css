@@ -399,3 +399,119 @@
     transition: none;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   CAPA ESTÉTICA — TODO EL SITIO (reversible)
+   Cuatro piezas que extienden el lenguaje de .glass-card / .card-neon-hover
+   (mismo azul sky-400, rgba(56,189,248,…)), sin inventar un esquema nuevo:
+     1) aparición al hacer scroll (páginas públicas, vía .reveal-scope, y home
+        vía el componente <Reveal>);
+     2) fade-in suave una sola vez al cargar (dashboards, vía .page-fade-in);
+     3) luz bajo el cursor;
+     4) navbar "liquid glass".
+   El scroll-reveal oculta las secciones con CSS (opacity:0) —no con una clase
+   añadida por JS—, así que no hay diferencia SSR↔cliente ni parpadeo. El
+   observador añade .is-visible DESPUÉS de hidratar. Sin JavaScript, un <noscript>
+   en <head> muestra todo (el contenido nunca queda invisible).
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* 1) Aparición suave al entrar en pantalla. Opacidad + leve desplazamiento.
+      Cubre el <Reveal> explícito (home) y cada <section> hija directa de un
+      contenedor .reveal-scope (páginas públicas). Se EXCLUYE la primera sección
+      (:first-of-type) porque suele ser el hero (above-the-fold): así aparece de
+      inmediato, sin parpadeo, y solo las secciones de abajo se animan al scroll. */
+.reveal,
+.reveal-scope > section:not(:first-of-type) {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 600ms ease-out,
+    transform 600ms ease-out;
+  will-change: opacity, transform;
+}
+.reveal.is-visible,
+.reveal-scope > section:not(:first-of-type).is-visible {
+  opacity: 1;
+  transform: none;
+}
+/* Accesibilidad: sin animación para quien pide menos movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-scope > section:not(:first-of-type) {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none;
+  }
+}
+
+/* 2) Fade-in una sola vez al cargar (pantallas de app: dashboards). No se ata al
+      scroll —el contenido en vivo nunca queda oculto—, solo entra con suavidad. */
+.page-fade-in {
+  animation: pageFadeIn 500ms ease-out both;
+}
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-in {
+    animation: none;
+  }
+}
+
+/* 3) Luz azul tenue que sigue al cursor. Se mueve con transform (compositor),
+      no interfiere con clics (pointer-events:none) y solo se ve con mouse real. */
+.cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 600px;
+  height: 600px;
+  margin: -300px 0 0 -300px; /* centrada en el origen; se traslada al cursor */
+  border-radius: 9999px;
+  pointer-events: none;
+  z-index: 40; /* debajo del navbar (z-50) */
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.13), transparent 60%);
+  transform: translate3d(var(--gx, -1000px), var(--gy, -1000px), 0);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  will-change: transform;
+}
+.cursor-glow.is-active {
+  opacity: 1;
+}
+/* Nunca en touch: aunque se monte, queda oculta. */
+@media (hover: none), (pointer: coarse) {
+  .cursor-glow {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cursor-glow {
+    transition: none;
+  }
+}
+
+/* 4) Navbar "liquid glass" (todo el sitio). Extiende los tokens de .glass-card:
+      píldora flotante, vidrio semitransparente, borde y sombra sutiles. */
+.glass-navbar {
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.4) 100%);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 8px 32px rgba(15, 23, 42, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+.dark .glass-navbar {
+  background: linear-gradient(135deg, rgba(30, 30, 30, 0.6) 0%, rgba(20, 20, 20, 0.35) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}

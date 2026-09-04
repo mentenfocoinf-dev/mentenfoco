@@ -107,7 +107,7 @@ function Empresas() {
   }
 
   return (
-    <>
+    <div className="reveal-scope">
       <HeroImagen image="/empresas.jpg">
         <div className="mx-auto max-w-4xl px-4 text-center glass-card mx-4 rounded-3xl py-14 shadow-lg border border-white/40">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary border border-primary/20">
@@ -222,6 +222,6 @@ function Empresas() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

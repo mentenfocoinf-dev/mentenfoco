@@ -1,23 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroImagen } from "../components/HeroImagen";
 import { ContinuaDondeLoDejaste } from "../components/home/ContinuaDondeLoDejaste";
+import { Reveal } from "../components/home/Reveal";
 import { NotificacionesBadge } from "../components/NotificacionesBadge";
 import {
-  Star,
   ShieldCheck,
-  FlaskConical,
-  MessageCircle,
   Sparkles,
   ClipboardList,
   FileText,
   Stethoscope,
   ArrowRight,
-  HeartHandshake,
-  Brain,
-  MessageSquare,
+  ArrowDown,
 } from "lucide-react";
 import { listGuides } from "../lib/api";
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { trackEvent } from "../lib/api";
 
 export const Route = createFileRoute("/")({
@@ -73,30 +69,36 @@ const stats = [
   { value: "+5,000", label: "Pacientes Atendidos" },
 ];
 
-// Cada disciplina enlaza a su landing de servicio.
+// Cada disciplina enlaza a su landing de servicio. `image` es una imagen
+// alusiva de fondo (con transparencia para no perder el texto); si el archivo
+// aún no existe en public/disciplinas/, la tarjeta degrada a fondo limpio.
 const disciplines = [
   {
     title: "Psiquiatría",
     slug: "psiquiatria",
-    icon: Stethoscope,
+    image: "/disciplinas/psiquiatria.svg",
+    tint: "from-sky-200 to-indigo-200",
     desc: "Atención médica especializada para estabilizar tu bienestar. Evaluamos y tratamos con rigor científico y profunda empatía cuando se requiere apoyo farmacológico.",
   },
   {
     title: "Psicología Clínica",
     slug: "psicologia-clinica",
-    icon: HeartHandshake,
+    image: "/disciplinas/psicologia-clinica.svg",
+    tint: "from-rose-200 to-orange-200",
     desc: "Terapia enfocada en darte herramientas prácticas. Te ayudamos a entender tus emociones y superar retos para alcanzar una vida más tranquila.",
   },
   {
     title: "Neuropsicología",
     slug: "neuropsicologia",
-    icon: Brain,
+    image: "/disciplinas/neuropsicologia.svg",
+    tint: "from-violet-200 to-fuchsia-200",
     desc: "Evaluación y cuidado de tu cerebro. Ayudamos a niños, adultos y mayores a potenciar su memoria, atención y agilidad mental.",
   },
   {
     title: "Fonoaudiología",
     slug: "fonoaudiologia",
-    icon: MessageSquare,
+    image: "/disciplinas/fonoaudiologia.svg",
+    tint: "from-emerald-200 to-teal-200",
     desc: "Apoyo profesional en comunicación, lenguaje y aprendizaje. Trabajamos para superar dificultades al hablar o tragar, mejorando tu integración.",
   },
 ];
@@ -114,17 +116,14 @@ const programas = [
 
 const comoFunciona = [
   {
-    n: "1",
     title: "Cuéntanos cómo estás",
     desc: "Nos escribes o haces una valoración inicial para entender qué necesitas.",
   },
   {
-    n: "2",
     title: "Te acompaña un especialista",
     desc: "Definimos contigo un plan de trabajo con objetivos claros, no sesiones sueltas.",
   },
   {
-    n: "3",
     title: "Avanzas a tu ritmo",
     desc: "Seguimos tu evolución con instrumentos clínicos y ajustamos el camino contigo.",
   },
@@ -183,26 +182,8 @@ function Index() {
 
       <ContinuaDondeLoDejaste />
 
-      {/* ── Barra de confianza (NUEVO) ── */}
-      <section className="border-y border-border bg-primary/5">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-10 gap-y-3 px-4 py-5 text-sm md:px-6">
-          <span className="flex items-center gap-2 font-semibold text-primary">
-            <Star size={16} className="fill-amber-400 text-amber-400" /> +5.000 pacientes atendidos
-          </span>
-          <span className="flex items-center gap-2 font-semibold text-primary">
-            <ShieldCheck size={16} /> Estándar clínico real (CIE-11)
-          </span>
-          <span className="flex items-center gap-2 font-semibold text-primary">
-            <FlaskConical size={16} /> Basado en evidencia científica
-          </span>
-          <span className="flex items-center gap-2 font-semibold text-primary">
-            <MessageCircle size={16} /> Acompañamiento humano
-          </span>
-        </div>
-      </section>
-
       {/* ── 4 accesos rápidos (existente) ── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+      <Reveal as="section" className="mx-auto max-w-7xl px-4 py-16 md:px-6">
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {features.map((f) => (
             // @ts-ignore - Ignore type error if the route hasn't been generated yet
@@ -226,10 +207,10 @@ function Index() {
             </Link>
           ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* ── Cómo funciona (NUEVO) ── */}
-      <section className="bg-primary/5 py-16">
+      <Reveal as="section" className="bg-primary/5 py-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-primary md:text-4xl drop-shadow-sm">
@@ -239,25 +220,38 @@ function Index() {
               Empezar es sencillo. Tú pones el ritmo; nosotros, el método y el acompañamiento.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {comoFunciona.map((s) => (
-              <div
-                key={s.n}
-                className="card-neon-hover rounded-3xl glass-card p-8 border border-white/40 text-center"
-              >
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-xl font-bold shadow-lg shadow-primary/20">
-                  {s.n}
+          {/* Los pasos van unidos por flechas —no numerados— para que se lean
+              como una secuencia: en escritorio la flecha apunta al siguiente,
+              en móvil (apilado) apunta hacia abajo. */}
+          <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center md:justify-center">
+            {comoFunciona.map((s, i) => (
+              <Fragment key={s.title}>
+                <div className="card-neon-hover flex-1 rounded-3xl glass-card p-8 border border-white/40 text-center">
+                  <h3 className="text-lg font-bold text-primary">{s.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
                 </div>
-                <h3 className="mt-5 text-lg font-bold text-primary">{s.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{s.desc}</p>
-              </div>
+                {i < comoFunciona.length - 1 && (
+                  <>
+                    <ArrowRight
+                      aria-hidden="true"
+                      size={28}
+                      className="hidden shrink-0 text-primary/50 md:block"
+                    />
+                    <ArrowDown
+                      aria-hidden="true"
+                      size={24}
+                      className="mx-auto shrink-0 text-primary/50 md:hidden"
+                    />
+                  </>
+                )}
+              </Fragment>
             ))}
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* ── Disciplinas (existente, ahora enlazadas) ── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+      <Reveal as="section" className="mx-auto max-w-7xl px-4 py-16 md:px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-primary md:text-4xl drop-shadow-sm">
             Nuestras Disciplinas Clínicas
@@ -268,31 +262,46 @@ function Index() {
           </p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {disciplines.map((d) => {
-            const Icon = d.icon;
-            return (
-              <Link
-                key={d.title}
-                to="/servicios/$slug"
-                params={{ slug: d.slug }}
-                className="card-neon-hover group rounded-2xl glass-card p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col"
-              >
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
-                  <Icon size={20} strokeWidth={1.5} />
-                </div>
-                <h3 className="mt-4 text-xl font-bold text-primary">{d.title}</h3>
+          {disciplines.map((d) => (
+            <Link
+              key={d.title}
+              to="/servicios/$slug"
+              params={{ slug: d.slug }}
+              className="card-neon-hover group relative overflow-hidden rounded-2xl glass-card p-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col"
+            >
+              {/* Base: un degradado alusivo por disciplina, siempre presente
+                  (para que la tarjeta nunca se vea vacía). */}
+              <div
+                aria-hidden="true"
+                className={`absolute inset-0 z-0 bg-gradient-to-br ${d.tint} opacity-40`}
+              />
+              {/* Imagen real (opcional) encima del degradado, con transparencia.
+                  Si el archivo no existe, no se ve nada roto. */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-25 transition-opacity duration-300 group-hover:opacity-35"
+                style={{ backgroundImage: `url('${d.image}')` }}
+              />
+              {/* Velo para asegurar contraste del texto sobre la imagen. */}
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 z-0 bg-gradient-to-t from-white/85 via-white/60 to-white/40"
+              />
+              <div className="relative z-10 flex flex-1 flex-col">
+                <h3 className="text-xl font-bold text-primary">{d.title}</h3>
                 <p className="mt-3 flex-1 text-sm text-muted-foreground leading-relaxed">{d.desc}</p>
                 <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-primary">
-                  Conocer más <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  Conocer más{" "}
+                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                 </span>
-              </Link>
-            );
-          })}
+              </div>
+            </Link>
+          ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* ── Programas por situación (NUEVO) ── */}
-      <section className="bg-primary/5 py-16">
+      <Reveal as="section" className="bg-primary/5 py-16">
         <div className="mx-auto max-w-7xl px-4 md:px-6">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-primary md:text-4xl drop-shadow-sm">
@@ -322,10 +331,10 @@ function Index() {
             ))}
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* ── Diferenciador clínico (NUEVO — el foso defensivo) ── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 md:px-6">
+      <Reveal as="section" className="mx-auto max-w-7xl px-4 py-16 md:px-6">
         <div className="rounded-3xl bg-primary text-primary-foreground p-10 md:p-14 shadow-xl">
           <div className="max-w-3xl">
             <span className="inline-block rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold">
@@ -359,11 +368,11 @@ function Index() {
             })}
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* ── Guías destacadas (NUEVO — datos reales) ── */}
       {guias.length > 0 && (
-        <section className="bg-primary/5 py-16">
+        <Reveal as="section" className="bg-primary/5 py-16">
           <div className="mx-auto max-w-7xl px-4 md:px-6">
             <div className="flex flex-wrap items-end justify-between gap-4 mb-10">
               <div>
@@ -409,11 +418,11 @@ function Index() {
               ))}
             </div>
           </div>
-        </section>
+        </Reveal>
       )}
 
       {/* ── Stats (existente) ── */}
-      <section className="bg-primary text-primary-foreground">
+      <Reveal as="section" className="bg-primary text-primary-foreground">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:grid-cols-2 md:grid-cols-4 md:px-6">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
@@ -422,10 +431,10 @@ function Index() {
             </div>
           ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* ── FAQ corto (NUEVO) ── */}
-      <section className="mx-auto max-w-4xl px-4 py-16 md:px-6">
+      <Reveal as="section" className="mx-auto max-w-4xl px-4 py-16 md:px-6">
         <h2 className="text-center text-3xl font-bold text-primary md:text-4xl drop-shadow-sm">
           Preguntas frecuentes
         </h2>
@@ -452,10 +461,10 @@ function Index() {
             Ver todas las preguntas frecuentes
           </Link>
         </div>
-      </section>
+      </Reveal>
 
       {/* ── CTA final (existente) ── */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 md:px-6">
+      <Reveal as="section" className="mx-auto max-w-7xl px-4 pb-20 md:px-6">
         <div className="card-neon-hover rounded-3xl glass-card p-10 text-center md:p-16 shadow-lg">
           <h2 className="text-3xl font-bold text-primary md:text-4xl drop-shadow-sm">
             Da el primer paso hacia tu bienestar
@@ -470,7 +479,7 @@ function Index() {
             Contáctanos
           </Link>
         </div>
-      </section>
+      </Reveal>
     </>
   );
 }
