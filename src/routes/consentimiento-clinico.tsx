@@ -15,6 +15,7 @@
 //    con un consentimiento clínico.
 // ============================================================================
 import { createFileRoute } from "@tanstack/react-router";
+import { META_NOINDEX } from "../lib/seo";
 import { useState } from "react";
 import { FileSignature, Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -26,7 +27,7 @@ import {
 
 export const Route = createFileRoute("/consentimiento-clinico")({
   head: () => ({
-    meta: [{ title: "Consentimiento del proceso — Mente en Foco" }],
+    meta: [META_NOINDEX, { title: "Consentimiento del proceso — Mente en Foco" }],
   }),
   component: ConsentimientoClinico,
 });

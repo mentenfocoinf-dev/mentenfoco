@@ -1,4 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { META_NOINDEX } from "../lib/seo";
 import { lazy, Suspense, useState } from "react";
 import { Loader2, CheckCircle, ChevronLeft, ShieldCheck, Sparkle } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
@@ -26,6 +27,7 @@ const DashboardFallback = () => (
 export const Route = createFileRoute("/ingresa")({
   head: () => ({
     meta: [
+      META_NOINDEX,
       { title: "Portal de Usuarios — Mente en Foco" },
       {
         name: "description",

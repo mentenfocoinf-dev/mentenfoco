@@ -1,0 +1,24 @@
+# Mente en Foco — robots.txt
+# Se permite el rastreo de las páginas públicas y se bloquea explícitamente todo
+# lo autenticado / clínico / de portal (formularios de historia clínica, fichas
+# de paciente, consentimiento, portal de ingreso, etc.).
+
+User-agent: *
+Allow: /
+
+# Privado / clínico / portal — nunca indexar
+Disallow: /pacientes/
+Disallow: /anamnesis
+Disallow: /completar-perfil
+Disallow: /conversacion/
+Disallow: /notificaciones
+Disallow: /onboarding
+Disallow: /consentimiento
+Disallow: /consentimiento-clinico
+Disallow: /nueva-contrasena
+Disallow: /compra-exitosa
+Disallow: /ingresa
+
+# Sitemap dinámico (ruta server-side; refleja el contenido publicado en vivo).
+# TODO: al fijar el dominio, cambiar a URL absoluta (https://<dominio>/sitemap.xml).
+Sitemap: /sitemap.xml

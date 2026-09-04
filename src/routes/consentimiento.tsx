@@ -10,6 +10,7 @@
 // copia: si el documento cambia, cambia en los dos sitios a la vez.
 // ============================================================================
 import { createFileRoute } from "@tanstack/react-router";
+import { META_NOINDEX } from "../lib/seo";
 import { useState } from "react";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "../lib/supabase";
@@ -19,7 +20,7 @@ import { trackEvent } from "../lib/api";
 
 export const Route = createFileRoute("/consentimiento")({
   head: () => ({
-    meta: [{ title: "Tratamiento de datos — Mente en Foco" }],
+    meta: [META_NOINDEX, { title: "Tratamiento de datos — Mente en Foco" }],
   }),
   component: Consentimiento,
 });

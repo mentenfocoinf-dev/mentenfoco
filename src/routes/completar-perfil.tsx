@@ -10,6 +10,7 @@
 // No se pide dirección ni nada que no se vaya a usar.
 // ============================================================================
 import { createFileRoute } from "@tanstack/react-router";
+import { META_NOINDEX } from "../lib/seo";
 import { useState } from "react";
 import { CreditCard, Loader2, Phone, ShieldAlert, UserCog } from "lucide-react";
 import { supabase } from "../lib/supabase";
@@ -17,7 +18,7 @@ import { useAuth } from "../hooks/useAuth";
 
 export const Route = createFileRoute("/completar-perfil")({
   head: () => ({
-    meta: [{ title: "Completa tu perfil — Mente en Foco" }],
+    meta: [META_NOINDEX, { title: "Completa tu perfil — Mente en Foco" }],
   }),
   component: CompletarPerfil,
 });

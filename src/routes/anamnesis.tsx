@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { META_NOINDEX } from "../lib/seo";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
@@ -8,6 +9,7 @@ import { MultiSelect } from "../components/MultiSelect";
 export const Route = createFileRoute("/anamnesis")({
   head: () => ({
     meta: [
+      META_NOINDEX,
       { title: "Onboarding y Anamnesis — Mente en Foco" },
       { name: "description", content: "Completa tu perfil clínico para iniciar." },
     ],

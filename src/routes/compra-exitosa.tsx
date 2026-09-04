@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { META_NOINDEX } from "../lib/seo";
 import { CheckCircle2, ArrowRight, Mail, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/compra-exitosa")({
   head: () => ({
     meta: [
+      META_NOINDEX,
       { title: "¡Compra Exitosa! — Mente en Foco" },
       { name: "description", content: "Tu pago fue procesado exitosamente. Revisa tu correo para activar tu cuenta." },
     ],

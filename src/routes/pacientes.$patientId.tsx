@@ -7,6 +7,7 @@
 // hace su propia guardia: solo terapeuta y admin.
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { META_NOINDEX } from "../lib/seo";
 import { useCallback, useEffect, useState } from "react";
 import {
   AlertTriangle,
@@ -48,7 +49,7 @@ import {
 import type { Profile } from "../lib/supabase";
 
 export const Route = createFileRoute("/pacientes/$patientId")({
-  head: () => ({ meta: [{ title: "Ficha de paciente — Mente en Foco" }] }),
+  head: () => ({ meta: [META_NOINDEX, { title: "Ficha de paciente — Mente en Foco" }] }),
   component: FichaPaciente,
 });
 

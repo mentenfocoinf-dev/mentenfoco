@@ -6,6 +6,7 @@
 // propia contraseña (mismo patrón que la redirección forzosa a /anamnesis).
 // ============================================================================
 import { createFileRoute } from "@tanstack/react-router";
+import { META_NOINDEX } from "../lib/seo";
 import { useState } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
@@ -13,7 +14,7 @@ import { useAuth } from "../hooks/useAuth";
 
 export const Route = createFileRoute("/nueva-contrasena")({
   head: () => ({
-    meta: [{ title: "Crea tu contraseña — Mente en Foco" }],
+    meta: [META_NOINDEX, { title: "Crea tu contraseña — Mente en Foco" }],
   }),
   component: NuevaContrasena,
 });
