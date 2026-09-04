@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RevealObserver } from "../components/home/RevealObserver";
+import { faqLd } from "../lib/seo";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
@@ -17,6 +18,19 @@ export const Route = createFileRoute("/faq")({
       {
         name: "description",
         content: "Resolvemos las dudas más comunes sobre terapia, planes, privacidad y más.",
+      },
+    ],
+    // FAQPage: solo las respuestas de texto (algunas son JSX y se omiten).
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify(
+          faqLd(
+            CATEGORIES.flatMap((c) => c.items)
+              .filter((it) => typeof it.a === "string")
+              .map((it) => ({ q: it.q, a: it.a as string })),
+          ),
+        ),
       },
     ],
   }),

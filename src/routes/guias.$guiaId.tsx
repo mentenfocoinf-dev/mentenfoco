@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RevealObserver } from "../components/home/RevealObserver";
+import { ogImageUrl } from "../lib/seo";
 import { ArrowLeft, Clock, Tag, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
@@ -20,6 +21,13 @@ export const Route = createFileRoute("/guias/$guiaId")({
         {
           name: "description",
           content: guia?.descripcionBreve ?? "Guía clínica de bienestar emocional.",
+        },
+        { property: "og:type", content: "article" },
+        { property: "og:title", content: guia?.titulo ?? "Mente en Foco" },
+        { property: "og:description", content: guia?.descripcionBreve ?? "" },
+        {
+          property: "og:image",
+          content: ogImageUrl(guia?.imageName ? `/guias/${guia.imageName}` : null),
         },
       ],
     };

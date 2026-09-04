@@ -18,6 +18,18 @@ export function absoluteUrl(path: string): string | null {
   return `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+/** Imagen para Open Graph: la portada de la pieza (absoluta si se puede) o el
+ *  banner genérico. Nunca devuelve vacío. */
+export function ogImageUrl(cover?: string | null): string {
+  const c = cover?.trim();
+  if (!c) return absoluteUrl("/BANNER.jpg") ?? "/BANNER.jpg";
+  if (/^https?:\/\//.test(c)) return c;
+  // Las portadas de blog/contenido se guardan como nombre suelto y viven en
+  // /contenido/. Lo que ya trae una ruta (p. ej. /guias/…) se deja tal cual.
+  const path = c.startsWith("/") ? c : `/contenido/${c}`;
+  return absoluteUrl(path) ?? path;
+}
+
 /** Meta que excluye una ruta de los buscadores (privado / clínico / portal). */
 export const META_NOINDEX = { name: "robots", content: "noindex, nofollow" } as const;
 

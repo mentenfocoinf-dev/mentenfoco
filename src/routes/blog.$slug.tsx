@@ -10,6 +10,7 @@
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RevealObserver } from "../components/home/RevealObserver";
+import { articleLd, ogImageUrl } from "../lib/seo";
 import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
 import { ArrowLeft, Clock, Loader2, Tag } from "lucide-react";
@@ -32,7 +33,26 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:type", content: "article" },
         { property: "og:title", content: a?.titulo ?? "Mente en Foco" },
         { property: "og:description", content: a?.resumen_breve ?? "" },
+        { property: "og:image", content: ogImageUrl(a?.cover_image) },
       ],
+      ...(a
+        ? {
+            scripts: [
+              {
+                type: "application/ld+json",
+                children: JSON.stringify(
+                  articleLd({
+                    title: a.meta_title ?? a.titulo,
+                    description: a.meta_description ?? a.resumen_breve,
+                    datePublished: a.published_at ?? a.created_at,
+                    path: `/blog/${a.slug}`,
+                    image: ogImageUrl(a.cover_image),
+                  }),
+                ),
+              },
+            ],
+          }
+        : {}),
     };
   },
   pendingComponent: () => (

@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { RevealObserver } from "../components/home/RevealObserver";
+import { ogImageUrl } from "../lib/seo";
 import { useEffect } from "react";
 import { HeroImagen } from "../components/HeroImagen";
 import { trackEvent } from "../lib/api";
@@ -184,6 +185,10 @@ export const Route = createFileRoute("/servicios/$slug")({
       meta: [
         { title: s ? `${s.title} — Mente en Foco` : "Servicio — Mente en Foco" },
         { name: "description", content: s?.tagline ?? "Servicios clínicos de Mente en Foco." },
+        { property: "og:type", content: "website" },
+        { property: "og:title", content: s?.title ?? "Mente en Foco" },
+        { property: "og:description", content: s?.tagline ?? "" },
+        { property: "og:image", content: ogImageUrl(s?.image) },
       ],
     };
   },
