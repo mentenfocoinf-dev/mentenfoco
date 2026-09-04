@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mente-en-foco-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "C:\\Users\\santy\\Desktop\\Antigravity\\Mente en Foco",
+      "port": 8080
+    }
+  ]
+}

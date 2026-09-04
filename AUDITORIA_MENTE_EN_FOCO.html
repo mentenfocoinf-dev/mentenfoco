@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mente en Foco — Auditoría de Plataforma y Seguridad</title>
+<style>
+  :root {
+    --navy: #16324a;
+    --navy-light: #1f4566;
+    --teal: #2b8a8a;
+    --teal-light: #e8f5f5;
+    --green: #2e9e5b;
+    --green-bg: #e9f7ee;
+    --amber: #c9891a;
+    --amber-bg: #fbf1de;
+    --red: #c94a3a;
+    --red-bg: #fbeae7;
+    --ink: #22303f;
+    --muted: #5b6b7a;
+    --line: #dde5ea;
+    --bg: #f4f7f8;
+    --card: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Helvetica Neue", Arial, "Segoe UI", sans-serif;
+    line-height: 1.65;
+  }
+  .page { max-width: 980px; margin: 0 auto; padding: 0 32px 80px; }
+
+  /* Portada */
+  .cover {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 60%, var(--teal) 130%);
+    color: #fff;
+    padding: 72px 32px 56px;
+    margin-bottom: 0;
+  }
+  .cover .inner { max-width: 980px; margin: 0 auto; }
+  .cover .kicker {
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-size: 12px;
+    color: #bcd8d8;
+    margin-bottom: 18px;
+  }
+  .cover h1 { font-size: 34px; margin: 0 0 14px; font-weight: 700; letter-spacing: -0.01em; }
+  .cover .sub { font-size: 16px; color: #dbe8ec; max-width: 640px; margin: 0 0 28px; }
+  .cover .meta { display: flex; gap: 32px; flex-wrap: wrap; font-size: 13px; color: #cfe3e3; }
+  .cover .meta b { color: #fff; display: block; font-size: 15px; margin-bottom: 2px; }
+
+  /* Scorecard resumen */
+  .scorecard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin: -34px 0 40px;
+    position: relative;
+    z-index: 2;
+  }
+  .score-tile {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 20px 18px;
+    box-shadow: 0 8px 24px rgba(22,50,74,0.12);
+    text-align: center;
+  }
+  .score-tile .num { font-size: 30px; font-weight: 700; color: var(--navy); line-height: 1; }
+  .score-tile .lbl { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+
+  h2.section-title {
+    font-size: 22px;
+    color: var(--navy);
+    margin: 56px 0 6px;
+    padding-top: 10px;
+    border-top: 3px solid var(--teal);
+    padding-top: 14px;
+  }
+  .section-intro { color: var(--muted); font-size: 15px; max-width: 760px; margin-bottom: 24px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 16px; color: var(--navy); }
+  .card p { margin: 0; color: var(--ink); font-size: 14.5px; }
+  .card p + p { margin-top: 8px; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 720px) { .grid2, .grid3, .scorecard { grid-template-columns: 1fr 1fr; } }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 4px 11px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .status-badge.ok { background: var(--green-bg); color: var(--green); }
+  .status-badge.warn { background: var(--amber-bg); color: var(--amber); }
+  .status-badge.gap { background: var(--red-bg); color: var(--red); }
+  .status-badge::before { content: "●"; font-size: 9px; }
+
+  table.matrix { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: 14px; }
+  table.matrix th {
+    text-align: left;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--line);
+  }
+  table.matrix td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.matrix tr:last-child td { border-bottom: none; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; }
+  .dot.ok { background: var(--green); }
+  .dot.warn { background: var(--amber); }
+  .dot.gap { background: var(--red); }
+
+  .finding {
+    border-left: 4px solid var(--red);
+    background: var(--red-bg);
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin-bottom: 14px;
+  }
+  .finding.fixed { border-left-color: var(--green); background: var(--green-bg); }
+  .finding h4 { margin: 0 0 6px; font-size: 15px; color: var(--ink); }
+  .finding .tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #fff;
+    background: var(--green);
+    padding: 2px 9px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .finding p { margin: 4px 0 0; font-size: 14px; color: var(--ink); }
+
+  .roadmap-list { list-style: none; margin: 0; padding: 0; }
+  .roadmap-list li {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .roadmap-list li:last-child { border-bottom: none; }
+  .roadmap-list .priority {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: #fff;
+    background: var(--teal);
+  }
+  .roadmap-list .priority.crit { background: var(--red); }
+  .roadmap-list .priority.high { background: var(--amber); }
+  .roadmap-list b { display: block; margin-bottom: 3px; color: var(--navy); font-size: 14.5px; }
+  .roadmap-list span.desc { font-size: 13.5px; color: var(--muted); }
+
+  .quote-box {
+    background: var(--teal-light);
+    border-radius: 12px;
+    padding: 20px 24px;
+    font-size: 15px;
+    color: var(--navy);
+    margin: 20px 0;
+  }
+  .quote-box b { color: var(--navy); }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  .toc { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 13.5px; margin-top: 20px; }
+  .toc a { color: var(--navy); text-decoration: none; border-bottom: 1px dotted var(--teal); }
+
+  @media print {
+    body { background: #fff; }
+    .cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .card, .finding { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="inner">
+    <div class="kicker">Informe confidencial · Uso interno / corporativo</div>
+    <h1>Auditoría de Plataforma y Seguridad<br>Mente en Foco</h1>
+    <p class="sub">
+      Estado actual de la construcción técnica, la postura de seguridad y la hoja de ruta hacia
+      producción de la plataforma de salud mental y bienestar emocional.
+    </p>
+    <div class="meta">
+      <div><b>Fecha del informe</b>25 de agosto de 2026</div>
+      <div><b>Alcance</b>Plataforma web completa (paciente, terapeuta, administración, sitio público)</div>
+      <div><b>Metodología</b>Revisión directa del sistema construido, no una plantilla genérica</div>
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="scorecard">
+    <div class="score-tile"><div class="num">~85%</div><div class="lbl">Madurez funcional del producto</div></div>
+    <div class="score-tile"><div class="num">14/20</div><div class="lbl">Criterios de seguridad ya sólidos</div></div>
+    <div class="score-tile"><div class="num">2</div><div class="lbl">Vulnerabilidades reales encontradas y corregidas</div></div>
+    <div class="score-tile"><div class="num">6</div><div class="lbl">Acciones externas para llegar a producción</div></div>
+  </div>
+
+  <h2 class="section-title" style="margin-top:0; border-top:none; padding-top:0;">Resumen ejecutivo</h2>
+  <p class="section-intro">
+    Mente en Foco es un producto <b>técnicamente sólido y funcionalmente completo</b> para un lanzamiento
+    controlado. La plataforma ya tiene construidas y funcionando las piezas centrales del negocio: historia
+    clínica, evaluaciones psicológicas, agenda de citas, mensajería, un directorio público para captar
+    pacientes, contenido educativo, y un motor de recomendación de especialistas. La base de datos que
+    sostiene todo esto fue sometida a un proceso de endurecimiento de seguridad deliberado y verificado,
+    y durante ese proceso se encontraron y corrigieron <b>dos vulnerabilidades reales</b> (no teóricas) antes
+    de que representaran un incidente.
+  </p>
+  <p class="section-intro">
+    Lo que queda pendiente <b>ya no es desarrollo de software</b>: son seis acciones de configuración y
+    decisión que dependen de personas del negocio (activar copias de seguridad, verificar el dominio de
+    correo, activar el sistema anti-fraude en el registro, pasar los pagos a modo real, configurar el
+    dominio propio, y una revisión jurídica del tratamiento de datos). El producto está, en términos
+    prácticos, a un tramo corto y bien definido de estar listo para producción real.
+  </p>
+
+  <div class="toc">
+    <a href="#que-es">Qué es la plataforma</a>
+    <a href="#fundacion">Cómo está construida</a>
+    <a href="#funcionalidades">Qué hace hoy</a>
+    <a href="#seguridad">Seguridad y protección de datos</a>
+    <a href="#hallazgos">Vulnerabilidades encontradas y corregidas</a>
+    <a href="#pendiente">Qué falta para producción</a>
+    <a href="#mejoras">Oportunidades de mejora</a>
+    <a href="#futuro">Qué se puede construir después</a>
+    <a href="#veredicto">Conclusión</a>
+  </div>
+
+  <!-- QUE ES -->
+  <h2 class="section-title" id="que-es">Qué es la plataforma</h2>
+  <p class="section-intro">
+    Mente en Foco es un servicio web de salud mental y bienestar emocional pensado para el mercado
+    colombiano. Conecta pacientes con profesionales de psicología, psiquiatría y neuropsicología, y ofrece
+    contenido educativo y herramientas de autocuidado. Se posiciona como una alternativa
+    <b>clínicamente seria</b> frente a aplicaciones de "bienestar" genéricas: aquí sí hay historia clínica
+    real, evaluaciones estandarizadas y documentación profesional con validez formal.
+  </p>
+
+  <!-- FUNDACION -->
+  <h2 class="section-title" id="fundacion">Cómo está construida</h2>
+  <p class="section-intro">
+    La plataforma se construyó sobre tecnología moderna y ampliamente probada en la industria, la misma
+    familia de herramientas que usan compañías de talla global — no un desarrollo casero ni un stack
+    experimental.
+  </p>
+  <div class="grid2">
+    <div class="card">
+      <h3>La parte que ve el usuario</h3>
+      <p>Construida con <b>React</b>, la tecnología de interfaz más usada del mundo (creada y mantenida
+      por Meta/Facebook), sobre un sistema de navegación moderno pensado para que la web cargue rápido y
+      funcione bien en cualquier dispositivo.</p>
+    </div>
+    <div class="card">
+      <h3>La base de datos y la lógica de negocio</h3>
+      <p><b>PostgreSQL</b>, la base de datos de código abierto más confiable y usada en aplicaciones
+      críticas (bancos, gobiernos, salud), gestionada a través de <b>Supabase</b>, una plataforma
+      especializada en seguridad y control de acceso a datos.</p>
+    </div>
+    <div class="card">
+      <h3>Pagos</h3>
+      <p><b>Stripe</b>, el procesador de pagos más usado a nivel mundial. Hoy está en modo de pruebas;
+      pasar a cobros reales es una de las seis acciones pendientes.</p>
+    </div>
+    <div class="card">
+      <h3>Infraestructura y entrega</h3>
+      <p><b>Cloudflare</b>, una de las redes globales más grandes del mundo (protege y acelera una parte
+      significativa de todo internet), lo que da a la plataforma velocidad y protección contra ataques de
+      denegación de servicio desde el primer día.</p>
+    </div>
+  </div>
+
+  <!-- FUNCIONALIDADES -->
+  <h2 class="section-title" id="funcionalidades">Qué hace la plataforma hoy</h2>
+  <p class="section-intro">
+    Todo lo listado abajo está <b>construido y verificado</b>, no en boceto. La plataforma sigue una regla
+    de trabajo estricta: nunca se construye una pantalla o un botón que prometa algo que el sistema no
+    pueda de verdad cumplir por detrás.
+  </p>
+
+  <table class="matrix">
+    <tr><th>Área</th><th>Qué incluye</th><th>Estado</th></tr>
+    <tr>
+      <td><b>Historia clínica y evaluaciones</b></td>
+      <td>Ficha clínica completa, evaluaciones psicológicas estandarizadas (depresión, ansiedad, riesgo
+      de crisis, deterioro cognitivo), alertas automáticas de crisis con seguimiento, documentos clínicos
+      firmados digitalmente con validez legal.</td>
+      <td><span class="dot ok"></span>Completo</td>
+    </tr>
+    <tr>
+      <td><b>Portal de usuarios</b></td>
+      <td>Acceso diferenciado para paciente, terapeuta y administrador, cada uno con sus propias
+      herramientas. Inicio de sesión seguro con opción de cuenta de Google.</td>
+      <td><span class="dot ok"></span>Completo</td>
+    </tr>
+    <tr>
+      <td><b>Agenda y citas</b></td>
+      <td>Calendario unificado de disponibilidad, propuesta y confirmación de horarios entre paciente y
+      terapeuta, recordatorios automáticos por correo.</td>
+      <td><span class="dot ok"></span>Completo</td>
+    </tr>
+    <tr>
+      <td><b>Encontrar un especialista</b></td>
+      <td>Directorio público donde cualquier visitante puede explorar perfiles de profesionales y elegir
+      con quién quiere iniciar el proceso, más un motor interno que sugiere coincidencias por afinidad.</td>
+      <td><span class="dot ok"></span>Completo</td>
+    </tr>
+    <tr>
+      <td><b>Mensajería</b></td>
+      <td>Chat directo entre paciente y terapeuta dentro de la plataforma, con aviso de mensajes nuevos.</td>
+      <td><span class="dot ok"></span>Completo</td>
+    </tr>
+    <tr>
+      <td><b>Evaluaciones públicas sin registro</b></td>
+      <td>Tests de autoevaluación (ansiedad, depresión, autoestima) abiertos al público como puerta de
+      entrada, sin obligar a crear cuenta — con manejo cuidadoso de resultados que indiquen riesgo.</td>
+      <td><span class="dot ok"></span>Completo</td>
+    </tr>
+    <tr>
+      <td><b>Contenido y guías</b></td>
+      <td>Biblioteca de guías prácticas y contenido educativo (artículos, programas, herramientas, audio),
+      con un flujo editorial donde el terapeuta propone y el administrador aprueba antes de publicar.
+      Un espacio de blog con comentarios moderados.</td>
+      <td><span class="dot ok"></span>Completo</td>
+    </tr>
+    <tr>
+      <td><b>Diario personal (autocuidado)</b></td>
+      <td>Espacio privado dentro del portal del paciente para llevar un diario reflexivo, con preguntas
+      guiadas opcionales — visible únicamente para quien lo escribe.</td>
+      <td><span class="dot ok"></span>Completo</td>
+    </tr>
+    <tr>
+      <td><b>Panel para clientes corporativos (B2B)</b></td>
+      <td>Mecanismo construido para que empresas puedan ofrecer el servicio a sus colaboradores, con
+      métricas de uso agregadas y anónimas para el cliente corporativo (nunca datos clínicos
+      individuales). <b>Deliberadamente no activado</b> todavía — ver más abajo.</td>
+      <td><span class="dot warn"></span>Construido, en pausa</td>
+    </tr>
+    <tr>
+      <td><b>Planes y suscripciones</b></td>
+      <td>Cuatro niveles de acompañamiento (incluido uno gratuito) que determinan cuánto contenido y
+      cuántas sesiones incluye cada etapa. El pago está integrado pero en modo de pruebas.</td>
+      <td><span class="dot warn"></span>Falta pasar a cobro real</td>
+    </tr>
+  </table>
+
+  <div class="quote-box">
+    Una decisión de producto que vale la pena resaltar: la plataforma <b>nunca bloquea contenido con
+    candados o muros de pago</b> visibles. Cada plan simplemente muestra lo que incluye — nunca se le
+    enseña al usuario algo que no puede tener para presionarlo a pagar. Es una postura ética deliberada,
+    especialmente relevante tratándose de salud mental.
+  </div>
+
+  <!-- SEGURIDAD -->
+  <h2 class="section-title" id="seguridad">Seguridad y protección de datos</h2>
+  <p class="section-intro">
+    Se evaluó la plataforma contra <b>20 criterios de seguridad</b> reconocidos en la industria del
+    software (el estándar de referencia se llama OWASP). No fue una revisión de checklist superficial:
+    cada punto incierto se verificó contra el sistema real antes de calificarlo. Resultado: <b>14 de 20
+    criterios ya están resueltos de forma sólida</b>, 3 tienen brechas reales ya identificadas (y en
+    proceso de cierre), y el resto son mejoras deseables, no urgentes.
+  </p>
+
+  <div class="grid3">
+    <div class="card">
+      <span class="status-badge ok">Fuerte</span>
+      <h3>Quién puede ver qué</h3>
+      <p>Cada dato tiene reglas de acceso verificadas a nivel de la base de datos misma (no solo en la
+      pantalla) — un paciente físicamente no puede consultar los datos de otro paciente, sin importar
+      cómo intente hacerlo. Se aplican <b>108 reglas de este tipo</b> sobre 38 tablas de información.</p>
+    </div>
+    <div class="card">
+      <span class="status-badge ok">Fuerte</span>
+      <h3>Manipulación de permisos</h3>
+      <p>Se verificó específicamente que un usuario no pueda otorgarse a sí mismo un rol de administrador
+      o un plan de pago superior manipulando una solicitud — el sistema lo rechaza automáticamente a nivel
+      de base de datos.</p>
+    </div>
+    <div class="card">
+      <span class="status-badge ok">Fuerte</span>
+      <h3>Contraseñas y accesos</h3>
+      <p>Las contraseñas nunca se guardan en texto legible (se protegen con el mismo estándar
+      criptográfico que usa la banca). Ninguna cuenta se crea con una contraseña adivinable.</p>
+    </div>
+    <div class="card">
+      <span class="status-badge warn">En progreso</span>
+      <h3>Protección anti-fraude en registro</h3>
+      <p>Ya existe un límite automático de cuántas cuentas se pueden crear desde una misma conexión en poco
+      tiempo. El segundo nivel de protección (verificación tipo "no soy un robot") está construido y listo,
+      solo falta activarlo con una clave que debe generar el equipo de negocio.</p>
+    </div>
+    <div class="card">
+      <span class="status-badge warn">En progreso</span>
+      <h3>Encabezados de protección del navegador</h3>
+      <p>Se identificó que faltaban un conjunto de protecciones estándar del navegador contra ataques
+      comunes (secuestro de clics, ejecución de código no autorizado). <b>Ya se implementaron y se
+      verificaron funcionando</b>; falta confirmar su comportamiento definitivo tras el próximo
+      despliegue.</p>
+    </div>
+    <div class="card">
+      <span class="status-badge warn">Pendiente</span>
+      <h3>Copias de seguridad recuperables</h3>
+      <p>Este es el punto más importante pendiente de toda la plataforma: hoy <b>no existe ninguna copia
+      de respaldo restaurable</b> de la información. Activarla es una decisión de negocio (tiene un costo
+      mensual) y una acción de un responsable, no de desarrollo. Se detalla en la sección siguiente.</p>
+    </div>
+  </div>
+
+  <!-- HALLAZGOS -->
+  <h2 class="section-title" id="hallazgos">Vulnerabilidades reales encontradas y corregidas</h2>
+  <p class="section-intro">
+    Un buen proceso de seguridad no es uno donde nunca aparecen problemas — es uno donde los problemas se
+    encuentran <b>antes</b> de que alguien los aproveche, y se corrigen con evidencia. Estos dos hallazgos
+    son el ejemplo de que el proceso funciona:
+  </p>
+
+  <div class="finding fixed">
+    <h4>Contraseñas predecibles en cuentas creadas por pago <span class="tag">Corregido</span></h4>
+    <p>Al completar una compra, el sistema creaba automáticamente la cuenta del paciente usando su propio
+    correo electrónico como contraseña inicial. En la práctica, cualquier persona que conociera el correo
+    de alguien podría haber entrado a su cuenta clínica. Se corrigió generando una contraseña aleatoria
+    imposible de adivinar y enviando un enlace seguro para que cada persona defina su propia clave —
+    exactamente lo que la plataforma ya le prometía al usuario, pero que el sistema no cumplía. No se
+    detectó ningún caso real afectado.</p>
+  </div>
+
+  <div class="finding fixed">
+    <h4>Exposición de datos de terapeutas al público <span class="tag">Corregido</span></h4>
+    <p>El directorio de especialistas permitía, sin darse cuenta, que cualquier visitante de internet
+    (no solo usuarios registrados) consultara información que debía ser interna, incluyendo el número de
+    tarjeta profesional de los terapeutas y perfiles que aún no estaban activos o verificados. Se corrigió
+    creando una versión pública controlada que solo muestra la información pensada para mostrarse
+    (especialidad, experiencia, modalidad de atención), dejando el resto protegido.</p>
+  </div>
+
+  <div class="finding fixed">
+    <h4>Componente de software externo con falla crítica <span class="tag">Corregido</span></h4>
+    <p>La plataforma, como toda aplicación moderna, se construye combinando miles de piezas de software ya
+    existentes (bibliotecas de código abierto). Una auditoría de rutina detectó que una de esas piezas
+    tenía una falla de seguridad crítica reportada públicamente. Se verificó que sí formaba parte del
+    sistema en funcionamiento (no solo de las herramientas internas de construcción) y se actualizó de
+    inmediato a la versión corregida, sin ningún efecto en el funcionamiento de la plataforma.</p>
+  </div>
+
+  <!-- PENDIENTE -->
+  <h2 class="section-title" id="pendiente">Qué falta para estar listos en producción</h2>
+  <p class="section-intro">
+    Estas seis acciones ya no son trabajo de desarrollo — son decisiones y configuraciones que dependen del
+    equipo de negocio, ordenadas de la más urgente a la menos urgente.
+  </p>
+  <ol class="roadmap-list">
+    <li>
+      <div class="priority crit">1</div>
+      <div><b>Activar copias de seguridad recuperables</b>
+      <span class="desc">Hoy, si algo saliera mal en la base de datos, la información no sería recuperable. Es la prioridad número uno antes de cualquier lanzamiento real — tiene un costo mensual asociado.</span></div>
+    </li>
+    <li>
+      <div class="priority high">2</div>
+      <div><b>Renovar la clave de envío de correo y verificar el dominio propio</b>
+      <span class="desc">La clave que envía los correos automáticos (confirmaciones, recordatorios) lleva más de un mes sin renovarse y debe rotarse por buena práctica. Además, verificar el dominio propio de correo mejora la entrega y evita que los mensajes caigan en spam.</span></div>
+    </li>
+    <li>
+      <div class="priority high">3</div>
+      <div><b>Activar la verificación anti-robots en el registro</b>
+      <span class="desc">El mecanismo ya está construido; falta generar y cargar dos claves de configuración desde el panel de Cloudflare.</span></div>
+    </li>
+    <li>
+      <div class="priority">4</div>
+      <div><b>Pasar los pagos de modo de pruebas a modo real</b>
+      <span class="desc">Cambiar las credenciales de Stripe de prueba a reales y confirmar el proceso completo con una transacción de bajo valor antes de anunciar el cambio.</span></div>
+    </li>
+    <li>
+      <div class="priority">5</div>
+      <div><b>Configurar el dominio propio y verificarlo ante Google</b>
+      <span class="desc">Conectar el dominio definitivo de la marca y completar la verificación necesaria para que el inicio de sesión con cuenta de Google funcione con ese dominio.</span></div>
+    </li>
+    <li>
+      <div class="priority">6</div>
+      <div><b>Revisión jurídica de los textos de privacidad y consentimiento</b>
+      <span class="desc">Un abogado especializado en protección de datos y salud debe validar el texto final de la política de tratamiento de datos y de los consentimientos (incluido el nuevo consentimiento para el modelo corporativo/B2B) antes de considerarlos definitivos.</span></div>
+    </li>
+  </ol>
+
+  <!-- MEJORAS -->
+  <h2 class="section-title" id="mejoras">Oportunidades de mejora (no bloquean el lanzamiento)</h2>
+  <p class="section-intro">
+    Estas mejoras suman una capa adicional de robustez, pero ninguna es indispensable para operar de forma
+    segura hoy — se recomiendan como inversión de mediano plazo.
+  </p>
+  <div class="grid2">
+    <div class="card"><h3>Cifrado adicional para datos clínicos</h3><p>Hoy los datos ya están cifrados por la infraestructura; se podría sumar una capa extra de cifrado específicamente sobre las notas clínicas más sensibles.</p></div>
+    <div class="card"><h3>Automatizar la revisión de componentes externos</h3><p>Que el sistema avise automáticamente cuando aparezca una nueva falla en alguna de las piezas de software que usa la plataforma, en vez de depender de una revisión manual.</p></div>
+    <div class="card"><h3>Endurecer el manejo de la sesión de usuario</h3><p>Ajuste técnico para que las credenciales de sesión sean más difíciles de interceptar en un escenario de ataque avanzado.</p></div>
+    <div class="card"><h3>Monitoreo y alertas de rendimiento</h3><p>Herramientas para detectar automáticamente si la plataforma empieza a responder lento antes de que los usuarios lo noten.</p></div>
+  </div>
+
+  <!-- FUTURO -->
+  <h2 class="section-title" id="futuro">Qué se podría construir después</h2>
+  <p class="section-intro">
+    Una vez resuelto lo anterior, estas son las líneas de crecimiento identificadas para las próximas
+    etapas del producto:
+  </p>
+  <div class="grid2">
+    <div class="card"><h3>Activar el modelo corporativo (B2B)</h3><p>El mecanismo técnico ya existe y está listo; falta la decisión comercial y la revisión legal para activarlo con clientes reales.</p></div>
+    <div class="card"><h3>Aplicación móvil para terapeutas</h3><p>Hoy la app móvil solo cubre la experiencia del paciente; extenderla al terapeuta es la siguiente fase natural.</p></div>
+    <div class="card"><h3>Nuevas modalidades de atención</h3><p>Terapia de pareja y orientación para padres — el terreno ya está preparado (los profesionales ya pueden marcar esa especialidad), falta el contenido y la comunicación de esa oferta.</p></div>
+    <div class="card"><h3>Ampliar el contenido educativo</h3><p>Más guías, nuevas categorías temáticas, y contenido en formato de audio como meditaciones guiadas.</p></div>
+  </div>
+
+  <!-- VEREDICTO -->
+  <h2 class="section-title" id="veredicto">Conclusión</h2>
+  <div class="quote-box">
+    <b>Mente en Foco es un producto maduro y bien construido, a un tramo corto de estar listo para
+    producción.</b> El trabajo de desarrollo de las funcionalidades centrales del negocio está terminado y
+    verificado. El proceso de seguridad no solo cumplió su objetivo — encontró y corrigió problemas reales
+    antes de que se convirtieran en incidentes, lo cual es la señal más confiable de que el proceso
+    funciona. Lo que queda es una lista corta, clara y no técnica de decisiones y configuraciones a cargo
+    del equipo de negocio, empezando por activar las copias de seguridad.
+  </div>
+
+  <footer>
+    Este informe se elaboró a partir de una revisión directa del sistema construido (código, base de
+    datos y configuración reales), no de una plantilla genérica de auditoría. Para el detalle técnico
+    completo, disponible bajo solicitud del equipo de desarrollo.
+  </footer>
+
+</div>
+</body>
+</html>

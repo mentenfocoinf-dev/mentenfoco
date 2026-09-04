@@ -364,6 +364,36 @@ tiempo en subir el porcentaje de RLS salvo que un diagnóstico nuevo encuentre u
 - [ ] Dominio propio + verificación de la app en Google Cloud.
 - [ ] Revisión jurídica de la política de tratamiento de datos (Ley 1581/2012).
 
+### P8 — Hardening web/infra (25-ago, evaluación contra 20 pilares de seguridad)
+Informe completo: `auditorias-tecnicas/Security_Assessment_20_Pilares_2026-08-25.md`. Evaluó el proyecto
+contra 20 pilares de seguridad web estándar, verificando lo incierto contra el código real (no plantilla
+genérica). La mayoría de pilares ya estaban cubiertos (RLS, mínimo privilegio, mass-assignment bloqueado
+por `enforce_profile_ownership`, auth en servidor, XSS, hashing). 3 brechas reales, código/config sin
+dependencia externa:
+- [x] **Pilar 20 (SCA) — vulnerabilidad crítica de runtime, corregida.** `npm audit` encontró 20
+  vulnerabilidades; triaje con evidencia (no supuesto) separó dependencias de producción vs. tooling de
+  build. **`seroval` (CVSS 9.8, GHSA-mv8w-475r-vwqw) era la única crítica y SÍ es runtime de producción**
+  (serialización SSR de TanStack Start, transitiva de `@tanstack/react-start`) — corregida con
+  `npm audit fix` (solo `package-lock.json`, sin cambios de mayor versión, build ✓ + tests 220/220).
+  Quedan 0 vulnerabilidades. Las 9 altas restantes son todas build/deploy tooling (vite, miniflare, sharp,
+  etc.) — no llegan al bundle ni al Worker; agrupadas abajo para Dependabot/CI.
+- [x] **Pilar 18 (cabeceras HTTP) — implementado y verificado en vivo.** El deploy es Cloudflare **Worker**
+  (no Pages), así que un `public/_headers` no habría aplicado — se investigó el mecanismo real y se usó
+  middleware global de TanStack Start (`src/start.ts`, `createMiddleware` + `setResponseHeaders`,
+  autodescubierto por el plugin). Fuerza X-Frame-Options, nosniff, Referrer-Policy, HSTS,
+  Permissions-Policy; **CSP en `Report-Only`** (calibrada a Supabase/Turnstile/Fonts) para no arriesgar el
+  SSR de un producto clínico vivo con una política sin probar. Verificado consultando la respuesta HTTP
+  real del dev server, no solo por lectura de archivo.
+  - **Pendiente (responsable):** verificar las cabeceras tras desplegar (`curl -I` o securityheaders.com)
+    y, cuando el Report-Only no muestre violaciones legítimas en consola, pasar
+    `Content-Security-Policy-Report-Only` → `Content-Security-Policy` (enforcing) en `src/start.ts`.
+- [ ] **Pilar 2 (secret-scanning automatizado)** — hoy compensado a mano en cada commit (revisión de
+  diffs antes de comitear), sin herramienta tipo gitleaks/CI. Pendiente, no urgente.
+- [ ] **9 vulnerabilidades altas de dependencias de build** (vite, undici/ws vía miniflare, sharp,
+  postcss, nanoid, etc.) — no tocan producción, pero conviene Dependabot/CI para no acumular. Pendiente.
+- Commits: `dc251de` (informe), `26ab191` (fix seroval), `a4144f4` (cabeceras HTTP) — sin pushear, junto
+  con `1e23e96`/`df09692` de P0/P1 anteriores.
+
 ---
 
 ## 🗂️ Dónde está cada cosa

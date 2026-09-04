@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mente en Foco — Guía de activaciones manuales</title>
+<style>
+  :root {
+    --bg: #0f1420;
+    --panel: #161d2e;
+    --panel2: #1c2438;
+    --border: #2a3350;
+    --text: #e6e9f2;
+    --muted: #94a0bf;
+    --accent: #7c9eff;
+    --accent2: #57d9a3;
+    --warn: #f5a623;
+    --danger: #ff6b6b;
+    --code-bg: #0b0f19;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+  .layout { display: flex; min-height: 100vh; }
+  nav {
+    width: 280px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  nav h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 12px 4px; }
+  nav ul { list-style: none; margin: 0 0 24px; padding: 0; }
+  nav li { margin-bottom: 2px; }
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  nav a:hover { background: var(--panel2); }
+  nav .badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    background: var(--border);
+    color: var(--muted);
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+  nav .badge.p0 { background: rgba(255,107,107,0.18); color: var(--danger); }
+  main { flex: 1; padding: 40px 48px 120px; max-width: 880px; }
+  .hero {
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero h1 { font-size: 28px; margin: 0 0 8px; }
+  .hero p { color: var(--muted); margin: 0; max-width: 640px; }
+  .progress-wrap { margin-top: 20px; }
+  .progress-bar-track { background: var(--border); height: 8px; border-radius: 999px; overflow: hidden; }
+  .progress-bar-fill { background: linear-gradient(90deg, var(--accent), var(--accent2)); height: 100%; width: 0%; transition: width .3s; }
+  .progress-label { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  section.step {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px 28px 24px;
+    margin-bottom: 28px;
+    scroll-margin-top: 24px;
+  }
+  section.step.blocked { opacity: 0.75; }
+  .step-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 6px; }
+  .step-title { display: flex; align-items: center; gap: 10px; }
+  .step-title h2 { font-size: 20px; margin: 0; }
+  .pill {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 3px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .pill.critico { background: rgba(255,107,107,0.15); color: var(--danger); border: 1px solid rgba(255,107,107,0.35); }
+  .pill.alto { background: rgba(245,166,35,0.15); color: var(--warn); border: 1px solid rgba(245,166,35,0.35); }
+  .pill.medio { background: rgba(124,158,255,0.15); color: var(--accent); border: 1px solid rgba(124,158,255,0.35); }
+  .pill.legal { background: rgba(87,217,163,0.15); color: var(--accent2); border: 1px solid rgba(87,217,163,0.35); }
+  .who { font-size: 13px; color: var(--muted); margin-bottom: 18px; }
+  .who b { color: var(--text); }
+
+  ol.tasklist { list-style: none; margin: 0; padding: 0; counter-reset: step-counter; }
+  ol.tasklist > li {
+    counter-increment: step-counter;
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+  }
+  ol.tasklist > li:first-child { border-top: none; }
+  ol.tasklist > li::before {
+    content: counter(step-counter);
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+  .task-body { flex: 1; }
+  .task-body p { margin: 0 0 6px; }
+  .task-body .note {
+    font-size: 13px;
+    color: var(--muted);
+    background: var(--panel2);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 8px;
+  }
+  .task-body .note.warn { border-left-color: var(--warn); }
+  .task-body .note.danger { border-left-color: var(--danger); }
+  code {
+    background: var(--code-bg);
+    color: #b9f6ca;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    margin: 10px 0;
+  }
+  pre code { background: none; padding: 0; color: #d7e2ff; }
+  .check {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    border: 1.5px solid var(--border);
+    background: var(--panel2);
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  input[type="checkbox"].check:checked { accent-color: var(--accent2); }
+  li.done .task-body p:first-child { text-decoration: line-through; color: var(--muted); }
+  .gate {
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: rgba(245,166,35,0.08);
+    border: 1px solid rgba(245,166,35,0.25);
+    font-size: 13px;
+    color: #f0c987;
+  }
+  .verify {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: rgba(87,217,163,0.08);
+    border: 1px solid rgba(87,217,163,0.25);
+  }
+  .verify p { margin: 0 0 8px; font-size: 13px; color: var(--accent2); font-weight: 600; }
+  a.ext { color: var(--accent); }
+  .footer-note {
+    margin-top: 40px;
+    padding: 20px 24px;
+    border-radius: 12px;
+    background: var(--panel2);
+    border: 1px dashed var(--border);
+    font-size: 13px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav>
+  <h2>Mente en Foco</h2>
+  <ul>
+    <li><a href="#p0"><span>P0 · Backups / PITR</span><span class="badge p0">Crítico</span></a></li>
+    <li><a href="#p0b"><span>P0b · Archivo 15 años</span><span class="badge">Diseño</span></a></li>
+    <li><a href="#p1-resend"><span>P1 · Resend</span><span class="badge">Alto</span></a></li>
+    <li><a href="#p1-turnstile"><span>P1 · Turnstile</span><span class="badge">Alto</span></a></li>
+    <li><a href="#p2"><span>P2 · DEV_MAIL_REDIRECT</span><span class="badge">Bajo</span></a></li>
+    <li><a href="#p3"><span>P3 · Stripe live</span><span class="badge">Medio</span></a></li>
+    <li><a href="#p4"><span>P4 · Dominio + Google</span><span class="badge">Medio</span></a></li>
+    <li><a href="#p5"><span>P5 · Revisión jurídica</span><span class="badge">Legal</span></a></li>
+  </ul>
+  <h2>Progreso</h2>
+  <div class="progress-wrap">
+    <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0 de 0 pasos marcados</div>
+  </div>
+</nav>
+
+<main>
+  <div class="hero">
+    <h1>Guía de activaciones manuales</h1>
+    <p>
+      Todo lo que queda pendiente en Mente en Foco ya no es código — es acción tuya en paneles externos
+      (Supabase, Resend, Cloudflare, Stripe, Google Cloud) o una decisión jurídica. Esta guía está ordenada
+      por prioridad real, con el paso a paso exacto de cada panel. Marca las casillas a medida que avances;
+      el progreso se guarda en este navegador.
+    </p>
+  </div>
+
+  <!-- P0 -->
+  <section class="step" id="p0">
+    <div class="step-header">
+      <div class="step-title"><h2>P0 — Backups / PITR</h2></div>
+      <span class="pill critico">Crítico · bloquea todo lo demás</span>
+    </div>
+    <div class="who">Lo ejecutas <b>tú</b>, en el panel de Supabase. Nadie más puede hacerlo. Hoy: <code>pitr_enabled: false</code>, <b>0 copias recuperables</b>.</div>
+
+    <ol class="tasklist">
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Entra a <a class="ext" href="https://supabase.com/dashboard" target="_blank">supabase.com/dashboard</a> y abre el proyecto <b>Mente en Foco</b> (ref <code>eluxdqsprbgtnwznmxqe</code>).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Si el proyecto sigue en plan <b>Free</b>, súbelo primero. Ve a <code>Settings → Billing</code> (o <code>Organization → Billing</code>) y cambia a <b>Pro</b> (o superior). Asegúrate de que el compute quede en al menos <b>Small</b> — PITR lo exige.</p>
+          <div class="note warn">Esto tiene costo mensual fijo, además del add-on de PITR.</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>En el menú lateral ve a <code>Database → Backups</code> y abre la pestaña <b>Point in Time</b>.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Elige la retención. <b>Recomendado: 28 días</b> — es la ventana máxima, justificada porque los datos clínicos son irreemplazables y una corrupción puede tardar en detectarse.</p>
+          <div class="note">Referencia de precio (confírmalo en el panel al activar): 7 días ≈ US$100/mes · 14 días ≈ US$200/mes · 28 días ≈ US$400/mes.</div>
+          <div class="note warn">Al activar PITR, Supabase deja de tomar los Daily Backups — no corren los dos a la vez, es normal.</div>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Confirma el cargo y espera a que el panel muestre PITR activo con la primera copia física disponible (puede tardar un rato).</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="verify">
+      <p>✅ Cómo confirmar que quedó bien</p>
+      <p>Desde la raíz del repo, corre:</p>
+      <pre><code>node scripts/verify-pitr.cjs</code></pre>
+      <p style="margin-top:8px; font-weight:400; color:var(--text);">Debe pasar de <code>⛔ GATE</code> a <code>✅ OK</code> cuando detecte <code>pitr_enabled: true</code> y al menos una copia recuperable.</p>
+    </div>
+
+    <div class="gate">
+      🔒 <b>Compuerta:</b> hasta que el script confirme ≥1 copia recuperable, siguen bloqueados los <code>DROP</code> de <code>test_scores</code> y <code>guides</code>, y cualquier operación estructural irreversible futura.
+    </div>
+  </section>
+
+  <!-- P0b -->
+  <section class="step blocked" id="p0b">
+    <div class="step-header">
+      <div class="step-title"><h2>P0b — Archivo legal de 15 años</h2></div>
+      <span class="pill medio">Pendiente de diseño</span>
+    </div>
+    <div class="who">PITR (arriba) <b>no</b> cumple esta obligación — son cosas distintas.</div>
+    <div class="task-body">
+      <p>La Resolución 1995/1999 (mod. 839/2017) exige conservar la historia clínica <b>15 años</b> desde la última atención. PITR es recuperación operativa de corto plazo (máx. 28 días), no un archivo de largo plazo. Falta definir un mecanismo de <b>exportación lógica periódica cifrada</b>, guardada fuera de Supabase.</p>
+      <div class="note">Esto no es un simple "entra y activa" — necesita que decidamos dónde se guardan esos respaldos cifrados (¿un bucket S3/Backblaze aparte?, ¿con qué cifrado?, ¿con qué frecuencia?) antes de construirlo. Coordínalo con Cowork/Claude Code cuando quieras avanzarlo — no es un pendiente de esta guía de clicks.</div>
+    </div>
+  </section>
+
+  <!-- P1 Resend -->
+  <section class="step" id="p1-resend">
+    <div class="step-header">
+      <div class="step-title"><h2>P1 — Rotar Resend + verificar dominio</h2></div>
+      <span class="pill alto">Alto</span>
+    </div>
+    <div class="who">Lo ejecutas <b>tú</b>. La clave actual está comprometida y sin rotar desde el 19 de julio. <code>R6</code> (más abajo) depende de que termines esto.</div>
+
+    <ol class="tasklist">
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Entra a <a class="ext" href="https://resend.com/api-keys" target="_blank">resend.com/api-keys</a> y crea una <b>nueva API key</b> (no borres la vieja todavía). Cópiala a un lugar seguro y temporal — no la pegues en este chat ni en ningún chat de IA.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Ve a <a class="ext" href="https://resend.com/domains" target="_blank">resend.com/domains</a> → <b>Add Domain</b> → escribe tu dominio propio.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Resend te da 3 registros DNS (SPF, DKIM, DMARC). Entra al panel de tu proveedor de dominio (o a Cloudflare DNS si el dominio ya vive ahí) y agrégalos exactamente como los da Resend.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Vuelve a Resend → Domains y espera a que el estado pase a <b>Verified</b> (puede tardar de minutos a horas por la propagación DNS).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Actualiza el secret en Supabase: <code>Project Settings → Edge Functions → Secrets</code> → edita <code>RESEND_API_KEY</code> con la nueva clave. Aprovecha y confirma que también existan <code>SITE_URL</code> y <code>REMINDER_FROM_EMAIL</code> (con tu dominio ya verificado, no un correo genérico).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Con la nueva clave funcionando (prueba enviando un correo real desde la app), vuelve a Resend y <b>revoca la clave vieja</b>.</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="verify">
+      <p>✅ Cómo confirmar que quedó bien</p>
+      <pre><code>node scripts/verify-resend.cjs</code></pre>
+      <p style="margin-top:8px; font-weight:400; color:var(--text);">Compara el <code>updated_at</code> del secret contra la fecha de la clave comprometida (19-jul) — debe mostrar una fecha nueva.</p>
+    </div>
+  </section>
+
+  <!-- P1 Turnstile -->
+  <section class="step" id="p1-turnstile">
+    <div class="step-header">
+      <div class="step-title"><h2>P1 — Cargar Turnstile (captcha)</h2></div>
+      <span class="pill alto">Alto</span>
+    </div>
+    <div class="who">Lo ejecutas <b>tú</b>. El código ya está escrito y publicado — solo faltan las 2 claves y el despliegue.</div>
+
+    <ol class="tasklist">
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Entra al <a class="ext" href="https://dash.cloudflare.com/?to=/:account/turnstile" target="_blank">dashboard de Cloudflare → Turnstile</a> → <b>Add widget</b>.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Asocia el widget a tu dominio, tipo <b>Managed</b> (el balance estándar entre fricción y seguridad). Al crearlo obtienes un <b>Site Key</b> y un <b>Secret Key</b>.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>En Supabase: <code>Project Settings → Edge Functions → Secrets</code> → agrega <code>TURNSTILE_SECRET_KEY</code> con el Secret Key. <b>Nunca lo pegues en un chat de IA.</b></p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>En Cloudflare Pages/Workers (el proyecto de frontend) → <code>Settings → Environment Variables</code> → agrega <code>VITE_TURNSTILE_SITE_KEY</code> (Production) con el Site Key — este sí es público, va al navegador.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Vuelve a desplegar el frontend (para que tome la nueva variable) y despliega el Edge Function actualizado:</p>
+          <pre><code>supabase functions deploy public-signup</code></pre>
+        </div>
+      </li>
+    </ol>
+
+    <div class="verify">
+      <p>✅ Cómo confirmar que quedó bien</p>
+      <pre><code>node scripts/verify-turnstile.cjs</code></pre>
+      <p style="margin-top:8px; font-weight:400; color:var(--text);">Cuando confirme que <code>TURNSTILE_SECRET_KEY</code> está cargado, avísale a Claude Code — hará una <b>prueba de rechazo</b> (request sin token → debe dar 403) sin crear ninguna cuenta real. El registro legítimo con el widget resuelto solo lo puede probar una persona en el navegador.</p>
+    </div>
+  </section>
+
+  <!-- P2 -->
+  <section class="step blocked" id="p2">
+    <div class="step-header">
+      <div class="step-title"><h2>P2 — Retirar DEV_MAIL_REDIRECT</h2></div>
+      <span class="pill medio">Bajo · depende de P1-Resend</span>
+    </div>
+    <div class="who">Lo ejecutas <b>tú</b>, pero <b>solo después</b> de que el dominio de Resend quede Verified — si lo quitas antes, se rompe el envío de correo a personas reales.</div>
+    <ol class="tasklist">
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Confirma primero que completaste P1-Resend (dominio Verified).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>En Supabase: <code>Project Settings → Edge Functions → Secrets</code> → elimina <code>DEV_MAIL_REDIRECT</code>.</p>
+        </div>
+      </li>
+    </ol>
+    <div class="note">Avísame cuando lo hagas — Claude Code confirma por la Management API que ya no aparece en la lista de secrets.</div>
+  </section>
+
+  <!-- P3 -->
+  <section class="step" id="p3">
+    <div class="step-header">
+      <div class="step-title"><h2>P3 — Stripe a modo real (live)</h2></div>
+      <span class="pill medio">Medio · go-live operacional</span>
+    </div>
+    <div class="who">Lo ejecutas <b>tú</b>. El webhook ya está corregido (ya no genera contraseñas predecibles) — esto es pasar de pruebas a cobros reales.</div>
+    <ol class="tasklist">
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>En el <a class="ext" href="https://dashboard.stripe.com" target="_blank">dashboard de Stripe</a>, apaga el interruptor <b>Test mode</b> (arriba a la derecha).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Ve a <code>Developers → API keys</code> y copia la <b>clave pública</b> (<code>pk_live_...</code>) y la <b>clave secreta</b> (<code>sk_live_...</code>).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Recrea los <b>Payment Links</b> equivalentes a los de test (mismos planes/precios) ya en modo live, y actualiza <code>stripe_links.json</code> con las URLs nuevas.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Ve a <code>Developers → Webhooks → Add endpoint</code>, apunta a la URL real del Edge Function <code>stripe-webhook</code> desplegado, selecciona el evento <code>checkout.session.completed</code>, y copia el <b>signing secret</b> (<code>whsec_...</code>).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Actualiza los secrets en Supabase (<code>STRIPE_SECRET_KEY</code>, <code>STRIPE_WEBHOOK_SECRET</code>) y la variable de frontend <code>VITE_STRIPE_PUBLISHABLE_KEY</code> con los valores live.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Haz una compra real de prueba (monto bajo) de punta a punta antes de anunciar el cambio: confirma que la cuenta se crea, llega el correo de <code>recovery</code>, y el plan queda asignado correctamente.</p>
+        </div>
+      </li>
+    </ol>
+    <div class="note warn">Hazlo después de P0 (backups) — si algo sale mal con datos reales de pago, quieres poder recuperar.</div>
+  </section>
+
+  <!-- P4 -->
+  <section class="step" id="p4">
+    <div class="step-header">
+      <div class="step-title"><h2>P4 — Dominio propio + Google Cloud</h2></div>
+      <span class="pill medio">Medio</span>
+    </div>
+    <div class="who">Lo ejecutas <b>tú</b>.</div>
+    <ol class="tasklist">
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p><b>Dominio → Cloudflare Workers:</b> en el dashboard de Cloudflare, entra al proyecto (Workers &amp; Pages) → <code>Settings → Domains &amp; Routes → Add → Custom domain</code>, escribe tu dominio y sigue las instrucciones de DNS (si el dominio ya está en Cloudflare, se conecta automático).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Espera a que el certificado SSL se emita (unos minutos) y confirma que el sitio carga en el dominio nuevo.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p><b>Google Cloud (para el login con Google):</b> entra a <a class="ext" href="https://console.cloud.google.com/apis/credentials" target="_blank">console.cloud.google.com/apis/credentials</a> → tu proyecto OAuth → en <code>OAuth consent screen</code>, agrega el dominio nuevo como <b>Authorized domain</b>.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Si Google pide verificar la propiedad del dominio, usa <a class="ext" href="https://search.google.com/search-console" target="_blank">Google Search Console</a> (método DNS TXT es el más simple).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>En <code>Credentials → tu OAuth Client ID</code>, agrega el dominio nuevo a <b>Authorized redirect URIs</b> (con la ruta de callback de Supabase Auth) y a <b>Authorized JavaScript origins</b>.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Actualiza <code>SITE_URL</code> (secret de Supabase) y cualquier referencia de URL fija en el frontend al dominio nuevo.</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- P5 -->
+  <section class="step" id="p5">
+    <div class="step-header">
+      <div class="step-title"><h2>P5 — Revisión jurídica</h2></div>
+      <span class="pill legal">Legal · no es un panel</span>
+    </div>
+    <div class="who">Esto no se resuelve con clicks — necesita un abogado especializado en protección de datos / salud en Colombia.</div>
+    <ol class="tasklist">
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Reúne los 3 documentos que necesitan revisión: la <b>política de tratamiento de datos</b> general (Ley 1581/2012), el <b>texto del consentimiento clínico</b> (Ley 1090/2006 — ya construido y en uso, texto pendiente de validar), y el <b>consentimiento de vínculo empleado↔empresa</b> del backend B2B (ya construido, inerte, texto en borrador).</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Comparte con el abogado también la <code>Guia_R1_Backups_PITR.md</code> (menciona la obligación de retención de 15 años) para que confirme si el mecanismo de archivo propuesto es suficiente.</p>
+        </div>
+      </li>
+      <li>
+        <input type="checkbox" class="check">
+        <div class="task-body">
+          <p>Cuando tengas el texto final aprobado de cada consentimiento, avísame — actualizamos el copy en el código y activamos el vínculo B2B (hoy sigue inerte a propósito).</p>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <div class="footer-note">
+    <b>Regla firme mientras avanzas esta guía:</b> no se declara el sistema "production-ready" ni se
+    reabren los <code>DROP</code> aplazados de <code>test_scores</code>/<code>guides</code> mientras P0 no
+    esté cerrado. El detalle técnico completo de cada punto vive en
+    <code>01_ROADMAP_Y_TAREAS.md</code> y en <code>contexto-proyecto/auditorias-tecnicas/</code>.
+  </div>
+</main>
+</div>
+
+<script>
+  const boxes = Array.from(document.querySelectorAll('input.check'));
+  const STORAGE_KEY = 'mef-activaciones-progreso';
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) { return {}; }
+  }
+
+  function saveState(state) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function idFor(box, i) {
+    return box.closest('section').id + '-' + i;
+  }
+
+  function updateProgress() {
+    const total = boxes.length;
+    const checked = boxes.filter(b => b.checked).length;
+    const pct = total ? Math.round((checked / total) * 100) : 0;
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = checked + ' de ' + total + ' pasos marcados';
+  }
+
+  function init() {
+    const state = loadState();
+    boxes.forEach((box, i) => {
+      const key = idFor(box, i);
+      if (state[key]) {
+        box.checked = true;
+        box.closest('li').classList.add('done');
+      }
+      box.addEventListener('change', () => {
+        const st = loadState();
+        st[key] = box.checked;
+        saveState(st);
+        box.closest('li').classList.toggle('done', box.checked);
+        updateProgress();
+      });
+    });
+    updateProgress();
+  }
+
+  init();
+</script>
+</body>
+</html>
