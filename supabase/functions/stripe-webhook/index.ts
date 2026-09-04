@@ -48,17 +48,39 @@ Deno.serve(async (req) => {
       cryptoProvider,
     );
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
+    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
+    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+
+    // ── Idempotencia ─────────────────────────────────────────────────────────
+    // Stripe entrega "al menos una vez": un reintento de red puede traer el mismo
+    // evento dos veces. Registramos event.id ANTES de aplicar efectos; si ya
+    // existía, es un reintento → 200 OK (no-op). NUNCA se responde con error: eso
+    // Stripe lo tomaría como "reintenta más", empeorando el problema.
+    const { data: nuevoEvento, error: idempotenciaError } = await supabase
+      .from("stripe_processed_events")
+      .upsert({ event_id: event.id }, { onConflict: "event_id", ignoreDuplicates: true })
+      .select("event_id");
+
+    if (idempotenciaError) {
+      // Un fallo registrando el evento no debe bloquear el efecto (p. ej. crear la
+      // cuenta): se deja en el log y se continúa. La idempotencia es best-effort
+      // si la tabla no está disponible.
+      console.error("[stripe-webhook] idempotencia:", idempotenciaError.message);
+    } else if (!nuevoEvento || nuevoEvento.length === 0) {
+      // event.id ya procesado → reintento → no-op seguro.
+      return new Response(JSON.stringify({ received: true, duplicate: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       let userId = session.client_reference_id;
       const customerId = session.customer;
       const customerEmail = session.customer_details?.email;
       const customerName = session.customer_details?.name || "Paciente";
-
-      const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
-      const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
-
-      const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
       let createdViaWebhook = false;
 
@@ -78,6 +100,10 @@ Deno.serve(async (req) => {
 
         if (authError || !authData.user) {
           console.error("Error crítico creando usuario en Auth:", authError);
+          // El efecto falló: se borra el registro de idempotencia para que el
+          // reintento de Stripe SÍ reprocese (si no, el cliente pagó y quedaría
+          // sin cuenta). Borrar es no-op si no se había registrado.
+          await supabase.from("stripe_processed_events").delete().eq("event_id", event.id);
           return new Response(JSON.stringify({ error: authError?.message }), { status: 500 });
         }
 
@@ -108,6 +134,8 @@ Deno.serve(async (req) => {
 
         if (profileError) {
           console.error(`Error en UPSERT del perfil ${userId}:`, profileError);
+          // Igual que arriba: se revierte el registro para permitir el reintento.
+          await supabase.from("stripe_processed_events").delete().eq("event_id", event.id);
           return new Response(JSON.stringify({ error: profileError.message }), { status: 500 });
         }
 
