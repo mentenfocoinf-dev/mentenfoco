@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { HeroImagen } from "../components/HeroImagen";
 import { useState, useEffect } from "react";
 import {
@@ -139,6 +140,7 @@ function Asesoramiento() {
 
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <HeroImagen image="/cabecera-planes.jpg">
         <div className="mx-auto max-w-7xl px-4 py-16 text-center md:px-6 md:py-20 glass-card mx-4 rounded-3xl mt-8">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">

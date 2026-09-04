@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { HeroImagen } from "../components/HeroImagen";
 import { BookOpen, FileText, Phone, HelpCircle, ArrowRight, type LucideIcon } from "lucide-react";
 
@@ -66,6 +67,7 @@ const RESOURCES: ResourceCard[] = [
 function Recursos() {
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <HeroImagen image="/recursos.jpg">
         <div className="mx-auto max-w-4xl px-4 text-center glass-card mx-4 rounded-3xl py-14 shadow-lg border border-white/40">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">Recursos</h1>

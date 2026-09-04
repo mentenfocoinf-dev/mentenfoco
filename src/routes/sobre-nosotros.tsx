@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { HeroImagen } from "../components/HeroImagen";
 import { ChevronRight, ChevronDown } from "lucide-react";
 
@@ -54,6 +55,7 @@ const team = [
 function SobreNosotros() {
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <HeroImagen image="/nosotros.jpg">
         <div className="mx-auto max-w-5xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">

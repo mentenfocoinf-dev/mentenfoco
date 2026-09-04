@@ -20,3 +20,66 @@ export function absoluteUrl(path: string): string | null {
 
 /** Meta que excluye una ruta de los buscadores (privado / clínico / portal). */
 export const META_NOINDEX = { name: "robots", content: "noindex, nofollow" } as const;
+
+// ── Datos estructurados (JSON-LD) ──────────────────────────────────────────
+// Vocabulario conservador: contenido EDITORIAL/informativo (Organization,
+// Article, FAQPage). Nunca tipos que impliquen diagnóstico médico automatizado
+// (MedicalWebPage / MedicalCondition con afirmaciones propias).
+
+const LOGO_URL = absoluteUrl("/GOLO.png") ?? "/GOLO.png";
+const ORG_NAME = "Mente en Foco";
+const ORG_DESC =
+  "Centro de salud mental: acompañamiento, guías clínicas y evaluaciones para ti y tu familia.";
+
+/** JSON-LD Organization para el layout raíz. */
+export function organizationLd(): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: ORG_NAME,
+    ...(SITE_URL ? { url: SITE_URL } : {}),
+    logo: LOGO_URL,
+    description: ORG_DESC,
+    // sameAs se omite a propósito: no se inventan redes que no estén confirmadas.
+  };
+}
+
+/** JSON-LD Article para blog / contenido. Sin afirmaciones clínicas propias. */
+export function articleLd(opts: {
+  title: string;
+  description?: string | null;
+  datePublished?: string | null;
+  path: string;
+  image?: string | null;
+  author?: string | null;
+}): Record<string, unknown> {
+  const url = absoluteUrl(opts.path);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: opts.title,
+    ...(opts.description ? { description: opts.description } : {}),
+    ...(opts.datePublished ? { datePublished: opts.datePublished } : {}),
+    ...(opts.image ? { image: opts.image } : {}),
+    ...(url ? { url, mainEntityOfPage: url } : {}),
+    author: { "@type": "Organization", name: opts.author || ORG_NAME },
+    publisher: {
+      "@type": "Organization",
+      name: ORG_NAME,
+      logo: { "@type": "ImageObject", url: LOGO_URL },
+    },
+  };
+}
+
+/** JSON-LD FAQPage a partir de pares pregunta/respuesta. */
+export function faqLd(items: { q: string; a: string }[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((it) => ({
+      "@type": "Question",
+      name: it.q,
+      acceptedAnswer: { "@type": "Answer", text: it.a },
+    })),
+  };
+}

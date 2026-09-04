@@ -6,6 +6,7 @@
 // listPublishedContent() ya aplica ese filtro.
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { useMemo, useState, useEffect } from "react";
 import { BookOpen, Headphones, Loader2, Route as RouteIcon, Wrench } from "lucide-react";
 import {
@@ -78,6 +79,7 @@ function ContenidoHub() {
 
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
         <div className="mx-auto max-w-7xl px-4 text-center glass-card mx-4 rounded-3xl py-16 shadow-lg border border-white/40">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">Contenido</h1>

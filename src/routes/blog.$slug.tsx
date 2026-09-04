@@ -9,6 +9,7 @@
 // esta ruta es la conversación: debajo del texto van los comentarios moderados.
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
 import { ArrowLeft, Clock, Loader2, Tag } from "lucide-react";
@@ -68,6 +69,7 @@ function BlogArticulo() {
 
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <section
         className="relative bg-cover bg-center bg-no-repeat py-20"
         style={

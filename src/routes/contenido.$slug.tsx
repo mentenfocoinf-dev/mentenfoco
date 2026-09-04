@@ -7,6 +7,7 @@
 // del viewer, getContentBySlug() no la devuelve y esto es un "no encontrado".
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
 import { RecomendacionesRelacionadas } from "../components/content/RecomendacionesRelacionadas";
@@ -87,6 +88,7 @@ function ContenidoDetalle() {
 
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <Hero meta={doc} />
 
       <section className="mx-auto max-w-4xl px-4 py-14 md:px-6">

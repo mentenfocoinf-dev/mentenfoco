@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
@@ -128,6 +129,7 @@ function AccordionItem({ item }: { item: QA }) {
 function Faq() {
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
         <div className="mx-auto max-w-4xl px-4 text-center glass-card mx-4 rounded-3xl py-14 shadow-lg border border-white/40">
           <h1 className="text-4xl font-bold text-primary md:text-5xl drop-shadow-sm">

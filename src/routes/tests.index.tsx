@@ -11,6 +11,7 @@
 // cada cuestionario. Ver [[Trampas conocidas]].
 // ============================================================================
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { Brain, Clock, HeartHandshake, Loader2, ShieldCheck, Smile, Sparkles } from "lucide-react";
 import { HeroImagen } from "../components/HeroImagen";
 import { listPublicTests, type PublicTestMeta } from "../lib/api";
@@ -53,6 +54,7 @@ function TestsHub() {
 
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <HeroImagen image="/tests.jpg">
         <div className="mx-auto max-w-7xl px-4 text-center">
           <div className="glass-card mx-4 rounded-3xl border border-white/40 py-16 shadow-lg">

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { AuthProvider } from "../hooks/useAuth";
 import { CursorGlow } from "../components/home/CursorGlow";
+import { organizationLd, SITE_URL } from "../lib/seo";
 
 import appCss from "../styles.css?url";
 
@@ -61,6 +62,10 @@ export const Route = createRootRoute({
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
       },
       { rel: "stylesheet", href: appCss },
+    ],
+    scripts: [
+      // Datos estructurados de la organización (editorial/informativo).
+      { type: "application/ld+json", children: JSON.stringify(organizationLd()) },
     ],
   }),
   shellComponent: RootShell,
@@ -381,57 +386,20 @@ function Footer() {
   );
 }
 
-// Reveal por scroll para páginas públicas: observa cada <section> dentro de un
-// contenedor .reveal-scope y le añade .is-visible al entrar en pantalla. Un solo
-// IntersectionObserver por navegación (no listeners de scroll). Respeta
-// prefers-reduced-motion (muestra todo de una). Las dashboards no usan
-// .reveal-scope: entran con .page-fade-in (una vez al cargar), no por scroll.
-function useScrollReveal() {
+// Canonical por defecto para la ruta actual (React 19 lo eleva al <head>).
+// Base: dominio configurado (VITE_SITE_URL) o, en cliente, el origin real. Las
+// rutas con slug ya quedan cubiertas porque usa el pathname completo.
+function CanonicalTag() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
-    let observer: IntersectionObserver | null = null;
-    const scan = () => {
-      const targets = Array.from(
-        document.querySelectorAll<HTMLElement>(
-          ".reveal-scope > section:not(:first-of-type):not(.is-visible)",
-        ),
-      );
-      if (reduce) {
-        targets.forEach((t) => t.classList.add("is-visible"));
-        return;
-      }
-      if (!observer) {
-        observer = new IntersectionObserver(
-          (entries) => {
-            for (const e of entries) {
-              if (e.isIntersecting) {
-                e.target.classList.add("is-visible");
-                observer?.unobserve(e.target);
-              }
-            }
-          },
-          { threshold: 0.1, rootMargin: "0px 0px -8% 0px" },
-        );
-      }
-      targets.forEach((t) => observer!.observe(t));
-    };
-
-    // Se difiere con doble rAF: así el DOM NO se toca mientras React hidrata
-    // (evita el "hydration mismatch"). El HTML de SSR ya trae las secciones, así
-    // que un par de frames después siguen ahí para observarlas.
-    let raf2 = 0;
-    const raf1 = requestAnimationFrame(() => {
-      raf2 = requestAnimationFrame(scan);
-    });
-    return () => {
-      cancelAnimationFrame(raf1);
-      cancelAnimationFrame(raf2);
-      observer?.disconnect();
-    };
-  }, [pathname]);
+  // El fallback a window.location solo tras montar: así el primer render del
+  // cliente coincide con el del servidor (sin hydration mismatch). Con
+  // VITE_SITE_URL fijado, el canonical sale ya en el SSR.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  let base = SITE_URL;
+  if (!base && mounted && typeof window !== "undefined") base = window.location.origin;
+  if (!base) return null;
+  return <link rel="canonical" href={`${base.replace(/\/$/, "")}${pathname}`} />;
 }
 
 function RootComponent() {
@@ -439,9 +407,14 @@ function RootComponent() {
   // en las autenticadas: Mente en Foco es una plataforma clínica con identidad
   // institucional permanente. El sidebar del dashboard vive dentro de <main>,
   // como layout interno del área autenticada (ver DashboardShell).
-  useScrollReveal();
+  //
+  // El reveal por scroll ya NO se maneja aquí (causaba hydration mismatch al
+  // mutar secciones antes de que hidratara el chunk lazy de la ruta). Ahora cada
+  // página pública incluye <RevealObserver /> dentro de su .reveal-scope, cuyo
+  // efecto corre tras hidratar ESA ruta.
   return (
     <AuthProvider>
+      <CanonicalTag />
       {/* Luz bajo el cursor — global (solo mouse real; ver CursorGlow). */}
       <CursorGlow />
       <div className="flex min-h-screen flex-col bg-background">

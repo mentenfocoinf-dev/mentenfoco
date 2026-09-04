@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { Phone, MessageCircle, AlertTriangle, Heart } from "lucide-react";
 
 // ============================================================================
@@ -39,6 +40,7 @@ const CITY_LINES = [
 function LineasDeCrisis() {
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       <section className="bg-[url('/BANNER.jpg')] bg-cover bg-center bg-no-repeat py-16 md:py-20">
         <div className="mx-auto max-w-4xl px-4 text-center glass-card mx-4 rounded-3xl py-14 shadow-lg border border-white/40">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600 border border-red-100">

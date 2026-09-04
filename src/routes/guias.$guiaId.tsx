@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { RevealObserver } from "../components/home/RevealObserver";
 import { ArrowLeft, Clock, Tag, Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
@@ -112,6 +113,7 @@ ${guia.ejercicioPractico}
 
   return (
     <div className="reveal-scope">
+      <RevealObserver />
       {/* Hero con imagen dinámica */}
       <section
         className="relative bg-cover bg-center bg-no-repeat py-20"
