@@ -120,7 +120,10 @@ export async function createContactRequest(
   });
   if (error) throw traducir(error.message);
 
-  trackEvent("CONTACT_REQUEST_CREATED", { resource_id: therapistProfileId, resource_type: "terapeuta" });
+  trackEvent("CONTACT_REQUEST_CREATED", {
+    resource_id: therapistProfileId,
+    resource_type: "terapeuta",
+  });
 }
 
 export async function cancelContactRequest(id: string): Promise<void> {

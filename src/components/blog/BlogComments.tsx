@@ -106,7 +106,9 @@ export function BlogComments({ postId, admiteComentarios }: Props) {
                 <span className="font-bold text-slate-800">
                   {c.author_name ?? "Alguien de la comunidad"}
                 </span>
-                <span className="shrink-0 text-xs text-slate-400">{formatearFecha(c.created_at)}</span>
+                <span className="shrink-0 text-xs text-slate-400">
+                  {formatearFecha(c.created_at)}
+                </span>
               </div>
               <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-700">
                 {c.body}

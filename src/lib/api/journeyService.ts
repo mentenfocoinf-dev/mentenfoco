@@ -186,7 +186,13 @@ function readUtm(): UtmParams {
   try {
     const q = new URLSearchParams(window.location.search);
     const out: UtmParams = {};
-    for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const) {
+    for (const k of [
+      "utm_source",
+      "utm_medium",
+      "utm_campaign",
+      "utm_content",
+      "utm_term",
+    ] as const) {
       const v = q.get(k);
       // Tope defensivo: un utm gigante es un intento de meter algo que no es un utm.
       if (v) out[k] = v.slice(0, 120);

@@ -89,7 +89,9 @@ export async function getMyTherapist(): Promise<MyTherapist | null> {
     id: String(fila.id),
     therapistProfileId: String(fila.therapist_profile_id),
     therapistName: (fila.therapist_name as string) ?? "",
-    specializations: Array.isArray(fila.specializations) ? (fila.specializations as ThemeKey[]) : [],
+    specializations: Array.isArray(fila.specializations)
+      ? (fila.specializations as ThemeKey[])
+      : [],
     status: fila.status as RelationshipStatus,
     assignedAt: String(fila.assigned_at),
     endedAt: (fila.ended_at as string) ?? null,

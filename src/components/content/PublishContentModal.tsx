@@ -107,7 +107,9 @@ export function PublishContentModal({ item, onClose, onPublish }: Props) {
               onChange={(e) => setMetaTitle(e.target.value)}
               className={inputClass}
             />
-            <p className="mt-1 text-xs text-slate-500">{metaTitle.length} caracteres (ideal ≤ 60)</p>
+            <p className="mt-1 text-xs text-slate-500">
+              {metaTitle.length} caracteres (ideal ≤ 60)
+            </p>
           </div>
 
           <div>

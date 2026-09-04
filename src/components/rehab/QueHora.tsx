@@ -18,11 +18,33 @@ function Reloj({ h, m }: { h: number; m: number }) {
       {Array.from({ length: 12 }, (_, i) => {
         const a = (i * 30 - 90) * (Math.PI / 180);
         return (
-          <circle key={i} cx={50 + 39 * Math.cos(a)} cy={50 + 39 * Math.sin(a)} r="1.6" fill="#0f172a" />
+          <circle
+            key={i}
+            cx={50 + 39 * Math.cos(a)}
+            cy={50 + 39 * Math.sin(a)}
+            r="1.6"
+            fill="#0f172a"
+          />
         );
       })}
-      <line x1="50" y1="50" x2={x(anguloH, 24)} y2={y(anguloH, 24)} stroke="#0f172a" strokeWidth="4" strokeLinecap="round" />
-      <line x1="50" y1="50" x2={x(anguloM, 34)} y2={y(anguloM, 34)} stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
+      <line
+        x1="50"
+        y1="50"
+        x2={x(anguloH, 24)}
+        y2={y(anguloH, 24)}
+        stroke="#0f172a"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+      <line
+        x1="50"
+        y1="50"
+        x2={x(anguloM, 34)}
+        y2={y(anguloM, 34)}
+        stroke="#2563eb"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
       <circle cx="50" cy="50" r="2.5" fill="#0f172a" />
     </svg>
   );
@@ -55,5 +77,13 @@ export function QueHora({ level, onFinish }: GameProps) {
     };
   }
 
-  return <TimedChoice rounds={8} ms={ms} make={make} onFinish={onFinish} hint="¿Qué hora marca el reloj?" />;
+  return (
+    <TimedChoice
+      rounds={8}
+      ms={ms}
+      make={make}
+      onFinish={onFinish}
+      hint="¿Qué hora marca el reloj?"
+    />
+  );
 }

@@ -157,10 +157,7 @@ export function ordenarCandidatos(
  * slug, y sin esto la misma pieza podría aparecer dos veces con distinto tipo.
  * La clave es tipo+id, no id solo.
  */
-export function seleccionar(
-  ordenados: Recommendation[],
-  currentId: string,
-): Recommendation[] {
+export function seleccionar(ordenados: Recommendation[], currentId: string): Recommendation[] {
   const porTipo = new Map<string, number>();
   const vistos = new Set<string>();
   const salida: Recommendation[] = [];
@@ -205,14 +202,9 @@ const resultCache = new Map<string, { valor: Recommendation[]; expira: number }>
 function claveCache(ctx: RecommendationContext, plan: PlanType): string {
   // El tema entra en la clave: clasificar una pieza cambia lo que se recomienda
   // desde ella, y sin esto lo anterior seguiría vivo hasta cinco minutos.
-  return [
-    plan,
-    ctx.source,
-    ctx.tipoActual,
-    ctx.themeKey ?? "-",
-    ctx.categoria,
-    ctx.currentId,
-  ].join("|");
+  return [plan, ctx.source, ctx.tipoActual, ctx.themeKey ?? "-", ctx.categoria, ctx.currentId].join(
+    "|",
+  );
 }
 
 function podarCache(): void {
@@ -244,9 +236,7 @@ export function clearRecommendationCache(): void {
  * Devuelve `[]` con normalidad: un bloque vacío es mejor que uno relleno. Nunca
  * lanza — si una consulta falla, la persona simplemente no ve sugerencias.
  */
-export async function getRecommendations(
-  ctx: RecommendationContext,
-): Promise<Recommendation[]> {
+export async function getRecommendations(ctx: RecommendationContext): Promise<Recommendation[]> {
   // C1: dentro de un programa el lector ya muestra los pasos ordenados.
   // Sugerir algo lateral rompería la ruta que un profesional diseñó.
   if (motorApagado(ctx.tipoActual)) return [];
@@ -355,9 +345,7 @@ async function buscarGuias(
 ): Promise<Recommendation[]> {
   let query = supabase
     .from("clinical_guides_meta")
-    .select(
-      'id, titulo, "descripcionBreve", categoria, "tiempoLectura", "imageName", theme_key',
-    )
+    .select('id, titulo, "descripcionBreve", categoria, "tiempoLectura", "imageName", theme_key')
     .in("min_plan", planes);
 
   const filtro = filtroDe(ctx, criterio, "etiquetas");

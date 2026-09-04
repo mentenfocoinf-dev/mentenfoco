@@ -8,8 +8,18 @@ import type { GameProps } from "./types";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const MESES = [
-  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+  "Enero",
+  "Febrero",
+  "Marzo",
+  "Abril",
+  "Mayo",
+  "Junio",
+  "Julio",
+  "Agosto",
+  "Septiembre",
+  "Octubre",
+  "Noviembre",
+  "Diciembre",
 ];
 
 function elegir<T>(a: T[]): T {
@@ -50,5 +60,7 @@ export function DiaSiguiente({ level, onFinish }: GameProps) {
     };
   }
 
-  return <TimedChoice rounds={8} ms={ms} make={make} onFinish={onFinish} hint="Elige el correcto" />;
+  return (
+    <TimedChoice rounds={8} ms={ms} make={make} onFinish={onFinish} hint="Elige el correcto" />
+  );
 }

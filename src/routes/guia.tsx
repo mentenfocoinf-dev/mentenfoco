@@ -161,39 +161,39 @@ function Guia() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredGuides.map((g) => (
-              <article
-                key={g.id}
-                className="card-neon-hover group relative rounded-3xl border-border bg-white overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col h-full"
-              >
-                <div
-                  className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity group-hover:opacity-30"
-                  style={{ backgroundImage: `url('/guias/${g.imageName}')` }}
-                />
-                <div className="relative z-10 flex flex-col h-full">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="inline-block rounded-full bg-primary/10 border border-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                      {g.categoria}
-                    </span>
-                  </div>
-                  <h3 className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors">
-                    {g.titulo}
-                  </h3>
-                  <p className="mt-3 text-sm text-foreground/80 flex-grow">{g.descripcionBreve}</p>
-
-                  <div className="mt-8 pt-4 border-t border-border/50 flex items-center justify-between text-xs">
-                    <span className="font-semibold text-muted-foreground">
-                      Lectura de {g.tiempoLectura}
-                    </span>
-                    <Link
-                      to="/guias/$guiaId"
-                      params={{ guiaId: g.id }}
-                      className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
-                    >
-                      Leer guía
-                    </Link>
-                  </div>
+            <article
+              key={g.id}
+              className="card-neon-hover group relative rounded-3xl border-border bg-white overflow-hidden p-8 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col h-full"
+            >
+              <div
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity group-hover:opacity-30"
+                style={{ backgroundImage: `url('/guias/${g.imageName}')` }}
+              />
+              <div className="relative z-10 flex flex-col h-full">
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="inline-block rounded-full bg-primary/10 border border-primary/10 px-3 py-1 text-xs font-bold text-primary">
+                    {g.categoria}
+                  </span>
                 </div>
-              </article>
+                <h3 className="text-xl font-bold text-primary group-hover:text-primary/80 transition-colors">
+                  {g.titulo}
+                </h3>
+                <p className="mt-3 text-sm text-foreground/80 flex-grow">{g.descripcionBreve}</p>
+
+                <div className="mt-8 pt-4 border-t border-border/50 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-muted-foreground">
+                    Lectura de {g.tiempoLectura}
+                  </span>
+                  <Link
+                    to="/guias/$guiaId"
+                    params={{ guiaId: g.id }}
+                    className="font-bold text-primary bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg transition-colors border border-primary/20 backdrop-blur"
+                  >
+                    Leer guía
+                  </Link>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
       </section>

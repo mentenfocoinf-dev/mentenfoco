@@ -13,12 +13,7 @@
 import { supabase } from "../supabase";
 import { track } from "../analytics";
 
-export type AppointmentStatus =
-  | "requested"
-  | "confirmed"
-  | "cancelled"
-  | "completed"
-  | "no_show";
+export type AppointmentStatus = "requested" | "confirmed" | "cancelled" | "completed" | "no_show";
 
 export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
   requested: "Solicitada",

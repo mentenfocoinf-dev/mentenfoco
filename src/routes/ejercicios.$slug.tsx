@@ -79,7 +79,9 @@ function Player() {
   }, [slug]);
 
   if (cargando) {
-    return <p className="mx-auto max-w-3xl px-4 py-20 text-center text-muted-foreground">Cargando…</p>;
+    return (
+      <p className="mx-auto max-w-3xl px-4 py-20 text-center text-muted-foreground">Cargando…</p>
+    );
   }
   if (!ejercicio) {
     return (
@@ -88,7 +90,10 @@ function Player() {
         <p className="mt-2 text-sm text-muted-foreground">
           Puede que no esté disponible en tu etapa todavía.
         </p>
-        <Link to="/rehabilitacion-cognitiva" className="mt-6 inline-block text-sm font-bold text-primary hover:underline">
+        <Link
+          to="/rehabilitacion-cognitiva"
+          className="mt-6 inline-block text-sm font-bold text-primary hover:underline"
+        >
           Volver a los ejercicios
         </Link>
       </div>
@@ -97,7 +102,7 @@ function Player() {
 
   const niveles = ejercicio.config.levels ?? {};
   const disponibles = DIFICULTADES.filter((d) => (niveles[d]?.length ?? 0) > 0);
-  const subniveles = dificultad ? niveles[dificultad] ?? [] : [];
+  const subniveles = dificultad ? (niveles[dificultad] ?? []) : [];
   const nivelActual = dificultad ? subniveles[subnivel] : null;
   const Game = GAMES[ejercicio.gameKind];
   const haySiguiente = Boolean(resultado?.completed && subnivel + 1 < subniveles.length);
@@ -134,14 +139,17 @@ function Player() {
 
       <h1 className="mt-4 text-2xl font-bold text-primary md:text-3xl">{ejercicio.title}</h1>
       {ejercicio.instructions && (
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{ejercicio.instructions}</p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          {ejercicio.instructions}
+        </p>
       )}
 
       {jugando && nivelActual ? (
         // Área de juego — fondo OSCURO para máxima visibilidad.
         <div className="mt-8 rounded-3xl bg-slate-900 p-6 shadow-xl md:p-8">
           <p className="mb-4 text-center text-xs font-bold uppercase tracking-wide text-white/50">
-            {dificultad && DIFFICULTY_LABELS[dificultad]} · Subnivel {subnivel + 1}/{subniveles.length}
+            {dificultad && DIFFICULTY_LABELS[dificultad]} · Subnivel {subnivel + 1}/
+            {subniveles.length}
           </p>
           <Game key={`${dificultad}-${subnivel}`} level={nivelActual} onFinish={handleFinish} />
         </div>

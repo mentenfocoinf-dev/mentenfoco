@@ -64,9 +64,7 @@ function LineasDeCrisis() {
               <AlertTriangle size={24} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-red-800">
-                ¿Estás en peligro ahora mismo?
-              </h2>
+              <h2 className="text-xl font-bold text-red-800">¿Estás en peligro ahora mismo?</h2>
               <p className="mt-2 text-sm leading-relaxed text-red-700">
                 Si tú o alguien más está en riesgo inmediato, llama a la línea de emergencias
                 nacional. Está disponible las 24 horas en todo el país.
@@ -87,8 +85,8 @@ function LineasDeCrisis() {
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             La línea <strong>106</strong> ofrece apoyo psicológico gratuito y confidencial las 24
             horas. Es un servicio <strong>de cada ciudad</strong>, así que el número puede variar
-            según dónde estés. Si tu municipio no aparece abajo, marca el{" "}
-            <strong>123</strong> o acude al servicio de urgencias más cercano.
+            según dónde estés. Si tu municipio no aparece abajo, marca el <strong>123</strong> o
+            acude al servicio de urgencias más cercano.
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -142,9 +140,9 @@ function LineasDeCrisis() {
         {/* Aclaración de responsabilidad */}
         <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-6 text-center">
           <p className="text-sm leading-relaxed text-slate-600">
-            Mente en Foco <strong>no es un servicio de urgencias</strong>. Las líneas de esta
-            página son operadas por entidades públicas y están disponibles para atención inmediata.
-            Si buscas iniciar un proceso terapéutico con nosotros,{" "}
+            Mente en Foco <strong>no es un servicio de urgencias</strong>. Las líneas de esta página
+            son operadas por entidades públicas y están disponibles para atención inmediata. Si
+            buscas iniciar un proceso terapéutico con nosotros,{" "}
             <Link to="/contactanos" className="font-semibold text-primary hover:underline">
               escríbenos aquí
             </Link>

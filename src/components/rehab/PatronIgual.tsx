@@ -3,7 +3,14 @@
 import { TimedChoice, type ChoiceRound } from "./TimedChoice";
 import type { GameProps } from "./types";
 
-const COLS = ["bg-rose-500", "bg-sky-500", "bg-emerald-500", "bg-amber-400", "bg-violet-500", "bg-slate-500"];
+const COLS = [
+  "bg-rose-500",
+  "bg-sky-500",
+  "bg-emerald-500",
+  "bg-amber-400",
+  "bg-violet-500",
+  "bg-slate-500",
+];
 
 function patron(): number[] {
   return Array.from({ length: 4 }, () => Math.floor(Math.random() * COLS.length));
@@ -50,5 +57,13 @@ export function PatronIgual({ level, onFinish }: GameProps) {
     };
   }
 
-  return <TimedChoice rounds={8} ms={ms} make={make} onFinish={onFinish} hint="Elige la cuadrícula idéntica." />;
+  return (
+    <TimedChoice
+      rounds={8}
+      ms={ms}
+      make={make}
+      onFinish={onFinish}
+      hint="Elige la cuadrícula idéntica."
+    />
+  );
 }

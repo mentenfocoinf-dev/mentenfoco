@@ -7,7 +7,13 @@ import { submitEvaluation, createCrisisAlert } from "../../src/lib/api/clinicalS
 import { colors } from "../../src/theme/colors";
 
 // Botón Sí/No reutilizado en C-SSRS.
-function YesNoButtons({ value, onChange }: { value: "yes" | "no" | null; onChange: (v: "yes" | "no") => void }) {
+function YesNoButtons({
+  value,
+  onChange,
+}: {
+  value: "yes" | "no" | null;
+  onChange: (v: "yes" | "no") => void;
+}) {
   return (
     <View style={{ flexDirection: "row", gap: 10 }}>
       {(["no", "yes"] as const).map((opt) => (
@@ -19,7 +25,12 @@ function YesNoButtons({ value, onChange }: { value: "yes" | "no" | null; onChang
             value === opt && (opt === "yes" ? styles.yesActive : styles.noActive),
           ]}
         >
-          <Text style={[styles.yesNoText, value === opt && (opt === "yes" ? styles.yesActiveText : styles.noActiveText)]}>
+          <Text
+            style={[
+              styles.yesNoText,
+              value === opt && (opt === "yes" ? styles.yesActiveText : styles.noActiveText),
+            ]}
+          >
             {opt === "yes" ? "Sí" : "No"}
           </Text>
         </Pressable>
@@ -33,8 +44,15 @@ export default function EvaluacionScreen() {
   const { profile } = useAuth();
   const router = useRouter();
 
-  if (scale === "cssrs") return <CssrsScreen patientId={profile?.id} onDone={() => router.back()} />;
-  return <FrequencyScaleScreen scaleKey={scale as "phq9" | "gad7"} patientId={profile?.id} onDone={() => router.back()} />;
+  if (scale === "cssrs")
+    return <CssrsScreen patientId={profile?.id} onDone={() => router.back()} />;
+  return (
+    <FrequencyScaleScreen
+      scaleKey={scale as "phq9" | "gad7"}
+      patientId={profile?.id}
+      onDone={() => router.back()}
+    />
+  );
 }
 
 // ── PHQ-9 / GAD-7 (genérico, contenido literal en src/lib/psychometricScales.ts) ────────────────
@@ -48,7 +66,9 @@ function FrequencyScaleScreen({
   onDone: () => void;
 }) {
   const scaleDef = SCALES[scaleKey];
-  const [answers, setAnswers] = useState<(number | null)[]>(Array(scaleDef.items.length).fill(null));
+  const [answers, setAnswers] = useState<(number | null)[]>(
+    Array(scaleDef.items.length).fill(null),
+  );
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ score: number; label: string } | null>(null);
   const allAnswered = answers.every((a) => a !== null);
@@ -83,7 +103,9 @@ function FrequencyScaleScreen({
       <ResultScreen
         title={scaleDef.title}
         scoreLine={`${result.score} pts · ${result.label}`}
-        showCrisisNotice={scaleDef.riskItemIndex != null && (answers[scaleDef.riskItemIndex] ?? 0) > 0}
+        showCrisisNotice={
+          scaleDef.riskItemIndex != null && (answers[scaleDef.riskItemIndex] ?? 0) > 0
+        }
         onDone={onDone}
       />
     );
@@ -92,11 +114,16 @@ function FrequencyScaleScreen({
   return (
     <>
       <Stack.Screen options={{ title: scaleDef.title }} />
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 100 }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 100 }}
+      >
         <Text style={styles.instructions}>{scaleDef.instructions}</Text>
         {scaleDef.items.map((item, i) => (
           <View key={i} style={styles.questionCard}>
-            <Text style={styles.questionText}>{i + 1}. {item}</Text>
+            <Text style={styles.questionText}>
+              {i + 1}. {item}
+            </Text>
             <View style={{ gap: 6, marginTop: 8 }}>
               {scaleDef.options.map((opt) => (
                 <Pressable
@@ -110,7 +137,9 @@ function FrequencyScaleScreen({
                   }
                   style={[styles.optionRow, answers[i] === opt.value && styles.optionRowActive]}
                 >
-                  <Text style={[styles.optionText, answers[i] === opt.value && styles.optionTextActive]}>
+                  <Text
+                    style={[styles.optionText, answers[i] === opt.value && styles.optionTextActive]}
+                  >
                     {opt.label}
                   </Text>
                 </Pressable>
@@ -120,8 +149,16 @@ function FrequencyScaleScreen({
         ))}
       </ScrollView>
       <View style={styles.footer}>
-        <Pressable style={[styles.submitButton, (!allAnswered || submitting) && { opacity: 0.5 }]} disabled={!allAnswered || submitting} onPress={handleSubmit}>
-          {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Enviar evaluación</Text>}
+        <Pressable
+          style={[styles.submitButton, (!allAnswered || submitting) && { opacity: 0.5 }]}
+          disabled={!allAnswered || submitting}
+          onPress={handleSubmit}
+        >
+          {submitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.submitText}>Enviar evaluación</Text>
+          )}
         </Pressable>
       </View>
     </>
@@ -169,9 +206,13 @@ function CssrsScreen({ patientId, onDone }: { patientId?: string; onDone: () => 
 
   const needsBranch = answers.q2_activa === "yes";
   const branchAnswered =
-    !needsBranch || (answers.q3_metodo !== null && answers.q4_intencion !== null && answers.q5_plan !== null);
+    !needsBranch ||
+    (answers.q3_metodo !== null && answers.q4_intencion !== null && answers.q5_plan !== null);
   const allAnswered =
-    answers.q1_pasiva !== null && answers.q2_activa !== null && answers.q6_comportamiento !== null && branchAnswered;
+    answers.q1_pasiva !== null &&
+    answers.q2_activa !== null &&
+    answers.q6_comportamiento !== null &&
+    branchAnswered;
 
   function set(field: keyof CssrsAnswers, value: YesNo) {
     setAnswers((prev) => {
@@ -223,21 +264,28 @@ function CssrsScreen({ patientId, onDone }: { patientId?: string; onDone: () => 
   return (
     <>
       <Stack.Screen options={{ title: "C-SSRS" }} />
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 100 }}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 100 }}
+      >
         <Text style={styles.instructions}>
           Estas preguntas son de rutina y ayudan a tu equipo clínico a cuidarte mejor. Responde con
           honestidad — no hay respuesta "correcta".
         </Text>
 
         <View style={styles.questionCard}>
-          <Text style={styles.questionText}>1. ¿Has deseado estar muerto/a o deseado quedarte dormido/a y no despertar?</Text>
+          <Text style={styles.questionText}>
+            1. ¿Has deseado estar muerto/a o deseado quedarte dormido/a y no despertar?
+          </Text>
           <View style={{ marginTop: 8 }}>
             <YesNoButtons value={answers.q1_pasiva} onChange={(v) => set("q1_pasiva", v)} />
           </View>
         </View>
 
         <View style={styles.questionCard}>
-          <Text style={styles.questionText}>2. ¿Has tenido pensamientos reales de hacerte daño o quitarte la vida?</Text>
+          <Text style={styles.questionText}>
+            2. ¿Has tenido pensamientos reales de hacerte daño o quitarte la vida?
+          </Text>
           <View style={{ marginTop: 8 }}>
             <YesNoButtons value={answers.q2_activa} onChange={(v) => set("q2_activa", v)} />
           </View>
@@ -252,13 +300,21 @@ function CssrsScreen({ patientId, onDone }: { patientId?: string; onDone: () => 
               </View>
             </View>
             <View style={[styles.questionCard, styles.branchCard]}>
-              <Text style={styles.questionText}>4. ¿Has tenido esos pensamientos con alguna intención de llevarlos a cabo?</Text>
+              <Text style={styles.questionText}>
+                4. ¿Has tenido esos pensamientos con alguna intención de llevarlos a cabo?
+              </Text>
               <View style={{ marginTop: 8 }}>
-                <YesNoButtons value={answers.q4_intencion} onChange={(v) => set("q4_intencion", v)} />
+                <YesNoButtons
+                  value={answers.q4_intencion}
+                  onChange={(v) => set("q4_intencion", v)}
+                />
               </View>
             </View>
             <View style={[styles.questionCard, styles.branchCard]}>
-              <Text style={styles.questionText}>5. ¿Has empezado a planear los detalles de cómo hacerlo, con intención de llevarlo a cabo?</Text>
+              <Text style={styles.questionText}>
+                5. ¿Has empezado a planear los detalles de cómo hacerlo, con intención de llevarlo a
+                cabo?
+              </Text>
               <View style={{ marginTop: 8 }}>
                 <YesNoButtons value={answers.q5_plan} onChange={(v) => set("q5_plan", v)} />
               </View>
@@ -267,15 +323,29 @@ function CssrsScreen({ patientId, onDone }: { patientId?: string; onDone: () => 
         )}
 
         <View style={styles.questionCard}>
-          <Text style={styles.questionText}>6. ¿Alguna vez hiciste algo, empezaste a hacer algo, o te preparaste para hacer algo para terminar con tu vida?</Text>
+          <Text style={styles.questionText}>
+            6. ¿Alguna vez hiciste algo, empezaste a hacer algo, o te preparaste para hacer algo
+            para terminar con tu vida?
+          </Text>
           <View style={{ marginTop: 8 }}>
-            <YesNoButtons value={answers.q6_comportamiento} onChange={(v) => set("q6_comportamiento", v)} />
+            <YesNoButtons
+              value={answers.q6_comportamiento}
+              onChange={(v) => set("q6_comportamiento", v)}
+            />
           </View>
         </View>
       </ScrollView>
       <View style={styles.footer}>
-        <Pressable style={[styles.submitButton, (!allAnswered || submitting) && { opacity: 0.5 }]} disabled={!allAnswered || submitting} onPress={handleSubmit}>
-          {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>Enviar evaluación</Text>}
+        <Pressable
+          style={[styles.submitButton, (!allAnswered || submitting) && { opacity: 0.5 }]}
+          disabled={!allAnswered || submitting}
+          onPress={handleSubmit}
+        >
+          {submitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.submitText}>Enviar evaluación</Text>
+          )}
         </Pressable>
       </View>
     </>
@@ -296,21 +366,39 @@ function ResultScreen({
   return (
     <>
       <Stack.Screen options={{ title }} />
-      <View style={[styles.container, { padding: 24, alignItems: "center", justifyContent: "center" }]}>
+      <View
+        style={[styles.container, { padding: 24, alignItems: "center", justifyContent: "center" }]}
+      >
         <Text style={{ fontSize: 14, color: colors.mutedForeground }}>Resultado</Text>
-        <Text style={{ fontSize: 24, fontWeight: "800", color: colors.primary, marginTop: 4, marginBottom: 20 }}>
+        <Text
+          style={{
+            fontSize: 24,
+            fontWeight: "800",
+            color: colors.primary,
+            marginTop: 4,
+            marginBottom: 20,
+          }}
+        >
           {scoreLine}
         </Text>
         {showCrisisNotice && (
           <View style={styles.crisisBox}>
             <Text style={styles.crisisText}>
-              Tus respuestas indican que puede haber riesgo para tu seguridad. Ya enviamos una alerta
-              directa a tu terapeuta asignado, quien se pondrá en contacto contigo lo antes posible. Si
-              en este momento estás en peligro, acude al servicio de urgencias más cercano.
+              Tus respuestas indican que puede haber riesgo para tu seguridad. Ya enviamos una
+              alerta directa a tu terapeuta asignado, quien se pondrá en contacto contigo lo antes
+              posible. Si en este momento estás en peligro, acude al servicio de urgencias más
+              cercano.
             </Text>
           </View>
         )}
-        <Text style={{ fontSize: 13, color: colors.mutedForeground, textAlign: "center", marginVertical: 16 }}>
+        <Text
+          style={{
+            fontSize: 13,
+            color: colors.mutedForeground,
+            textAlign: "center",
+            marginVertical: 16,
+          }}
+        >
           Esta evaluación quedó registrada y tu terapeuta podrá verla en tu próxima sesión.
         </Text>
         <Pressable style={styles.submitButton} onPress={onDone}>

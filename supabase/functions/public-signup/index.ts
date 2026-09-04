@@ -49,7 +49,9 @@ const CORS = {
 // de complejidad que se configure en Auth mas adelante.
 function generatePassword(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
-  const body = Array.from(bytes, (b) => b.toString(36)).join("").slice(0, 14);
+  const body = Array.from(bytes, (b) => b.toString(36))
+    .join("")
+    .slice(0, 14);
   return `Mf-${body}`;
 }
 
@@ -240,7 +242,7 @@ Deno.serve(async (req) => {
       // No revertimos la cuenta por un fallo de correo: el lead ya quedo capturado y el
       // usuario puede recuperar acceso con "olvidé mi contraseña".
       return fail(
-        "Creamos tu cuenta, pero no pudimos enviarte el correo. Usa \"¿Olvidaste tu contraseña?\" en la pantalla de ingreso o escríbenos.",
+        'Creamos tu cuenta, pero no pudimos enviarte el correo. Usa "¿Olvidaste tu contraseña?" en la pantalla de ingreso o escríbenos.',
         502,
       );
     }

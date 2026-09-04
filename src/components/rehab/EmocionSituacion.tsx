@@ -71,6 +71,12 @@ export function EmocionSituacion({ level, onFinish }: GameProps) {
   }
 
   return (
-    <TimedChoice rounds={8} ms={ms} make={make} onFinish={onFinish} hint="¿Cómo crees que se siente?" />
+    <TimedChoice
+      rounds={8}
+      ms={ms}
+      make={make}
+      onFinish={onFinish}
+      hint="¿Cómo crees que se siente?"
+    />
   );
 }

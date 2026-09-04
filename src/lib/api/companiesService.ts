@@ -10,12 +10,7 @@
 // ============================================================================
 import { supabase } from "../supabase";
 
-export type CompanyStatus =
-  | "prospecto"
-  | "negociando"
-  | "contrato_activo"
-  | "pausado"
-  | "cerrado";
+export type CompanyStatus = "prospecto" | "negociando" | "contrato_activo" | "pausado" | "cerrado";
 
 export const COMPANY_STATUS_ORDER: CompanyStatus[] = [
   "prospecto",

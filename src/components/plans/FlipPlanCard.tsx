@@ -59,7 +59,9 @@ export function FlipPlanCard({
       : "border-slate-200";
 
   return (
-    <div className={`flip-card relative h-full ${selected ? "selected-card-glow rounded-3xl" : ""}`}>
+    <div
+      className={`flip-card relative h-full ${selected ? "selected-card-glow rounded-3xl" : ""}`}
+    >
       {highlighted && (
         // Fuera del elemento que gira: si viajara con la cara, el badge
         // aparecería en espejo al voltear.
@@ -73,12 +75,7 @@ export function FlipPlanCard({
         <div className={`${caraBase} ${borde}`} aria-hidden={flipped}>
           {image && (
             <div className="relative h-40 shrink-0 overflow-hidden">
-              <img
-                src={image}
-                alt=""
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
+              <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />
               {/* Degradado hacia el blanco de la tarjeta: sin él, el nombre del
                   plan se apoya sobre una foto y pierde contraste. */}
               <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
@@ -113,10 +110,7 @@ export function FlipPlanCard({
         </div>
 
         {/* ── Reverso: el detalle ─────────────────────────────────────────── */}
-        <div
-          className={`flip-card-back ${caraBase} ${borde} bg-white`}
-          aria-hidden={!flipped}
-        >
+        <div className={`flip-card-back ${caraBase} ${borde} bg-white`} aria-hidden={!flipped}>
           <div className="flex flex-1 flex-col p-8">
             <div className="flex items-baseline justify-between gap-3">
               <h3 className="text-xl font-bold text-primary">{name}</h3>

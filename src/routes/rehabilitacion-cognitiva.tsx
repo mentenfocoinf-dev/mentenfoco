@@ -115,13 +115,14 @@ function Rehab() {
           <h2 className="mt-5 text-center text-xl font-bold text-slate-900">Antes de empezar</h2>
           <div className="mt-4 space-y-3 text-sm leading-relaxed text-slate-600">
             <p>
-              Estos son <strong>ejercicios de estimulación y práctica cognitiva</strong> con fines de
-              entrenamiento y bienestar. <strong>No son una prueba diagnóstica ni un tratamiento</strong>,
-              y no reemplazan una valoración neuropsicológica profesional.
+              Estos son <strong>ejercicios de estimulación y práctica cognitiva</strong> con fines
+              de entrenamiento y bienestar.{" "}
+              <strong>No son una prueba diagnóstica ni un tratamiento</strong>, y no reemplazan una
+              valoración neuropsicológica profesional.
             </p>
             <p>
-              Tus resultados se guardan solo para mostrarte tu propio progreso. Al continuar, aceptas
-              usar esta sección con ese entendimiento.
+              Tus resultados se guardan solo para mostrarte tu propio progreso. Al continuar,
+              aceptas usar esta sección con ese entendimiento.
             </p>
           </div>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row-reverse">
@@ -148,7 +149,9 @@ function Rehab() {
     return (
       <div className="mx-auto max-w-2xl px-4 py-20 text-center">
         <h1 className="text-2xl font-bold text-primary">Entendido</h1>
-        <p className="mt-2 text-sm text-muted-foreground">No hay problema. Puedes volver cuando quieras.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          No hay problema. Puedes volver cuando quieras.
+        </p>
         <Link to="/" className="mt-6 inline-block text-sm font-bold text-primary hover:underline">
           Volver al inicio
         </Link>
@@ -181,7 +184,9 @@ function Rehab() {
                   type="button"
                   onClick={() => setArea(null)}
                   className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                    area === null ? "bg-primary/10 text-primary" : "text-slate-600 hover:bg-slate-50"
+                    area === null
+                      ? "bg-primary/10 text-primary"
+                      : "text-slate-600 hover:bg-slate-50"
                   }`}
                 >
                   Todas <span className="text-xs text-muted-foreground">{ejercicios.length}</span>
@@ -193,7 +198,9 @@ function Rehab() {
                     type="button"
                     onClick={() => setArea(a.key)}
                     className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm font-medium transition-colors ${
-                      area === a.key ? "bg-primary/10 text-primary" : "text-slate-600 hover:bg-slate-50"
+                      area === a.key
+                        ? "bg-primary/10 text-primary"
+                        : "text-slate-600 hover:bg-slate-50"
                     }`}
                   >
                     {a.label}
@@ -263,7 +270,8 @@ function Rehab() {
                       )}
                       {p && (
                         <p className="mt-2 text-xs text-muted-foreground">
-                          {p.sessions} {p.sessions === 1 ? "partida" : "partidas"} · mejor: {p.bestScore}
+                          {p.sessions} {p.sessions === 1 ? "partida" : "partidas"} · mejor:{" "}
+                          {p.bestScore}
                           {p.lastAccuracy != null && p.lastAccuracy < 0.6 && (
                             <span className="text-amber-600"> · sigue practicando</span>
                           )}
@@ -323,7 +331,9 @@ function Rehab() {
             <div className="p-6">
               <h3 className="text-xl font-bold text-primary">{verMas.title}</h3>
               {verMas.description && (
-                <p className="mt-2 text-sm leading-relaxed text-foreground/80">{verMas.description}</p>
+                <p className="mt-2 text-sm leading-relaxed text-foreground/80">
+                  {verMas.description}
+                </p>
               )}
               {verMas.domains.length > 0 && (
                 <>

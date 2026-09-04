@@ -60,9 +60,7 @@ export function ContentEditorModal({
   footerExtra,
   onSubmitForReview,
 }: Props) {
-  const [contentType, setContentType] = useState<ContentType>(
-    existing?.content_type ?? "articulo",
-  );
+  const [contentType, setContentType] = useState<ContentType>(existing?.content_type ?? "articulo");
   const [audioKind, setAudioKind] = useState<AudioKind | "">(existing?.audio_kind ?? "");
   const [categoria, setCategoria] = useState(existing?.categoria ?? CONTENT_CATEGORIES[2]);
   const [titulo, setTitulo] = useState(existing?.titulo ?? "");
@@ -148,7 +146,10 @@ export function ContentEditorModal({
 
         <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
           {errorMsg && (
-            <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">
+            <p
+              role="alert"
+              className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600"
+            >
               {errorMsg}
             </p>
           )}
@@ -243,8 +244,7 @@ export function ContentEditorModal({
 
           <div>
             <label className="text-sm font-semibold text-slate-900">
-              Tiempo de lectura{" "}
-              <span className="font-normal text-slate-500">(opcional)</span>
+              Tiempo de lectura <span className="font-normal text-slate-500">(opcional)</span>
             </label>
             <input
               disabled={readOnly}

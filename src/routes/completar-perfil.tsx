@@ -74,8 +74,7 @@ function CompletarPerfil() {
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const complete =
-    cedula.trim() && phone.trim() && contactName.trim() && contactPhone.trim();
+  const complete = cedula.trim() && phone.trim() && contactName.trim() && contactPhone.trim();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

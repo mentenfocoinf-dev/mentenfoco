@@ -101,7 +101,11 @@ export function FigurasIguales({ level, onFinish }: GameProps) {
       <p className="text-sm text-white/80">Modelo</p>
       <div
         className={`mx-auto mt-2 flex h-24 w-24 items-center justify-center rounded-3xl border-2 ${
-          feedback === "ok" ? "border-emerald-400" : feedback === "mal" ? "border-rose-400" : "border-white/20"
+          feedback === "ok"
+            ? "border-emerald-400"
+            : feedback === "mal"
+              ? "border-rose-400"
+              : "border-white/20"
         } bg-white/5`}
       >
         <Flecha f={ronda.modelo} size={44} />

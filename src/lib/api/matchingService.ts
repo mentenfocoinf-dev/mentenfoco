@@ -49,12 +49,7 @@ import { listTherapists, type TherapyModality } from "./therapistService";
 export type Modalidad = "virtual" | "presencial" | "mixta";
 
 /** Los cinco criterios, en su orden de prioridad. */
-export type MatchCriterion =
-  | "especialidad"
-  | "motivo"
-  | "idioma"
-  | "modalidad"
-  | "disponibilidad";
+export type MatchCriterion = "especialidad" | "motivo" | "idioma" | "modalidad" | "disponibilidad";
 
 /**
  * Entrada del matching. Todo opcional: se puntúa con lo que haya.
@@ -114,11 +109,7 @@ const MAX_RESULTADOS = 3;
 
 /** Comparación de texto tolerante a mayúsculas y acentos ("Español" = "espanol"). */
 function normalizar(valor: string): string {
-  return valor
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+  return valor.trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 }
 
 function hayInterseccion(a: readonly string[], b: readonly string[]): boolean {
@@ -137,7 +128,11 @@ function coincidenciasDe(input: MatchingInput, t: TherapistProfile): MatchCriter
   const out: MatchCriterion[] = [];
 
   const buscadas = input.especialidades ?? [];
-  if (buscadas.length > 0 && t.especialidades.length > 0 && hayInterseccion(buscadas, t.especialidades)) {
+  if (
+    buscadas.length > 0 &&
+    t.especialidades.length > 0 &&
+    hayInterseccion(buscadas, t.especialidades)
+  ) {
     out.push("especialidad");
   }
 
@@ -155,7 +150,11 @@ function coincidenciasDe(input: MatchingInput, t: TherapistProfile): MatchCriter
   }
 
   const franjas = input.disponibilidad ?? [];
-  if (franjas.length > 0 && t.disponibilidad.length > 0 && hayInterseccion(franjas, t.disponibilidad)) {
+  if (
+    franjas.length > 0 &&
+    t.disponibilidad.length > 0 &&
+    hayInterseccion(franjas, t.disponibilidad)
+  ) {
     out.push("disponibilidad");
   }
 
@@ -180,26 +179,28 @@ export async function matchTherapists(input: MatchingInput): Promise<TherapistMa
   try {
     const perfiles = await cargarPerfiles();
 
-    return perfiles
-      .map((t) => {
-        const coincidencias = coincidenciasDe(input, t);
-        return {
-          therapistId: t.id,
-          nombre: t.nombre,
-          avatarUrl: t.avatarUrl,
-          score: puntuar(coincidencias),
-          coincidencias,
-        };
-      })
-      .filter((m) => m.score > 0)
-      // Determinismo completo: a igual score decide el nombre, y a igual nombre
-      // el id. Misma entrada, misma salida, siempre.
-      .sort((a, b) =>
-        b.score !== a.score
-          ? b.score - a.score
-          : a.nombre.localeCompare(b.nombre) || a.therapistId.localeCompare(b.therapistId),
-      )
-      .slice(0, MAX_RESULTADOS);
+    return (
+      perfiles
+        .map((t) => {
+          const coincidencias = coincidenciasDe(input, t);
+          return {
+            therapistId: t.id,
+            nombre: t.nombre,
+            avatarUrl: t.avatarUrl,
+            score: puntuar(coincidencias),
+            coincidencias,
+          };
+        })
+        .filter((m) => m.score > 0)
+        // Determinismo completo: a igual score decide el nombre, y a igual nombre
+        // el id. Misma entrada, misma salida, siempre.
+        .sort((a, b) =>
+          b.score !== a.score
+            ? b.score - a.score
+            : a.nombre.localeCompare(b.nombre) || a.therapistId.localeCompare(b.therapistId),
+        )
+        .slice(0, MAX_RESULTADOS)
+    );
   } catch (err) {
     console.error("[matching] no se pudo calcular:", err);
     return [];

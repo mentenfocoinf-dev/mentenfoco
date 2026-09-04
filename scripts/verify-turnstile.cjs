@@ -41,7 +41,9 @@ const H = { Authorization: `Bearer ${token}` };
     }
     const d = await r.json();
     // Solo se leen name + updated_at. NUNCA se toca ni imprime el valor.
-    const byName = Object.fromEntries((Array.isArray(d) ? d : []).map((s) => [s.name, s.updated_at]));
+    const byName = Object.fromEntries(
+      (Array.isArray(d) ? d : []).map((s) => [s.name, s.updated_at]),
+    );
     const present = Object.prototype.hasOwnProperty.call(byName, "TURNSTILE_SECRET_KEY");
 
     console.log("[secrets]");

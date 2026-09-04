@@ -22,6 +22,16 @@ export default tseslint.config(
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      // `any` explícito: aviso, no error. Queda visible para irlo tipando, pero no
+      // bloquea el CI (hay usos laxos pre-existentes en dashboards y renderers de
+      // markdown cuyo tipado correcto arrastra a muchos sitios de uso).
+      "@typescript-eslint/no-explicit-any": "warn",
+      // @ts-ignore permitido SOLO con descripción: se usa en los params dinámicos
+      // de rutas de TanStack, donde el tipo no puede verificarse en compilación.
+      "@typescript-eslint/ban-ts-comment": [
+        "error",
+        { "ts-ignore": "allow-with-description", minimumDescriptionLength: 5 },
+      ],
     },
   },
   eslintPluginPrettier,

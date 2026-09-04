@@ -47,7 +47,8 @@ const CASES = [
     // Plan gratuito: el trigger enforce_free_plan_evaluation_limit exige >=30 días entre
     // evaluaciones phq9/gad7, así que las 5 sesiones quedan espaciadas un mes cada una (~5 meses).
     sessionSpacingDays: 30,
-    motivo_consulta: "Ansiedad relacionada con estrés laboral y dificultad para desconectar los fines de semana.",
+    motivo_consulta:
+      "Ansiedad relacionada con estrés laboral y dificultad para desconectar los fines de semana.",
     antecedentes_psiquiatricos_personales: "Sin tratamiento psicológico previo.",
     audit_c_score: 2,
     phq9Scores: [14, 12, 10, 8, 7], // moderado -> leve
@@ -58,8 +59,10 @@ const CASES = [
   {
     email: "paciente.esencial@test.com",
     sessionSpacingDays: 7, // 1 sesión individual al mes según el plan, pero seguimiento semanal de bienestar
-    motivo_consulta: "Síntomas depresivos tras una ruptura de pareja de larga duración hace 4 meses.",
-    antecedentes_psiquiatricos_personales: "Un episodio depresivo previo hace 3 años, sin tratamiento farmacológico.",
+    motivo_consulta:
+      "Síntomas depresivos tras una ruptura de pareja de larga duración hace 4 meses.",
+    antecedentes_psiquiatricos_personales:
+      "Un episodio depresivo previo hace 3 años, sin tratamiento farmacológico.",
     audit_c_score: 1,
     phq9Scores: [17, 15, 13, 11, 9], // moderadamente grave -> leve
     gad7Scores: [10, 9, 8, 7, 5],
@@ -69,7 +72,8 @@ const CASES = [
   {
     email: "paciente.integral@test.com",
     sessionSpacingDays: 7,
-    motivo_consulta: "Duelo complicado por la muerte de su padre hace 8 meses, con aislamiento social progresivo.",
+    motivo_consulta:
+      "Duelo complicado por la muerte de su padre hace 8 meses, con aislamiento social progresivo.",
     antecedentes_psiquiatricos_personales: "Ninguno.",
     audit_c_score: 3,
     phq9Scores: [19, 16, 14, 12, 10],
@@ -80,12 +84,14 @@ const CASES = [
     includeCrisisAlert: true,
     crisisSeverity: "Bajo",
     crisisResolutionAction: "session_scheduled",
-    crisisResolutionNotes: "Paciente refiere ideación pasiva ocasional sin plan ni intención. Se agenda sesión de seguimiento en 3 días y se refuerza red de apoyo.",
+    crisisResolutionNotes:
+      "Paciente refiere ideación pasiva ocasional sin plan ni intención. Se agenda sesión de seguimiento en 3 días y se refuerza red de apoyo.",
   },
   {
     email: "paciente.premium@test.com",
     sessionSpacingDays: 7,
-    motivo_consulta: "Trastorno de pánico con episodios de 2-3 veces por semana desde hace 6 semanas.",
+    motivo_consulta:
+      "Trastorno de pánico con episodios de 2-3 veces por semana desde hace 6 semanas.",
     antecedentes_psiquiatricos_personales: "Antecedente familiar de trastorno de ansiedad (madre).",
     audit_c_score: 0,
     phq9Scores: [11, 10, 8, 6, 5],
@@ -96,7 +102,8 @@ const CASES = [
     includeCrisisAlert: true,
     crisisSeverity: "Moderado",
     crisisResolutionAction: "contacted_patient",
-    crisisResolutionNotes: "Se contactó telefónicamente el mismo día. Paciente estable, sin riesgo inminente. Continúa proceso regular.",
+    crisisResolutionNotes:
+      "Se contactó telefónicamente el mismo día. Paciente estable, sin riesgo inminente. Continúa proceso regular.",
   },
 ];
 
@@ -104,7 +111,10 @@ async function findUserIdByEmail(email) {
   const { data, error } = await supabase.auth.admin.listUsers({ perPage: 1000 });
   if (error) throw new Error(`Error listando usuarios buscando ${email}: ${error.message}`);
   const user = data.users.find((u) => u.email === email);
-  if (!user) throw new Error(`No existe ningún usuario con el correo ${email}. Corre primero seed_users.cjs.`);
+  if (!user)
+    throw new Error(
+      `No existe ningún usuario con el correo ${email}. Corre primero seed_users.cjs.`,
+    );
   return user.id;
 }
 
@@ -116,7 +126,9 @@ async function findCie11(searchTerm) {
     .limit(1);
   if (error) throw new Error(`Error buscando CIE-11 "${searchTerm}": ${error.message}`);
   if (!data || data.length === 0) {
-    console.warn(`⚠️  No se encontró código CIE-11 para "${searchTerm}" — dejo el diagnóstico en blanco.`);
+    console.warn(
+      `⚠️  No se encontró código CIE-11 para "${searchTerm}" — dejo el diagnóstico en blanco.`,
+    );
     return null;
   }
   return `${data[0].code} - ${data[0].description}`;
@@ -131,9 +143,11 @@ async function ensureLinked(patientId, therapistId) {
     .maybeSingle();
   if (existing) return;
   await supabase.from("patient_therapist").delete().eq("patient_id", patientId);
-  const { error } = await supabase
-    .from("patient_therapist")
-    .insert({ patient_id: patientId, therapist_id: therapistId, created_at: new Date().toISOString() });
+  const { error } = await supabase.from("patient_therapist").insert({
+    patient_id: patientId,
+    therapist_id: therapistId,
+    created_at: new Date().toISOString(),
+  });
   if (error) throw new Error(`Error enlazando paciente/terapeuta: ${error.message}`);
 }
 
@@ -212,7 +226,10 @@ async function seedCase(kase, therapistId) {
         s: `Paciente refiere ${i < 3 ? "persistencia" : "mejoría notable"} de los síntomas reportados en el motivo de consulta.`,
         o: "Colaborador/a durante la sesión, discurso coherente, contacto visual adecuado.",
         a: `Evolución ${i < 2 ? "estable, sin cambios significativos" : "favorable"} respecto a la sesión anterior.`,
-        p: i === 4 ? "Continuar seguimiento mensual y reforzar estrategias ya trabajadas." : "Continuar con el plan de intervención vigente. Próxima sesión en la fecha agendada.",
+        p:
+          i === 4
+            ? "Continuar seguimiento mensual y reforzar estrategias ya trabajadas."
+            : "Continuar con el plan de intervención vigente. Próxima sesión en la fecha agendada.",
       },
       is_signed: true,
       signed_at: scheduledAt.toISOString(),
@@ -240,7 +257,9 @@ async function seedCase(kase, therapistId) {
     });
     if (gadError) throw new Error(`GAD-7 sesión ${i + 1}: ${gadError.message}`);
 
-    console.log(`  ✓ Sesión ${i + 1}/5 (${scheduledAt.toISOString().slice(0, 10)}): nota firmada + PHQ-9 ${kase.phq9Scores[i]} + GAD-7 ${kase.gad7Scores[i]}`);
+    console.log(
+      `  ✓ Sesión ${i + 1}/5 (${scheduledAt.toISOString().slice(0, 10)}): nota firmada + PHQ-9 ${kase.phq9Scores[i]} + GAD-7 ${kase.gad7Scores[i]}`,
+    );
 
     // Alerta de crisis en la segunda sesión, si aplica al caso.
     if (kase.includeCrisisAlert && i === 1) {
@@ -293,7 +312,9 @@ async function main() {
     await seedCase(kase, therapistId);
   }
 
-  console.log("\n✅ Listo. 4 pacientes con 5 sesiones cada uno, anamnesis, notas firmadas, evaluaciones con tendencia, y 2 alertas de crisis resueltas (integral y premium).");
+  console.log(
+    "\n✅ Listo. 4 pacientes con 5 sesiones cada uno, anamnesis, notas firmadas, evaluaciones con tendencia, y 2 alertas de crisis resueltas (integral y premium).",
+  );
 }
 
 main().catch((err) => {

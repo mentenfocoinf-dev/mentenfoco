@@ -57,7 +57,9 @@ function Consentimiento() {
       window.location.href = "/ingresa";
     } catch (err) {
       setErrorMsg(
-        err instanceof Error ? err.message : "No pudimos guardar tu autorización. Intenta de nuevo.",
+        err instanceof Error
+          ? err.message
+          : "No pudimos guardar tu autorización. Intenta de nuevo.",
       );
       setSaving(false);
     }

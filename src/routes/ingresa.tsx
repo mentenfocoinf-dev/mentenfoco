@@ -9,13 +9,15 @@ import { SocialAuthButtons } from "../components/SocialAuthButtons";
 
 // Lazy loading de dashboards — solo se carga el que corresponde al rol del usuario
 const PatientDashboard = lazy(() =>
-  import("../components/dashboard/PatientDashboard").then((m) => ({ default: m.PatientDashboard }))
+  import("../components/dashboard/PatientDashboard").then((m) => ({ default: m.PatientDashboard })),
 );
 const TherapistDashboard = lazy(() =>
-  import("../components/dashboard/TherapistDashboard").then((m) => ({ default: m.TherapistDashboard }))
+  import("../components/dashboard/TherapistDashboard").then((m) => ({
+    default: m.TherapistDashboard,
+  })),
 );
 const AdminDashboard = lazy(() =>
-  import("../components/dashboard/AdminDashboard").then((m) => ({ default: m.AdminDashboard }))
+  import("../components/dashboard/AdminDashboard").then((m) => ({ default: m.AdminDashboard })),
 );
 
 const DashboardFallback = () => (
@@ -231,7 +233,10 @@ function Ingresa() {
                   <div className="flex justify-end">
                     <button
                       type="button"
-                      onClick={() => { setView("forgot"); setErrorMsg(null); }}
+                      onClick={() => {
+                        setView("forgot");
+                        setErrorMsg(null);
+                      }}
                       className="text-xs font-medium text-primary hover:underline"
                     >
                       ¿Olvidaste tu contraseña?
@@ -244,7 +249,9 @@ function Ingresa() {
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.01] hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {loading ? (
-                      <><Loader2 size={16} className="animate-spin" /> Procesando…</>
+                      <>
+                        <Loader2 size={16} className="animate-spin" /> Procesando…
+                      </>
                     ) : (
                       "Iniciar Sesión"
                     )}
@@ -305,7 +312,9 @@ function Ingresa() {
                     className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-transform hover:scale-[1.01] hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {loading ? (
-                      <><Loader2 size={16} className="animate-spin" /> Enviando…</>
+                      <>
+                        <Loader2 size={16} className="animate-spin" /> Enviando…
+                      </>
                     ) : (
                       "Enviar enlace de recuperación"
                     )}
@@ -313,7 +322,11 @@ function Ingresa() {
                 </form>
 
                 <button
-                  onClick={() => { setView("login"); setErrorMsg(null); setForgotEmail(""); }}
+                  onClick={() => {
+                    setView("login");
+                    setErrorMsg(null);
+                    setForgotEmail("");
+                  }}
                   className="mt-4 flex w-full items-center justify-center gap-1.5 text-sm text-slate-500 transition-colors hover:text-primary"
                 >
                   <ChevronLeft size={14} />
@@ -334,7 +347,11 @@ function Ingresa() {
                   enlace para restablecer tu contraseña en los próximos minutos.
                 </p>
                 <button
-                  onClick={() => { setView("login"); setErrorMsg(null); setForgotEmail(""); }}
+                  onClick={() => {
+                    setView("login");
+                    setErrorMsg(null);
+                    setForgotEmail("");
+                  }}
                   className="mt-6 w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
                 >
                   Volver al inicio de sesión
@@ -353,8 +370,12 @@ function Ingresa() {
   return (
     <Suspense fallback={<DashboardFallback />}>
       {profile.role === "admin" && <AdminDashboard profile={profile} onLogout={handleLogout} />}
-      {profile.role === "therapist" && <TherapistDashboard profile={profile} onLogout={handleLogout} />}
-      {(profile.role === "patient" || !profile.role) && <PatientDashboard profile={profile} onLogout={handleLogout} />}
+      {profile.role === "therapist" && (
+        <TherapistDashboard profile={profile} onLogout={handleLogout} />
+      )}
+      {(profile.role === "patient" || !profile.role) && (
+        <PatientDashboard profile={profile} onLogout={handleLogout} />
+      )}
     </Suspense>
   );
 }

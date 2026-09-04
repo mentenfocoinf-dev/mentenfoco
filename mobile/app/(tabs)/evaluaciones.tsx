@@ -39,8 +39,8 @@ export default function EvaluacionesScreen() {
     <ScreenContainer refreshing={loading} onRefresh={load}>
       <ScreenTitle>Evaluaciones de bienestar</ScreenTitle>
       <Text style={styles.subtitle}>
-        Cuestionarios breves y validados clínicamente que ayudan a tu terapeuta a hacer
-        seguimiento de tu evolución.
+        Cuestionarios breves y validados clínicamente que ayudan a tu terapeuta a hacer seguimiento
+        de tu evolución.
       </Text>
 
       {SCALES.map(({ key, label }) => {
@@ -50,7 +50,9 @@ export default function EvaluacionesScreen() {
             <Text style={styles.scaleLabel}>{label}</Text>
             {last ? (
               <Text style={styles.scaleResult}>
-                {key === "cssrs" ? `Riesgo: ${last.severity_level}` : `${last.total_score} pts · ${last.severity_level}`}
+                {key === "cssrs"
+                  ? `Riesgo: ${last.severity_level}`
+                  : `${last.total_score} pts · ${last.severity_level}`}
                 {"  ·  "}
                 {new Date(last.evaluated_at).toLocaleDateString("es-CO")}
               </Text>
@@ -59,9 +61,13 @@ export default function EvaluacionesScreen() {
             )}
             <Pressable
               style={styles.button}
-              onPress={() => router.push({ pathname: "/evaluacion/[scale]", params: { scale: key } })}
+              onPress={() =>
+                router.push({ pathname: "/evaluacion/[scale]", params: { scale: key } })
+              }
             >
-              <Text style={styles.buttonText}>{last ? "Volver a evaluar" : "Empezar evaluación"}</Text>
+              <Text style={styles.buttonText}>
+                {last ? "Volver a evaluar" : "Empezar evaluación"}
+              </Text>
             </Pressable>
           </Card>
         );

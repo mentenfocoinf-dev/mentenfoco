@@ -7,7 +7,13 @@ import {
   type AnamnesisSummary,
   type PsychometricEvaluation,
 } from "../../src/lib/api/clinicalService";
-import { ScreenContainer, Card, ScreenTitle, SectionLabel, EmptyState } from "../../src/components/ui";
+import {
+  ScreenContainer,
+  Card,
+  ScreenTitle,
+  SectionLabel,
+  EmptyState,
+} from "../../src/components/ui";
 import { colors } from "../../src/theme/colors";
 
 const SCALE_LABELS: Record<string, string> = {
@@ -21,7 +27,15 @@ const SCALE_LABELS: Record<string, string> = {
 // Gráfico simple con barras (sin librería externa, para no engordar el bundle en este primer
 // scaffold). Claude Code puede reemplazarlo por victory-native o react-native-svg más adelante
 // si se quiere un gráfico de línea real como el de la web (recharts).
-function TrendBars({ evaluations, scaleType, maxScore }: { evaluations: PsychometricEvaluation[]; scaleType: string; maxScore: number }) {
+function TrendBars({
+  evaluations,
+  scaleType,
+  maxScore,
+}: {
+  evaluations: PsychometricEvaluation[];
+  scaleType: string;
+  maxScore: number;
+}) {
   const points = evaluations
     .filter((e) => e.scale_type === scaleType)
     .slice()
@@ -36,12 +50,7 @@ function TrendBars({ evaluations, scaleType, maxScore }: { evaluations: Psychome
       <View style={styles.barsRow}>
         {points.map((p, i) => (
           <View key={i} style={styles.barColumn}>
-            <View
-              style={[
-                styles.bar,
-                { height: Math.max(6, (p.total_score / maxScore) * 60) },
-              ]}
-            />
+            <View style={[styles.bar, { height: Math.max(6, (p.total_score / maxScore) * 60) }]} />
             <Text style={styles.barValue}>{p.total_score}</Text>
           </View>
         ))}
@@ -105,9 +114,13 @@ export default function ProgresoScreen() {
           <View style={{ gap: 8, marginTop: 8 }}>
             {evaluations.map((ev, i) => (
               <View key={i} style={styles.historyRow}>
-                <Text style={styles.historyScale}>{SCALE_LABELS[ev.scale_type] ?? ev.scale_type}</Text>
+                <Text style={styles.historyScale}>
+                  {SCALE_LABELS[ev.scale_type] ?? ev.scale_type}
+                </Text>
                 <Text style={styles.historyScore}>
-                  {ev.scale_type === "cssrs" ? `Riesgo: ${ev.severity_level}` : `${ev.total_score} pts · ${ev.severity_level ?? "—"}`}
+                  {ev.scale_type === "cssrs"
+                    ? `Riesgo: ${ev.severity_level}`
+                    : `${ev.total_score} pts · ${ev.severity_level ?? "—"}`}
                 </Text>
                 <Text style={styles.historyDate}>
                   {new Date(ev.evaluated_at).toLocaleDateString("es-CO")}
@@ -167,6 +180,11 @@ const styles = StyleSheet.create({
   historyScale: { fontSize: 12, fontWeight: "700", color: "#1e293b", flex: 1 },
   historyScore: { fontSize: 12, color: colors.mutedForeground, flex: 1, textAlign: "center" },
   historyDate: { fontSize: 11, color: colors.mutedForeground },
-  anamnesisLabel: { fontSize: 11, fontWeight: "700", color: colors.mutedForeground, textTransform: "uppercase" },
+  anamnesisLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: colors.mutedForeground,
+    textTransform: "uppercase",
+  },
   anamnesisValue: { fontSize: 13, color: "#1e293b", marginTop: 2 },
 });

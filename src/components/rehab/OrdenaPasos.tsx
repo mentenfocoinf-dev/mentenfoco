@@ -6,21 +6,87 @@ import { createBag } from "./bag";
 import type { GameProps } from "./types";
 
 const ACTIVIDADES: { titulo: string; pasos: string[] }[] = [
-  { titulo: "Preparar un café", pasos: ["Calentar el agua", "Poner el café en la taza", "Verter el agua", "Revolver"] },
-  { titulo: "Lavarse las manos", pasos: ["Abrir la llave", "Echar jabón", "Frotar las manos", "Enjuagar", "Secar"] },
-  { titulo: "Enviar una carta", pasos: ["Escribir la carta", "Meterla en el sobre", "Pegar la estampilla", "Llevarla al correo"] },
-  { titulo: "Plantar una semilla", pasos: ["Cavar un hoyo", "Poner la semilla", "Cubrir con tierra", "Regar"] },
-  { titulo: "Preparar un sándwich", pasos: ["Sacar el pan", "Untar la mantequilla", "Poner el relleno", "Cerrar el sándwich"] },
-  { titulo: "Cepillarse los dientes", pasos: ["Poner pasta en el cepillo", "Cepillar los dientes", "Enjuagar la boca", "Guardar el cepillo"] },
-  { titulo: "Preparar un té", pasos: ["Calentar el agua", "Poner la bolsita en la taza", "Verter el agua caliente", "Esperar unos minutos"] },
-  { titulo: "Vestirse para salir", pasos: ["Escoger la ropa", "Ponerse la ropa", "Ponerse los zapatos", "Ponerse el abrigo"] },
-  { titulo: "Hacer una llamada", pasos: ["Tomar el teléfono", "Marcar el número", "Hablar con la persona", "Colgar al terminar"] },
-  { titulo: "Regar las plantas", pasos: ["Llenar la regadera", "Verter el agua en la maceta", "Guardar la regadera"] },
-  { titulo: "Tender la cama", pasos: ["Estirar la sábana", "Poner la cobija", "Acomodar las almohadas", "Alisar todo"] },
-  { titulo: "Lavar los platos", pasos: ["Quitar los restos de comida", "Echar jabón a la esponja", "Fregar los platos", "Enjuagar con agua", "Dejarlos secar"] },
-  { titulo: "Ir de compras", pasos: ["Hacer la lista", "Ir a la tienda", "Escoger los productos", "Pagar en la caja"] },
-  { titulo: "Hacer jugo de naranja", pasos: ["Cortar las naranjas", "Exprimir el jugo", "Servir en un vaso", "Beber el jugo"] },
-  { titulo: "Salir de casa", pasos: ["Apagar las luces", "Tomar las llaves", "Salir por la puerta", "Cerrar con llave"] },
+  {
+    titulo: "Preparar un café",
+    pasos: ["Calentar el agua", "Poner el café en la taza", "Verter el agua", "Revolver"],
+  },
+  {
+    titulo: "Lavarse las manos",
+    pasos: ["Abrir la llave", "Echar jabón", "Frotar las manos", "Enjuagar", "Secar"],
+  },
+  {
+    titulo: "Enviar una carta",
+    pasos: [
+      "Escribir la carta",
+      "Meterla en el sobre",
+      "Pegar la estampilla",
+      "Llevarla al correo",
+    ],
+  },
+  {
+    titulo: "Plantar una semilla",
+    pasos: ["Cavar un hoyo", "Poner la semilla", "Cubrir con tierra", "Regar"],
+  },
+  {
+    titulo: "Preparar un sándwich",
+    pasos: ["Sacar el pan", "Untar la mantequilla", "Poner el relleno", "Cerrar el sándwich"],
+  },
+  {
+    titulo: "Cepillarse los dientes",
+    pasos: [
+      "Poner pasta en el cepillo",
+      "Cepillar los dientes",
+      "Enjuagar la boca",
+      "Guardar el cepillo",
+    ],
+  },
+  {
+    titulo: "Preparar un té",
+    pasos: [
+      "Calentar el agua",
+      "Poner la bolsita en la taza",
+      "Verter el agua caliente",
+      "Esperar unos minutos",
+    ],
+  },
+  {
+    titulo: "Vestirse para salir",
+    pasos: ["Escoger la ropa", "Ponerse la ropa", "Ponerse los zapatos", "Ponerse el abrigo"],
+  },
+  {
+    titulo: "Hacer una llamada",
+    pasos: ["Tomar el teléfono", "Marcar el número", "Hablar con la persona", "Colgar al terminar"],
+  },
+  {
+    titulo: "Regar las plantas",
+    pasos: ["Llenar la regadera", "Verter el agua en la maceta", "Guardar la regadera"],
+  },
+  {
+    titulo: "Tender la cama",
+    pasos: ["Estirar la sábana", "Poner la cobija", "Acomodar las almohadas", "Alisar todo"],
+  },
+  {
+    titulo: "Lavar los platos",
+    pasos: [
+      "Quitar los restos de comida",
+      "Echar jabón a la esponja",
+      "Fregar los platos",
+      "Enjuagar con agua",
+      "Dejarlos secar",
+    ],
+  },
+  {
+    titulo: "Ir de compras",
+    pasos: ["Hacer la lista", "Ir a la tienda", "Escoger los productos", "Pagar en la caja"],
+  },
+  {
+    titulo: "Hacer jugo de naranja",
+    pasos: ["Cortar las naranjas", "Exprimir el jugo", "Servir en un vaso", "Beber el jugo"],
+  },
+  {
+    titulo: "Salir de casa",
+    pasos: ["Apagar las luces", "Tomar las llaves", "Salir por la puerta", "Cerrar con llave"],
+  },
 ];
 
 function barajar<T>(a: T[]): T[] {

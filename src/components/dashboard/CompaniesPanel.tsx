@@ -32,7 +32,13 @@ export function CompaniesPanel() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [creando, setCreando] = useState(false);
-  const [form, setForm] = useState({ name: "", nit: "", contactName: "", contactEmail: "", contactPhone: "" });
+  const [form, setForm] = useState({
+    name: "",
+    nit: "",
+    contactName: "",
+    contactEmail: "",
+    contactPhone: "",
+  });
   const [notasDraft, setNotasDraft] = useState<Record<string, string>>({});
 
   useEffect(() => {

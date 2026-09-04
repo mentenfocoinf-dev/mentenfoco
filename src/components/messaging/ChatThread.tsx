@@ -102,7 +102,12 @@ export function ChatThread({
     if (!body || sending) return;
     setSending(true);
     try {
-      const msg = await sendMessageByPair({ patientId, therapistId, senderId: currentUserId, body });
+      const msg = await sendMessageByPair({
+        patientId,
+        therapistId,
+        senderId: currentUserId,
+        body,
+      });
       setMessages((prev) => (prev.some((x) => x.id === msg.id) ? prev : [...prev, msg]));
       setDraft("");
     } catch (err) {

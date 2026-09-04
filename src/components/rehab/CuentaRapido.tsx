@@ -21,10 +21,9 @@ export function CuentaRapido({ level, onFinish }: GameProps) {
     const objetivo = COLORES[ti];
     const distractor = COLORES[di];
     const n = 2 + Math.floor(Math.random() * (total - 3)); // entre 2 y total-2
-    const fichas = [
-      ...Array(n).fill(objetivo.bg),
-      ...Array(total - n).fill(distractor.bg),
-    ].sort(() => Math.random() - 0.5);
+    const fichas = [...Array(n).fill(objetivo.bg), ...Array(total - n).fill(distractor.bg)].sort(
+      () => Math.random() - 0.5,
+    );
 
     const nums = new Set<number>([n]);
     while (nums.size < 4) {
@@ -39,7 +38,10 @@ export function CuentaRapido({ level, onFinish }: GameProps) {
     return {
       prompt: (
         <div>
-          <div className={`mx-auto grid w-fit gap-1.5`} style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
+          <div
+            className={`mx-auto grid w-fit gap-1.5`}
+            style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+          >
             {fichas.map((c, i) => (
               <span key={i} className={`h-7 w-7 rounded-full ${c}`} />
             ))}

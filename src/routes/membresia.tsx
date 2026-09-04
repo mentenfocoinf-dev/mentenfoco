@@ -28,12 +28,14 @@ export const Route = createFileRoute("/membresia")({
       { title: "Planes de acompañamiento — Mente en Foco" },
       {
         name: "description",
-        content: "Cada etapa de acompañamiento suma recursos, herramientas y contenido para tu proceso.",
+        content:
+          "Cada etapa de acompañamiento suma recursos, herramientas y contenido para tu proceso.",
       },
       { property: "og:title", content: "Planes de acompañamiento — Mente en Foco" },
       {
         property: "og:description",
-        content: "Cada etapa de acompañamiento suma recursos, herramientas y contenido para tu proceso.",
+        content:
+          "Cada etapa de acompañamiento suma recursos, herramientas y contenido para tu proceso.",
       },
     ],
   }),
@@ -53,7 +55,10 @@ const benefits = [
   },
   { title: "Test psicológicos", desc: "Evaluaciones validadas con resultados detallados." },
   { title: "Comunidad privada", desc: "Espacio seguro moderado por psicólogos." },
-  { title: "Sesiones y talleres", desc: "Condiciones preferentes en sesiones individuales y talleres." },
+  {
+    title: "Sesiones y talleres",
+    desc: "Condiciones preferentes en sesiones individuales y talleres.",
+  },
 ];
 
 // Columnas de la tabla comparativa de niveles de acceso. Los labels se leen de

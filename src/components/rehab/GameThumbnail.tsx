@@ -12,16 +12,21 @@ export function GameThumbnail({ gameKind, className }: { gameKind: GameKind; cla
     >
       {gameKind === "memory_pairs" && (
         <div className="grid grid-cols-3 gap-2">
-          {["bg-rose-500", "bg-amber-400", "bg-emerald-500", "bg-sky-400", "bg-violet-500", "bg-slate-700"].map(
-            (c, i) => (
-              <span
-                key={i}
-                className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg font-extrabold text-white ${c}`}
-              >
-                {i < 5 ? ["A", "B", "C", "A", "B"][i] : ""}
-              </span>
-            ),
-          )}
+          {[
+            "bg-rose-500",
+            "bg-amber-400",
+            "bg-emerald-500",
+            "bg-sky-400",
+            "bg-violet-500",
+            "bg-slate-700",
+          ].map((c, i) => (
+            <span
+              key={i}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg text-lg font-extrabold text-white ${c}`}
+            >
+              {i < 5 ? ["A", "B", "C", "A", "B"][i] : ""}
+            </span>
+          ))}
         </div>
       )}
 
@@ -65,18 +70,36 @@ export function GameThumbnail({ gameKind, className }: { gameKind: GameKind; cla
       {gameKind === "figuras_iguales" && (
         <div className="flex items-center gap-3">
           <ArrowUp size={40} strokeWidth={2.5} className="text-sky-400" />
-          <ArrowUp size={40} strokeWidth={2.5} className="text-rose-400" style={{ transform: "rotate(90deg)" }} />
-          <ArrowUp size={40} strokeWidth={2.5} className="text-emerald-400" style={{ transform: "rotate(180deg)" }} />
+          <ArrowUp
+            size={40}
+            strokeWidth={2.5}
+            className="text-rose-400"
+            style={{ transform: "rotate(90deg)" }}
+          />
+          <ArrowUp
+            size={40}
+            strokeWidth={2.5}
+            className="text-emerald-400"
+            style={{ transform: "rotate(180deg)" }}
+          />
         </div>
       )}
 
       {gameKind === "cuenta_rapido" && (
         <div className="grid grid-cols-3 gap-1.5">
-          {["bg-rose-500", "bg-sky-500", "bg-rose-500", "bg-sky-500", "bg-rose-500", "bg-sky-500", "bg-sky-500", "bg-rose-500", "bg-sky-500"].map(
-            (c, i) => (
-              <span key={i} className={`h-7 w-7 rounded-full ${c}`} />
-            ),
-          )}
+          {[
+            "bg-rose-500",
+            "bg-sky-500",
+            "bg-rose-500",
+            "bg-sky-500",
+            "bg-rose-500",
+            "bg-sky-500",
+            "bg-sky-500",
+            "bg-rose-500",
+            "bg-sky-500",
+          ].map((c, i) => (
+            <span key={i} className={`h-7 w-7 rounded-full ${c}`} />
+          ))}
         </div>
       )}
 
@@ -98,8 +121,24 @@ export function GameThumbnail({ gameKind, className }: { gameKind: GameKind; cla
       {gameKind === "que_hora" && (
         <svg viewBox="0 0 100 100" className="h-24 w-24">
           <circle cx="50" cy="50" r="44" fill="white" stroke="#0f172a" strokeWidth="4" />
-          <line x1="50" y1="50" x2="50" y2="28" stroke="#0f172a" strokeWidth="5" strokeLinecap="round" />
-          <line x1="50" y1="50" x2="72" y2="50" stroke="#2563eb" strokeWidth="4" strokeLinecap="round" />
+          <line
+            x1="50"
+            y1="50"
+            x2="50"
+            y2="28"
+            stroke="#0f172a"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <line
+            x1="50"
+            y1="50"
+            x2="72"
+            y2="50"
+            stroke="#2563eb"
+            strokeWidth="4"
+            strokeLinecap="round"
+          />
           <circle cx="50" cy="50" r="3" fill="#0f172a" />
         </svg>
       )}
@@ -143,9 +182,21 @@ export function GameThumbnail({ gameKind, className }: { gameKind: GameKind; cla
       {gameKind === "dia_siguiente" && (
         <div className="flex items-center gap-2 text-white">
           <span className="rounded-lg bg-white/10 px-3 py-2 text-sm font-bold">Lun</span>
-          <ArrowUp size={22} strokeWidth={2.5} className="text-emerald-400" style={{ transform: "rotate(90deg)" }} />
-          <span className="rounded-lg bg-white/25 px-3 py-2 text-sm font-extrabold ring-2 ring-white/40">Mar</span>
-          <ArrowUp size={22} strokeWidth={2.5} className="text-white/30" style={{ transform: "rotate(90deg)" }} />
+          <ArrowUp
+            size={22}
+            strokeWidth={2.5}
+            className="text-emerald-400"
+            style={{ transform: "rotate(90deg)" }}
+          />
+          <span className="rounded-lg bg-white/25 px-3 py-2 text-sm font-extrabold ring-2 ring-white/40">
+            Mar
+          </span>
+          <ArrowUp
+            size={22}
+            strokeWidth={2.5}
+            className="text-white/30"
+            style={{ transform: "rotate(90deg)" }}
+          />
           <span className="rounded-lg bg-white/5 px-3 py-2 text-sm font-bold text-white/40">?</span>
         </div>
       )}

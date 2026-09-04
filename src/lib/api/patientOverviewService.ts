@@ -103,10 +103,7 @@ export interface PlanUsage {
  * puede cancelarse, así que descontarla del cupo antes de que ocurra daría un
  * número que luego habría que devolver.
  */
-export async function getPatientPlanUsage(
-  patientId: string,
-  plan: PlanType,
-): Promise<PlanUsage> {
+export async function getPatientPlanUsage(patientId: string, plan: PlanType): Promise<PlanUsage> {
   const now = new Date();
   const from = new Date(now.getFullYear(), now.getMonth(), 1);
   const to = new Date(now.getFullYear(), now.getMonth() + 1, 1);
@@ -129,11 +126,7 @@ export async function getPatientPlanUsage(
 // ── Perfil del paciente para el encabezado ──────────────────────────────────
 
 export async function getPatientProfile(patientId: string): Promise<Profile | null> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", patientId)
-    .maybeSingle();
+  const { data } = await supabase.from("profiles").select("*").eq("id", patientId).maybeSingle();
   return (data as Profile) ?? null;
 }
 

@@ -37,7 +37,9 @@ async function findUserIdByEmail(email) {
   }
   const user = data.users.find((u) => u.email === email);
   if (!user) {
-    console.error(`❌ No existe ningún usuario con el correo ${email}. Corre primero seed_users.cjs.`);
+    console.error(
+      `❌ No existe ningún usuario con el correo ${email}. Corre primero seed_users.cjs.`,
+    );
     process.exit(1);
   }
   return user.id;

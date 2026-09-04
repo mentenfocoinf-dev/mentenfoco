@@ -58,41 +58,41 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-      <View style={styles.header}>
-        <Text style={styles.title}>Mente en Foco</Text>
-        <Text style={styles.subtitle}>Tu espacio de acompañamiento psicológico</Text>
-      </View>
+        <View style={styles.header}>
+          <Text style={styles.title}>Mente en Foco</Text>
+          <Text style={styles.subtitle}>Tu espacio de acompañamiento psicológico</Text>
+        </View>
 
-      <View style={styles.form}>
-        <Text style={styles.label}>Correo electrónico</Text>
-        <TextInput
-          value={email}
-          onChangeText={setEmail}
-          placeholder="tu@correo.com"
-          autoCapitalize="none"
-          keyboardType="email-address"
-          style={styles.input}
-        />
+        <View style={styles.form}>
+          <Text style={styles.label}>Correo electrónico</Text>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            placeholder="tu@correo.com"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            style={styles.input}
+          />
 
-        <Text style={styles.label}>Contraseña</Text>
-        <TextInput
-          value={password}
-          onChangeText={setPassword}
-          placeholder="••••••••"
-          secureTextEntry
-          style={styles.input}
-        />
+          <Text style={styles.label}>Contraseña</Text>
+          <TextInput
+            value={password}
+            onChangeText={setPassword}
+            placeholder="••••••••"
+            secureTextEntry
+            style={styles.input}
+          />
 
-        {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
+          {errorMsg && <Text style={styles.error}>{errorMsg}</Text>}
 
-        <Pressable style={styles.button} onPress={handleSubmit} disabled={loading}>
-          {loading ? (
-            <ActivityIndicator color={colors.primaryForeground} />
-          ) : (
-            <Text style={styles.buttonText}>Ingresar</Text>
-          )}
-        </Pressable>
-      </View>
+          <Pressable style={styles.button} onPress={handleSubmit} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color={colors.primaryForeground} />
+            ) : (
+              <Text style={styles.buttonText}>Ingresar</Text>
+            )}
+          </Pressable>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

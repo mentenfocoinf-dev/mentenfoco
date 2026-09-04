@@ -260,9 +260,7 @@ export function PatientDashboard({ profile, onLogout }: Props) {
           estado, ciclo de vida— vive solo en Agenda: tenerla también aquí era
           repetir el mismo hecho en dos sitios que podían no coincidir. */}
       {upcomingSessions.length === 0 && (
-        <p className="mb-4 text-sm text-muted-foreground">
-          Aún no tienes sesiones programadas.
-        </p>
+        <p className="mb-4 text-sm text-muted-foreground">Aún no tienes sesiones programadas.</p>
       )}
       <button
         type="button"

@@ -78,9 +78,7 @@ export function TherapistMessages({ therapistId, onConversationsChange }: Props)
         <h2 className="flex items-center gap-2 text-base font-bold text-primary">
           <MessageCircle size={18} /> Mensajes
         </h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          Conversaciones con tus pacientes.
-        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Conversaciones con tus pacientes.</p>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-3">

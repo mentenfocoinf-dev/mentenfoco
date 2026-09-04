@@ -7,8 +7,18 @@ import { resolveNextStep, type JourneyStepInput } from "./journeyService";
 
 /** Los pasos de un programa real: tres enlazados y uno sin enlace. */
 const PASOS: JourneyStepInput[] = [
-  { orden: 1, titulo: "Entiende qué te pasa", slug_relacionado: "ansiedad-que-no-para", ref_kind: "contenido" },
-  { orden: 2, titulo: "Practica el anclaje", slug_relacionado: "anclaje-5-4-3-2-1", ref_kind: "contenido" },
+  {
+    orden: 1,
+    titulo: "Entiende qué te pasa",
+    slug_relacionado: "ansiedad-que-no-para",
+    ref_kind: "contenido",
+  },
+  {
+    orden: 2,
+    titulo: "Practica el anclaje",
+    slug_relacionado: "anclaje-5-4-3-2-1",
+    ref_kind: "contenido",
+  },
   { orden: 3, titulo: "Haz tu GAD-7", slug_relacionado: null, ref_kind: null },
   { orden: 4, titulo: "Profundiza", slug_relacionado: "ansiedad-ataques", ref_kind: "guia" },
 ];

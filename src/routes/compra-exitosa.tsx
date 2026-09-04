@@ -7,7 +7,10 @@ export const Route = createFileRoute("/compra-exitosa")({
     meta: [
       META_NOINDEX,
       { title: "¡Compra Exitosa! — Mente en Foco" },
-      { name: "description", content: "Tu pago fue procesado exitosamente. Revisa tu correo para activar tu cuenta." },
+      {
+        name: "description",
+        content: "Tu pago fue procesado exitosamente. Revisa tu correo para activar tu cuenta.",
+      },
     ],
   }),
   component: CompraExitosa,
@@ -22,7 +25,9 @@ function CompraExitosa() {
         </div>
 
         <h1 className="mt-8 text-3xl font-bold text-slate-900">Tu acompañamiento ya está listo</h1>
-        <p className="mt-3 text-slate-500 text-sm">Tu pago quedó confirmado. Te damos la bienvenida a tu proceso.</p>
+        <p className="mt-3 text-slate-500 text-sm">
+          Tu pago quedó confirmado. Te damos la bienvenida a tu proceso.
+        </p>
 
         {/* Paso 1: Revisar email */}
         <div className="mt-6 rounded-2xl bg-white/50 p-6 text-left shadow-sm border border-slate-100">
@@ -33,9 +38,10 @@ function CompraExitosa() {
             <div>
               <h3 className="font-bold text-slate-900">Revisa tu correo electrónico</h3>
               <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                En los próximos minutos recibirás un correo con un enlace para <strong>activar tu
-                cuenta y establecer tu contraseña</strong>. Por seguridad el enlace caduca al cabo de
-                un rato; si expira, puedes pedir uno nuevo desde “¿Olvidaste tu contraseña?”.
+                En los próximos minutos recibirás un correo con un enlace para{" "}
+                <strong>activar tu cuenta y establecer tu contraseña</strong>. Por seguridad el
+                enlace caduca al cabo de un rato; si expira, puedes pedir uno nuevo desde
+                “¿Olvidaste tu contraseña?”.
               </p>
             </div>
           </div>
@@ -50,8 +56,8 @@ function CompraExitosa() {
             <div>
               <h3 className="font-bold text-slate-900">Beneficios activados automáticamente</h3>
               <p className="mt-1 text-sm text-slate-600 leading-relaxed">
-                Una vez que confirmes tu cuenta, tendrás acceso a las guías clínicas, a tu
-                espacio personal y a los recursos de tu etapa.
+                Una vez que confirmes tu cuenta, tendrás acceso a las guías clínicas, a tu espacio
+                personal y a los recursos de tu etapa.
               </p>
             </div>
           </div>

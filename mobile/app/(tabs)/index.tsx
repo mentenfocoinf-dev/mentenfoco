@@ -85,7 +85,11 @@ export default function InicioScreen() {
 
       <Pressable style={styles.quickCard} onPress={() => router.push("/(tabs)/mensajes")}>
         <Text style={styles.quickTitle}>Mensajes</Text>
-        {unread > 0 ? <Badge tone="danger">{`${unread} nuevo${unread > 1 ? "s" : ""}`}</Badge> : <Text style={styles.muted}>Sin mensajes nuevos</Text>}
+        {unread > 0 ? (
+          <Badge tone="danger">{`${unread} nuevo${unread > 1 ? "s" : ""}`}</Badge>
+        ) : (
+          <Text style={styles.muted}>Sin mensajes nuevos</Text>
+        )}
       </Pressable>
 
       <Pressable style={styles.quickCard} onPress={() => router.push("/(tabs)/evaluaciones")}>

@@ -51,7 +51,8 @@ export function TimedChoice({ rounds, ms, make, onFinish, layout = "grid2", hint
   function resolver(key: string | null) {
     if (respondido.current || fin.current) return;
     respondido.current = true;
-    const acierto = key != null && (ref.current.options.find((o) => o.key === key)?.correct ?? false);
+    const acierto =
+      key != null && (ref.current.options.find((o) => o.key === key)?.correct ?? false);
     if (acierto) setAciertos((a) => a + 1);
     setFeedback(acierto ? "ok" : "mal");
     setTimeout(() => {

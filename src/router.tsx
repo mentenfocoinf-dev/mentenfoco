@@ -10,7 +10,7 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
     // Punto de enganche del monitoreo: aquí iría el SDK (p. ej.
     //   Sentry.captureException(error)
     // ) el día que se cree la cuenta. Ver GUIA_ACTIVACIONES_MANUALES.
-    // eslint-disable-next-line no-console
+
     console.error("[app-error]", { name: error.name, message: error.message });
   }, [error]);
 

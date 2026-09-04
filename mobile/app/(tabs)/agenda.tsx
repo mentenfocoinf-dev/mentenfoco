@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { View, Text, Pressable, StyleSheet, Linking } from "react-native";
 import { useAuth } from "../../src/hooks/useAuth";
-import { getPatientSessions, type TherapySession, type SessionStatus } from "../../src/lib/api/sessionsService";
+import {
+  getPatientSessions,
+  type TherapySession,
+  type SessionStatus,
+} from "../../src/lib/api/sessionsService";
 import { ScreenContainer, Card, ScreenTitle, EmptyState } from "../../src/components/ui";
 import { colors } from "../../src/theme/colors";
 
@@ -18,8 +22,7 @@ function SessionRow({ session }: { session: TherapySession }) {
   const style = STATUS_STYLES[session.status];
   const date = new Date(session.scheduled_at);
   const canJoin =
-    session.video_call_link &&
-    (session.status === "programada" || session.status === "confirmada");
+    session.video_call_link && (session.status === "programada" || session.status === "confirmada");
 
   return (
     <View style={styles.row}>
@@ -28,14 +31,18 @@ function SessionRow({ session }: { session: TherapySession }) {
           {date.toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" })}
         </Text>
         <Text style={styles.rowTime}>
-          {date.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })} · {session.duration_minutes} min
+          {date.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })} ·{" "}
+          {session.duration_minutes} min
         </Text>
         <View style={[styles.badge, { backgroundColor: style.bg }]}>
           <Text style={[styles.badgeText, { color: style.fg }]}>{style.label}</Text>
         </View>
       </View>
       {canJoin && (
-        <Pressable style={styles.joinButton} onPress={() => Linking.openURL(session.video_call_link!)}>
+        <Pressable
+          style={styles.joinButton}
+          onPress={() => Linking.openURL(session.video_call_link!)}
+        >
           <Text style={styles.joinButtonText}>Unirme</Text>
         </Pressable>
       )}
@@ -78,7 +85,8 @@ export default function AgendaScreen() {
     <ScreenContainer refreshing={loading} onRefresh={load}>
       <ScreenTitle>Mi agenda</ScreenTitle>
       <Text style={styles.subtitle}>
-        Tu terapeuta programa las sesiones desde su panel. Aquí puedes verlas y unirte cuando llegue la hora.
+        Tu terapeuta programa las sesiones desde su panel. Aquí puedes verlas y unirte cuando llegue
+        la hora.
       </Text>
 
       <Card>
@@ -122,7 +130,13 @@ const styles = StyleSheet.create({
   },
   rowDate: { fontSize: 13, fontWeight: "700", color: "#1e293b", textTransform: "capitalize" },
   rowTime: { fontSize: 12, color: colors.mutedForeground, marginTop: 2 },
-  badge: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3, marginTop: 6 },
+  badge: {
+    alignSelf: "flex-start",
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginTop: 6,
+  },
   badgeText: { fontSize: 10, fontWeight: "700" },
   joinButton: {
     backgroundColor: colors.primary,

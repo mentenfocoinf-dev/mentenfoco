@@ -24,7 +24,14 @@ function RootNavigation() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: colors.background,
+        }}
+      >
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -34,7 +41,10 @@ function RootNavigation() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="login" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="evaluacion/[scale]" options={{ presentation: "modal", headerShown: true }} />
+      <Stack.Screen
+        name="evaluacion/[scale]"
+        options={{ presentation: "modal", headerShown: true }}
+      />
       <Stack.Screen name="guia/[id]" options={{ headerShown: true, title: "Guía" }} />
     </Stack>
   );

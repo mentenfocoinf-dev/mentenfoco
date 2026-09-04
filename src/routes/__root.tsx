@@ -1,4 +1,11 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
+import {
+  Outlet,
+  Link,
+  createRootRoute,
+  HeadContent,
+  Scripts,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { AuthProvider } from "../hooks/useAuth";
@@ -186,7 +193,7 @@ function NavDropdown({ label, items }: { label: string; items: MenuItem[] }) {
                 key={item.label}
                 // @ts-ignore - rutas dinámicas con params se resuelven en runtime
                 to={item.to}
-                // @ts-ignore
+                // @ts-ignore - params dinámicos de la ruta, se resuelven en runtime
                 params={item.params}
                 onClick={() => setOpen(false)}
                 className="block rounded-xl px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-primary/5 hover:text-primary"
@@ -261,8 +268,16 @@ function Header() {
           aria-label="Menú móvil"
         >
           <div className="mx-auto max-w-7xl px-4 py-3 flex flex-col gap-1">
-            <MobileGroup title="Servicios" items={SERVICIOS_MENU} onNavigate={() => setMobileOpen(false)} />
-            <MobileGroup title="Recursos" items={RECURSOS_MENU} onNavigate={() => setMobileOpen(false)} />
+            <MobileGroup
+              title="Servicios"
+              items={SERVICIOS_MENU}
+              onNavigate={() => setMobileOpen(false)}
+            />
+            <MobileGroup
+              title="Recursos"
+              items={RECURSOS_MENU}
+              onNavigate={() => setMobileOpen(false)}
+            />
             {DIRECT_LINKS.map((item) => (
               <Link
                 key={item.to}
@@ -308,14 +323,16 @@ function MobileGroup({
             className="flex items-center justify-between rounded-lg px-4 py-2.5 text-sm text-slate-400"
           >
             {item.label}
-            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold">Pronto</span>
+            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold">
+              Pronto
+            </span>
           </span>
         ) : (
           <Link
             key={item.label}
             // @ts-ignore - rutas dinámicas con params se resuelven en runtime
             to={item.to}
-            // @ts-ignore
+            // @ts-ignore - params dinámicos de la ruta, se resuelven en runtime
             params={item.params}
             onClick={onNavigate}
             className="block rounded-lg px-4 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-primary transition-colors"
@@ -363,17 +380,29 @@ function Footer() {
                 Psiquiatría
               </Link>
             </li>
-            <li><Link to="/asesoramiento">Planes</Link></li>
+            <li>
+              <Link to="/asesoramiento">Planes</Link>
+            </li>
           </ul>
         </div>
         <div>
           <h4 className="mb-3 text-sm font-semibold">Recursos</h4>
           <ul className="space-y-2 text-sm text-primary-foreground/70">
-            <li><Link to="/guia">Guías</Link></li>
-            <li><Link to="/faq">Preguntas frecuentes</Link></li>
-            <li><Link to="/lineas-de-crisis">Líneas de crisis</Link></li>
-            <li><Link to="/empresas">Empresas</Link></li>
-            <li><Link to="/sobre-nosotros">Sobre nosotros</Link></li>
+            <li>
+              <Link to="/guia">Guías</Link>
+            </li>
+            <li>
+              <Link to="/faq">Preguntas frecuentes</Link>
+            </li>
+            <li>
+              <Link to="/lineas-de-crisis">Líneas de crisis</Link>
+            </li>
+            <li>
+              <Link to="/empresas">Empresas</Link>
+            </li>
+            <li>
+              <Link to="/sobre-nosotros">Sobre nosotros</Link>
+            </li>
           </ul>
         </div>
         <div>
@@ -392,11 +421,15 @@ function Footer() {
       </div>
       <div className="border-t border-primary-foreground/10 px-4 py-4 text-center text-xs text-primary-foreground/60">
         © {new Date().getFullYear()} Mente en Foco. Todos los derechos reservados.
-        <span className="mx-2" aria-hidden="true">·</span>
+        <span className="mx-2" aria-hidden="true">
+          ·
+        </span>
         <Link to="/politica-privacidad" className="hover:underline">
           Política de privacidad
         </Link>
-        <span className="mx-2" aria-hidden="true">·</span>
+        <span className="mx-2" aria-hidden="true">
+          ·
+        </span>
         <Link to="/terminos-y-condiciones" className="hover:underline">
           Términos y condiciones
         </Link>

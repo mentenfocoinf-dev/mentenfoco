@@ -308,7 +308,9 @@ export function SignupModal({ open, onClose }: SignupModalProps) {
               <div className="mt-5 space-y-2">
                 <label
                   className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors ${
-                    termsAccepted ? "border-primary bg-primary/5" : "border-slate-200 hover:bg-slate-50"
+                    termsAccepted
+                      ? "border-primary bg-primary/5"
+                      : "border-slate-200 hover:bg-slate-50"
                   }`}
                 >
                   <input

@@ -85,10 +85,9 @@ Deno.serve(async () => {
 
   const sent = results.filter((r) => r.ok).length;
   const failed = results.length - sent;
-  return new Response(
-    JSON.stringify({ processed: results.length, sent, failed }),
-    { headers: { "Content-Type": "application/json" } },
-  );
+  return new Response(JSON.stringify({ processed: results.length, sent, failed }), {
+    headers: { "Content-Type": "application/json" },
+  });
 });
 
 async function sendReminderForSession(session: SessionRow): Promise<boolean> {

@@ -487,7 +487,11 @@ export function ClinicalDocumentModal({
                 disabled={saving}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 disabled:opacity-60"
               >
-                {saving ? <Loader2 size={15} className="animate-spin" /> : <ShieldCheck size={15} />}
+                {saving ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <ShieldCheck size={15} />
+                )}
                 Firmar y guardar
               </button>
             </div>

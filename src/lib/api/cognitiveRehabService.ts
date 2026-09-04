@@ -68,12 +68,28 @@ export interface RehabArea {
 }
 
 export const REHAB_AREAS: RehabArea[] = [
-  { key: "memoria", label: "Memoria", domains: ["memoria_trabajo", "memoria_secuencial", "memoria_episodica", "memoria_semantica"] },
-  { key: "atencion", label: "Atención", domains: ["atencion_selectiva", "atencion_sostenida", "atencion_alternante", "inhibicion"] },
-  { key: "funciones_ejecutivas", label: "Funciones ejecutivas", domains: ["planificacion", "razonamiento", "flexibilidad"] },
+  {
+    key: "memoria",
+    label: "Memoria",
+    domains: ["memoria_trabajo", "memoria_secuencial", "memoria_episodica", "memoria_semantica"],
+  },
+  {
+    key: "atencion",
+    label: "Atención",
+    domains: ["atencion_selectiva", "atencion_sostenida", "atencion_alternante", "inhibicion"],
+  },
+  {
+    key: "funciones_ejecutivas",
+    label: "Funciones ejecutivas",
+    domains: ["planificacion", "razonamiento", "flexibilidad"],
+  },
   { key: "velocidad", label: "Velocidad de procesamiento", domains: ["velocidad_procesamiento"] },
   { key: "lenguaje", label: "Lenguaje", domains: ["lenguaje", "comprension"] },
-  { key: "visoespacial", label: "Habilidades visoespaciales", domains: ["relaciones_espaciales", "visualizacion_espacial"] },
+  {
+    key: "visoespacial",
+    label: "Habilidades visoespaciales",
+    domains: ["relaciones_espaciales", "visualizacion_espacial"],
+  },
   { key: "calculo", label: "Cálculo", domains: ["calculo"] },
   { key: "orientacion", label: "Orientación", domains: ["orientacion"] },
   { key: "cognicion_social", label: "Cognición social", domains: ["cognicion_social"] },

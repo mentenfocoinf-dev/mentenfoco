@@ -51,7 +51,13 @@ export function SectionLabel({ children }: { children: ReactNode }) {
   return <Text style={styles.sectionLabel}>{children}</Text>;
 }
 
-export function Badge({ children, tone = "primary" }: { children: ReactNode; tone?: "primary" | "success" | "warning" | "danger" }) {
+export function Badge({
+  children,
+  tone = "primary",
+}: {
+  children: ReactNode;
+  tone?: "primary" | "success" | "warning" | "danger";
+}) {
   const toneStyles = {
     primary: { bg: colors.primarySoft, fg: colors.primary },
     success: { bg: colors.successBg, fg: colors.success },

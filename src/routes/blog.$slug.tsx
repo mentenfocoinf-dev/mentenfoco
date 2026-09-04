@@ -63,7 +63,6 @@ export const Route = createFileRoute("/blog/$slug")({
   component: BlogArticulo,
 });
 
-
 function BlogArticulo() {
   const { item: _b } = Route.useLoaderData();
   useEffect(() => {
@@ -124,9 +123,7 @@ function BlogArticulo() {
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-14 md:px-6">
-        {item.body_md && (
-          <ContentBody markdown={item.body_md} titulo={item.titulo} />
-        )}
+        {item.body_md && <ContentBody markdown={item.body_md} titulo={item.titulo} />}
 
         {item.clinical_refs && item.clinical_refs.length > 0 && (
           <div className="mt-12 rounded-2xl border border-slate-200 bg-slate-50 p-6">

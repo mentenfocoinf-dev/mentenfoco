@@ -29,11 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function fetchProfile(userId: string, email?: string | null) {
     try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
       if (error || !data) {
         console.error("[useAuth] Error cargando perfil (posible RLS):", error?.message);
         setProfile(null);

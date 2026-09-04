@@ -57,7 +57,10 @@ function haceCuanto(iso: string): string {
  * ofrecer un enlace que no lleva a ningún sitio.
  */
 function destino(n: AppNotification): { to: string; params?: Record<string, string> } | null {
-  if (n.relationshipId && (n.eventType === "MESSAGE_SENT" || n.eventType === "THERAPIST_ASSIGNED")) {
+  if (
+    n.relationshipId &&
+    (n.eventType === "MESSAGE_SENT" || n.eventType === "THERAPIST_ASSIGNED")
+  ) {
     return { to: "/conversacion/$relationshipId", params: { relationshipId: n.relationshipId } };
   }
   if (n.eventType === "CONTACT_REQUEST_ACCEPTED" && n.relationshipId) {

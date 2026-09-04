@@ -32,7 +32,10 @@ const initialAnswers: Answers = {
   q6_comportamiento: null,
 };
 
-function calcularRiesgo(a: Answers): { level: "ninguno" | "bajo" | "moderado" | "alto"; label: string } {
+function calcularRiesgo(a: Answers): {
+  level: "ninguno" | "bajo" | "moderado" | "alto";
+  label: string;
+} {
   if (a.q4_intencion === "yes" || a.q5_plan === "yes" || a.q6_comportamiento === "yes") {
     return { level: "alto", label: "Alto" };
   }
@@ -45,13 +48,7 @@ function calcularRiesgo(a: Answers): { level: "ninguno" | "bajo" | "moderado" | 
   return { level: "ninguno", label: "Ninguno" };
 }
 
-function YesNoButtons({
-  value,
-  onChange,
-}: {
-  value: YesNo | null;
-  onChange: (v: YesNo) => void;
-}) {
+function YesNoButtons({ value, onChange }: { value: YesNo | null; onChange: (v: YesNo) => void }) {
   return (
     <div className="flex gap-3">
       <button
@@ -189,9 +186,9 @@ export function CssrsModal({ patientId, onClose, onSaved }: Props) {
                   <AlertTriangle size={20} className="text-red-600 shrink-0 mt-0.5" />
                   <p className="text-sm text-red-800">
                     Tus respuestas indican que puede haber riesgo para tu seguridad. Ya enviamos una
-                    alerta directa a tu terapeuta asignado, quien se pondrá en contacto contigo lo antes
-                    posible. Si en este momento estás en peligro, acude al servicio de urgencias más
-                    cercano.
+                    alerta directa a tu terapeuta asignado, quien se pondrá en contacto contigo lo
+                    antes posible. Si en este momento estás en peligro, acude al servicio de
+                    urgencias más cercano.
                   </p>
                 </div>
               )}
@@ -209,8 +206,8 @@ export function CssrsModal({ patientId, onClose, onSaved }: Props) {
           ) : (
             <div className="space-y-5">
               <p className="text-sm font-medium text-slate-600">
-                Estas preguntas son de rutina y ayudan a tu equipo clínico a cuidarte mejor. Responde
-                con honestidad — no hay respuesta "correcta".
+                Estas preguntas son de rutina y ayudan a tu equipo clínico a cuidarte mejor.
+                Responde con honestidad — no hay respuesta "correcta".
               </p>
 
               <div className="rounded-xl border border-slate-200 p-4">
@@ -256,8 +253,8 @@ export function CssrsModal({ patientId, onClose, onSaved }: Props) {
 
               <div className="rounded-xl border border-slate-200 p-4">
                 <p className="mb-3 text-sm font-semibold text-slate-800">
-                  6. ¿Alguna vez hiciste algo, empezaste a hacer algo, o te preparaste para hacer algo
-                  para terminar con tu vida?
+                  6. ¿Alguna vez hiciste algo, empezaste a hacer algo, o te preparaste para hacer
+                  algo para terminar con tu vida?
                 </p>
                 <YesNoButtons
                   value={answers.q6_comportamiento}

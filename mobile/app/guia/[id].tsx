@@ -90,7 +90,12 @@ export default function GuiaDetalleScreen() {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.background,
+  },
   titulo: { fontSize: 22, fontWeight: "700", color: colors.primary, marginTop: 8 },
   tiempo: { fontSize: 13, color: colors.mutedForeground, marginTop: 4 },
   descripcion: { fontSize: 14, color: colors.mutedForeground, marginTop: 6, lineHeight: 20 },

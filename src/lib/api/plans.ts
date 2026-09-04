@@ -148,7 +148,8 @@ export const PLAN_BENEFITS: PlanBenefit[] = [
   },
   {
     label: "Alex — IA de apoyo (Próximamente)",
-    detail: "Agente especializado en salud mental — función en desarrollo, disponible próximamente.",
+    detail:
+      "Agente especializado en salud mental — función en desarrollo, disponible próximamente.",
     minPlan: "integral",
   },
   {

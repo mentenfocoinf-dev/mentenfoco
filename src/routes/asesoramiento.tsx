@@ -135,9 +135,7 @@ function Asesoramiento() {
   // Deriva el nombre del plan destacado en vez de repetirlo aquí: un nombre
   // hardcodeado ("Integral") dejó de coincidir con plan.name la última vez que
   // se renombraron los planes, y ninguna tarjeta quedaba preseleccionada.
-  const [selectedPlan, setSelectedPlan] = useState<string | null>(
-    DEFAULT_HIGHLIGHTED_OFFER.name,
-  );
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(DEFAULT_HIGHLIGHTED_OFFER.name);
   const { profile } = useAuth();
 
   return (

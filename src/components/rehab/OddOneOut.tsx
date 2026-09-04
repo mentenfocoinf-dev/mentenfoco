@@ -82,7 +82,10 @@ export function OddOneOut({ level, onFinish }: GameProps) {
       <p className="mb-3 text-sm text-white/80">Toca la ficha que es distinta.</p>
       <div
         className="mx-auto grid gap-2"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`, maxWidth: `${cols * 3.2}rem` }}
+        style={{
+          gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+          maxWidth: `${cols * 3.2}rem`,
+        }}
       >
         {Array.from({ length: ronda.total }, (_, i) => (
           <button

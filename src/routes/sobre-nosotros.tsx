@@ -175,8 +175,14 @@ function SobreNosotros() {
           <div className="mt-8 grid gap-6 sm:grid-cols-3">
             {[
               { t: "Basado en evidencia", d: "Métodos con respaldo científico, no modas." },
-              { t: "Documentación real", d: "Historia clínica e informes con estándar profesional." },
-              { t: "Enfoque neuropsicológico", d: "Una mirada del funcionamiento cognitivo que pocos tienen." },
+              {
+                t: "Documentación real",
+                d: "Historia clínica e informes con estándar profesional.",
+              },
+              {
+                t: "Enfoque neuropsicológico",
+                d: "Una mirada del funcionamiento cognitivo que pocos tienen.",
+              },
             ].map((item) => (
               <div key={item.t} className="rounded-2xl bg-white/10 p-6 border border-white/10">
                 <h3 className="font-bold">{item.t}</h3>

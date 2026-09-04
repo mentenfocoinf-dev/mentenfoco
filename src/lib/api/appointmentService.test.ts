@@ -203,7 +203,8 @@ describe("sin relación activa", () => {
 describe("conflictos de horario", () => {
   it("solape del paciente", async () => {
     insertError = {
-      message: 'conflicting key value violates exclusion constraint "appointments_sin_solape_paciente"',
+      message:
+        'conflicting key value violates exclusion constraint "appointments_sin_solape_paciente"',
     };
     await expect(requestAppointment("rel-1", INICIO, FIN)).rejects.toThrow(
       /Ya tienes una cita a esa hora/i,
@@ -212,7 +213,8 @@ describe("conflictos de horario", () => {
 
   it("solape del profesional", async () => {
     insertError = {
-      message: 'conflicting key value violates exclusion constraint "appointments_sin_solape_terapeuta"',
+      message:
+        'conflicting key value violates exclusion constraint "appointments_sin_solape_terapeuta"',
     };
     await expect(requestAppointment("rel-1", INICIO, FIN)).rejects.toThrow(
       /ya tiene una cita a esa hora/i,

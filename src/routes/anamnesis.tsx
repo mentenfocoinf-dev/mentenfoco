@@ -3,7 +3,19 @@ import { META_NOINDEX } from "../lib/seo";
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../lib/supabase";
-import { FileText, Loader2, ArrowRight, HeartPulse, ShieldAlert, Users, Pill, Brain, Plus, Trash2, CheckCircle } from "lucide-react";
+import {
+  FileText,
+  Loader2,
+  ArrowRight,
+  HeartPulse,
+  ShieldAlert,
+  Users,
+  Pill,
+  Brain,
+  Plus,
+  Trash2,
+  CheckCircle,
+} from "lucide-react";
 import { MultiSelect } from "../components/MultiSelect";
 
 export const Route = createFileRoute("/anamnesis")({
@@ -231,7 +243,9 @@ function Anamnesis() {
             sesión. Puedes actualizarla cuando quieras desde tu espacio.
           </p>
           <button
-            onClick={() => { window.location.href = "/ingresa"; }}
+            onClick={() => {
+              window.location.href = "/ingresa";
+            }}
             className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90"
           >
             Ir a mi espacio <ArrowRight size={16} />
@@ -250,9 +264,9 @@ function Anamnesis() {
           </div>
           <h1 className="text-3xl font-bold text-slate-900">Bienvenido a tu Espacio</h1>
           <p className="mt-3 text-slate-600">
-            Esta información nos ayuda a que tu terapeuta te conozca antes de la primera sesión. Puedes
-            dejar en blanco lo que no quieras compartir todavía — nada de esto bloquea tu acceso, salvo
-            tu nombre y el motivo de consulta.
+            Esta información nos ayuda a que tu terapeuta te conozca antes de la primera sesión.
+            Puedes dejar en blanco lo que no quieras compartir todavía — nada de esto bloquea tu
+            acceso, salvo tu nombre y el motivo de consulta.
           </p>
         </div>
 
@@ -469,7 +483,9 @@ function Anamnesis() {
               </div>
               {tieneAutolesion === true && (
                 <div>
-                  <label className={labelClass}>Cuéntanos un poco más, si te sientes cómodo/a</label>
+                  <label className={labelClass}>
+                    Cuéntanos un poco más, si te sientes cómodo/a
+                  </label>
                   <textarea
                     rows={3}
                     value={detalleAutolesion}
@@ -535,7 +551,8 @@ function Anamnesis() {
                       onChange={(e) => setInterfiereActividades(e.target.checked)}
                       className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
                     />
-                    Esto interfiere con actividades diarias (manejar dinero, tomar medicamentos, etc.)
+                    Esto interfiere con actividades diarias (manejar dinero, tomar medicamentos,
+                    etc.)
                   </label>
                 </div>
               )}

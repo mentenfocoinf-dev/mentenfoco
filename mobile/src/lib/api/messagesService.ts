@@ -20,10 +20,7 @@ export async function getAssignedTherapistId(patientId: string): Promise<string 
   return data?.therapist_id ?? null;
 }
 
-export async function getConversation(
-  patientId: string,
-  therapistId: string,
-): Promise<Message[]> {
+export async function getConversation(patientId: string, therapistId: string): Promise<Message[]> {
   const { data, error } = await supabase
     .from("messages")
     .select("*")

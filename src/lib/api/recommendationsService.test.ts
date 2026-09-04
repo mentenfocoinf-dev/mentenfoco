@@ -138,12 +138,7 @@ describe("seleccionar — G1 y G3", () => {
 
   it("G3: tope de 3", () => {
     const r = seleccionar(
-      [
-        pieza("a", "guia"),
-        pieza("b", "articulo"),
-        pieza("c", "audio"),
-        pieza("d", "herramienta"),
-      ],
+      [pieza("a", "guia"), pieza("b", "articulo"), pieza("c", "audio"), pieza("d", "herramienta")],
       "x",
     );
     expect(r).toHaveLength(3);
@@ -208,7 +203,11 @@ describe("affinityChain — orden de criterios", () => {
   });
 
   it("nunca reordena: el tema no puede quedar detrás de los tags", () => {
-    const cadena = affinityChain({ themeKey: "sueno_descanso", categoria: "Ansiedad", tags: ["x"] });
+    const cadena = affinityChain({
+      themeKey: "sueno_descanso",
+      categoria: "Ansiedad",
+      tags: ["x"],
+    });
     expect(cadena.indexOf("tema")).toBeLessThan(cadena.indexOf("categoria"));
     expect(cadena.indexOf("categoria")).toBeLessThan(cadena.indexOf("tags"));
   });

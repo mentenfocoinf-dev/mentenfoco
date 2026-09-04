@@ -33,9 +33,6 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      # Lint sigue informativo: ~580 avisos de formato (prettier) pre-existentes en
-      # supabase/functions y src. Al limpiarlos en una pasada dedicada, quitar
-      # `continue-on-error` para volverlo obligatorio.
-      - name: Lint (informativo)
+      # Lint ya está limpio (0 errores; los ~41 avisos restantes no bloquean) → bloqueante.
+      - name: Lint
         run: npm run lint
-        continue-on-error: true

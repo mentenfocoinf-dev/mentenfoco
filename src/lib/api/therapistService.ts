@@ -57,10 +57,7 @@ export interface TherapistProfileRecord {
 
 /** Lo que un terapeuta puede editar de su propio perfil. `verified` no está, a propósito. */
 export type TherapistProfileInput = Partial<
-  Omit<
-    TherapistProfileRecord,
-    "profile_id" | "accepts_online" | "accepts_in_person" | "verified"
-  >
+  Omit<TherapistProfileRecord, "profile_id" | "accepts_online" | "accepts_in_person" | "verified">
 > & { professional_name: string };
 
 const CAMPOS =

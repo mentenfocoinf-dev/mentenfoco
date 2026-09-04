@@ -21,14 +21,7 @@
 // ============================================================================
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  CheckCircle2,
-  Compass,
-  PlayCircle,
-  Sparkles,
-  UserRound,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, Compass, PlayCircle, Sparkles, UserRound } from "lucide-react";
 import {
   getContentBySlug,
   getMyPreferences,
@@ -136,9 +129,7 @@ export function MiCaminoSection() {
         >
           <Sparkles size={18} className="shrink-0 text-primary" />
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-bold text-primary">
-              Cuéntanos qué te interesa
-            </span>
+            <span className="block text-sm font-bold text-primary">Cuéntanos qué te interesa</span>
             <span className="block text-xs text-muted-foreground">
               Cuatro preguntas para ajustar lo que te mostramos. Puedes saltarlo.
             </span>

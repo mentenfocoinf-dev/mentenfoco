@@ -81,7 +81,6 @@ const TYPE_ICON: Record<ContentType, typeof BookOpen> = {
   audio: Headphones,
 };
 
-
 function ContenidoDetalle() {
   const { item: _i } = Route.useLoaderData();
   useEffect(() => {
@@ -166,9 +165,7 @@ function ContenidoDetalle() {
         )}
 
         {/* Cuerpo markdown — mismo renderizado que las guías */}
-        {doc.body_md && (
-          <ContentBody markdown={doc.body_md} titulo={doc.titulo} />
-        )}
+        {doc.body_md && <ContentBody markdown={doc.body_md} titulo={doc.titulo} />}
 
         {/* PROGRAMA: "tu siguiente paso" antes del mapa completo de la ruta.
             Aquí el motor de recomendaciones está apagado (C1), así que no compiten. */}
@@ -193,7 +190,8 @@ function ContenidoDetalle() {
                   // con un destino fuera del plan del lector— el paso se muestra
                   // igual pero sin enlace (ej. "haz tu GAD-7").
                   const enlazable =
-                    Boolean(step.slug_relacionado) && alcanzable.has(step.slug_relacionado as string);
+                    Boolean(step.slug_relacionado) &&
+                    alcanzable.has(step.slug_relacionado as string);
                   const body = (
                     <>
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
@@ -275,7 +273,16 @@ function ContenidoDetalle() {
                   <summary className="flex cursor-pointer items-center justify-between gap-4 p-4 font-semibold text-slate-800">
                     {entry.q}
                     <span className="text-primary transition duration-300 group-open:-rotate-180">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
                         <path d="M6 9l6 6 6-6" />
                       </svg>
                     </span>
@@ -351,7 +358,19 @@ function ContenidoDetalle() {
   );
 }
 
-function Hero({ meta }: { meta: { titulo: string; resumen_breve: string; categoria: string; content_type: ContentType; cover_image: string | null; tiempo_lectura: string | null; tags?: string[] | null } }) {
+function Hero({
+  meta,
+}: {
+  meta: {
+    titulo: string;
+    resumen_breve: string;
+    categoria: string;
+    content_type: ContentType;
+    cover_image: string | null;
+    tiempo_lectura: string | null;
+    tags?: string[] | null;
+  };
+}) {
   const Icon = TYPE_ICON[meta.content_type] ?? BookOpen;
   return (
     <section

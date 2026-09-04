@@ -186,9 +186,30 @@ describe("listar", () => {
   it("conserva el orden cronológico que devuelve la base", async () => {
     rpcResult = {
       data: [
-        { id: "m1", relationship_id: "r", sender_id: "a", body: "primero", read_at: null, created_at: "2026-08-01T10:00:00Z" },
-        { id: "m2", relationship_id: "r", sender_id: "b", body: "segundo", read_at: null, created_at: "2026-08-01T10:05:00Z" },
-        { id: "m3", relationship_id: "r", sender_id: "a", body: "tercero", read_at: null, created_at: "2026-08-01T10:09:00Z" },
+        {
+          id: "m1",
+          relationship_id: "r",
+          sender_id: "a",
+          body: "primero",
+          read_at: null,
+          created_at: "2026-08-01T10:00:00Z",
+        },
+        {
+          id: "m2",
+          relationship_id: "r",
+          sender_id: "b",
+          body: "segundo",
+          read_at: null,
+          created_at: "2026-08-01T10:05:00Z",
+        },
+        {
+          id: "m3",
+          relationship_id: "r",
+          sender_id: "a",
+          body: "tercero",
+          read_at: null,
+          created_at: "2026-08-01T10:09:00Z",
+        },
       ],
       error: null,
     };
@@ -199,7 +220,14 @@ describe("listar", () => {
   it("mapea el estado de leído", async () => {
     rpcResult = {
       data: [
-        { id: "m1", relationship_id: "r", sender_id: "a", body: "x", read_at: "2026-08-01T11:00:00Z", created_at: "2026-08-01T10:00:00Z" },
+        {
+          id: "m1",
+          relationship_id: "r",
+          sender_id: "a",
+          body: "x",
+          read_at: "2026-08-01T11:00:00Z",
+          created_at: "2026-08-01T10:00:00Z",
+        },
       ],
       error: null,
     };
@@ -237,7 +265,14 @@ describe("conversación completa", () => {
     });
     rpcResult = {
       data: [
-        { id: "m1", relationship_id: "rel-1", sender_id: "p", body: "hola", read_at: null, created_at: "2026-08-01T10:00:00Z" },
+        {
+          id: "m1",
+          relationship_id: "rel-1",
+          sender_id: "p",
+          body: "hola",
+          read_at: null,
+          created_at: "2026-08-01T10:00:00Z",
+        },
       ],
       error: null,
     };

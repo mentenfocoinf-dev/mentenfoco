@@ -81,7 +81,10 @@ function parseFrontmatter(raw, file) {
   if (end === -1) throw new Error(`${file}: no se encontró el cierre del frontmatter.`);
 
   const front = yaml.load(lines.slice(1, end).join("\n")) ?? {};
-  const body = lines.slice(end + 1).join("\n").trim();
+  const body = lines
+    .slice(end + 1)
+    .join("\n")
+    .trim();
   return { front, body };
 }
 
@@ -154,7 +157,9 @@ async function main() {
   const bySlug = new Map();
   for (const p of parsed) {
     if (bySlug.has(p.item.slug)) {
-      throw new Error(`Slug duplicado "${p.item.slug}" en ${p.file.name} y ${bySlug.get(p.item.slug)}`);
+      throw new Error(
+        `Slug duplicado "${p.item.slug}" en ${p.file.name} y ${bySlug.get(p.item.slug)}`,
+      );
     }
     bySlug.set(p.item.slug, p.file.name);
   }
@@ -207,7 +212,9 @@ async function main() {
       );
     }
     console.log(
-      brokenRefs.length ? `\n⚠ referencias rotas: ${brokenRefs.join(", ")}` : "\n✓ referencias cruzadas OK",
+      brokenRefs.length
+        ? `\n⚠ referencias rotas: ${brokenRefs.join(", ")}`
+        : "\n✓ referencias cruzadas OK",
     );
     console.log("\n(--dry-run: no se escribió nada en la base)");
     return;
@@ -258,7 +265,9 @@ async function main() {
     }
   }
 
-  console.log(`\n✅ ${creadas} creada(s), ${actualizadas} actualizada(s), publicadas por el admin.`);
+  console.log(
+    `\n✅ ${creadas} creada(s), ${actualizadas} actualizada(s), publicadas por el admin.`,
+  );
   if (sinImagen.length > 0) {
     console.warn(`⚠ Faltan imágenes en public/contenido/: ${sinImagen.join(", ")}`);
   }

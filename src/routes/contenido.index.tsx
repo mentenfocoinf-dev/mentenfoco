@@ -102,8 +102,7 @@ function ContenidoHub() {
                   : "glass border border-white/40 text-foreground hover:border-primary/50 hover:bg-primary/5"
               }`}
             >
-              {f.label}{" "}
-              <span className="opacity-70 font-medium">({counts[f.key] ?? 0})</span>
+              {f.label} <span className="opacity-70 font-medium">({counts[f.key] ?? 0})</span>
             </button>
           ))}
         </div>

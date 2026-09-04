@@ -65,8 +65,8 @@ function Especialistas() {
       <div className="text-center">
         <h1 className="text-3xl font-bold text-primary md:text-4xl">Nuestro equipo clínico</h1>
         <p className="mx-auto mt-3 max-w-2xl text-sm text-muted-foreground md:text-base">
-          Conoce a los profesionales que acompañan en Mente en Foco: su enfoque, sus especialidades y
-          cómo atienden. Cuando quieras dar el paso, creas tu cuenta y coordinamos tu valoración.
+          Conoce a los profesionales que acompañan en Mente en Foco: su enfoque, sus especialidades
+          y cómo atienden. Cuando quieras dar el paso, creas tu cuenta y coordinamos tu valoración.
         </p>
       </div>
 

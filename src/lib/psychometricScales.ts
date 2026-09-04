@@ -30,7 +30,8 @@ export const PHQ9: ScaleDefinition = {
   key: "phq9",
   title: "PHQ-9",
   subtitle: "Cuestionario de Salud del Paciente — síntomas depresivos",
-  instructions: "Durante las últimas 2 semanas, ¿con qué frecuencia le han molestado los siguientes problemas?",
+  instructions:
+    "Durante las últimas 2 semanas, ¿con qué frecuencia le han molestado los siguientes problemas?",
   options: FRECUENCIA_2_SEMANAS,
   riskItemIndex: 8,
   items: [
@@ -57,7 +58,8 @@ export const GAD7: ScaleDefinition = {
   key: "gad7",
   title: "GAD-7",
   subtitle: "Escala de Ansiedad Generalizada",
-  instructions: "Durante las últimas 2 semanas, ¿con qué frecuencia le han molestado los siguientes problemas?",
+  instructions:
+    "Durante las últimas 2 semanas, ¿con qué frecuencia le han molestado los siguientes problemas?",
   options: FRECUENCIA_2_SEMANAS,
   items: [
     "Sentirse nervioso(a), ansioso(a) o muy alterado(a)",

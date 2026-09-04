@@ -16,7 +16,6 @@ type EventProps = Record<string, string | number | boolean | null | undefined>;
 export function track(evento: string, propiedades?: EventProps): void {
   try {
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
       console.debug(`[analytics] ${evento}`, propiedades ?? {});
     }
     // ── Conectar el proveedor real aquí cuando se decida (no-op hasta entonces) ──

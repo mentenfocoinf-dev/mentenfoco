@@ -24,11 +24,19 @@ import { colors } from "../../src/theme/colors";
 
 function Bubble({ message, isMine }: { message: Message; isMine: boolean }) {
   return (
-    <View style={[styles.bubbleRow, isMine ? { justifyContent: "flex-end" } : { justifyContent: "flex-start" }]}>
+    <View
+      style={[
+        styles.bubbleRow,
+        isMine ? { justifyContent: "flex-end" } : { justifyContent: "flex-start" },
+      ]}
+    >
       <View style={[styles.bubble, isMine ? styles.bubbleMine : styles.bubbleTheirs]}>
         <Text style={isMine ? styles.bubbleTextMine : styles.bubbleTextTheirs}>{message.body}</Text>
         <Text style={[styles.bubbleTime, isMine && { color: "rgba(255,255,255,0.7)" }]}>
-          {new Date(message.created_at).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
+          {new Date(message.created_at).toLocaleTimeString("es-CO", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </Text>
       </View>
     </View>
@@ -100,7 +108,12 @@ export default function MensajesScreen() {
     const body = draft.trim();
     setDraft("");
     try {
-      const sent = await sendMessage({ patientId: profile.id, therapistId, senderId: profile.id, body });
+      const sent = await sendMessage({
+        patientId: profile.id,
+        therapistId,
+        senderId: profile.id,
+        body,
+      });
       setMessages((prev) => [...prev, sent]);
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (err) {
@@ -160,7 +173,11 @@ export default function MensajesScreen() {
           placeholderTextColor={colors.mutedForeground}
           multiline
         />
-        <Pressable style={[styles.sendButton, (!draft.trim() || sending) && { opacity: 0.5 }]} onPress={handleSend} disabled={!draft.trim() || sending}>
+        <Pressable
+          style={[styles.sendButton, (!draft.trim() || sending) && { opacity: 0.5 }]}
+          onPress={handleSend}
+          disabled={!draft.trim() || sending}
+        >
           <Text style={styles.sendButtonText}>Enviar</Text>
         </Pressable>
       </View>
@@ -175,7 +192,12 @@ const styles = StyleSheet.create({
   bubbleRow: { flexDirection: "row" },
   bubble: { maxWidth: "80%", borderRadius: 16, paddingVertical: 8, paddingHorizontal: 12 },
   bubbleMine: { backgroundColor: colors.primary, borderBottomRightRadius: 4 },
-  bubbleTheirs: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderBottomLeftRadius: 4 },
+  bubbleTheirs: {
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderBottomLeftRadius: 4,
+  },
   bubbleTextMine: { color: "#fff", fontSize: 14 },
   bubbleTextTheirs: { color: "#1e293b", fontSize: 14 },
   bubbleTime: { fontSize: 10, color: colors.mutedForeground, marginTop: 4, textAlign: "right" },

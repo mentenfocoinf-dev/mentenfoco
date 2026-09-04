@@ -199,7 +199,10 @@ async function resolveReachableSteps(item: ContentItem | null, plan: PlanType): 
     const { data } = await supabase
       .from("content_items_meta")
       .select("slug")
-      .in("slug", contenido.map((s) => s.slug_relacionado as string))
+      .in(
+        "slug",
+        contenido.map((s) => s.slug_relacionado as string),
+      )
       .eq("status", "publicado")
       .in("min_plan", planes);
     alcanzables.push(...(data ?? []).map((r) => r.slug as string));
@@ -209,7 +212,10 @@ async function resolveReachableSteps(item: ContentItem | null, plan: PlanType): 
     const { data } = await supabase
       .from("clinical_guides_meta")
       .select("id")
-      .in("id", guias.map((s) => s.slug_relacionado as string))
+      .in(
+        "id",
+        guias.map((s) => s.slug_relacionado as string),
+      )
       .in("min_plan", planes);
     alcanzables.push(...(data ?? []).map((r) => r.id as string));
   }

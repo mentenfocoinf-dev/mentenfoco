@@ -20,12 +20,20 @@ const CASOS: { s: string; ok: string; malas: string[] }[] = [
   {
     s: "En una reunión, otra persona está hablando.",
     ok: "Esperas tu turno para hablar y escuchas con atención.",
-    malas: ["La interrumpes de inmediato.", "Le subes el volumen a tu teléfono.", "Te vas sin avisar."],
+    malas: [
+      "La interrumpes de inmediato.",
+      "Le subes el volumen a tu teléfono.",
+      "Te vas sin avisar.",
+    ],
   },
   {
     s: "Un compañero te presta algo y lo necesita de vuelta.",
     ok: "Se lo devuelves a tiempo y le das las gracias.",
-    malas: ["Lo ignoras varios días.", "Dices que nunca te lo prestó.", "Se lo prestas a otra persona."],
+    malas: [
+      "Lo ignoras varios días.",
+      "Dices que nunca te lo prestó.",
+      "Se lo prestas a otra persona.",
+    ],
   },
   {
     s: "Alguien te felicita por algo que hiciste bien.",
@@ -50,17 +58,29 @@ const CASOS: { s: string; ok: string; malas: string[] }[] = [
   {
     s: "Un compañero nuevo no conoce a nadie en el grupo.",
     ok: "Te acercas y te presentas para que se sienta bienvenido.",
-    malas: ["Lo ignoras por ser nuevo.", "Te burlas de que esté solo.", "Le dices que se busque a otros."],
+    malas: [
+      "Lo ignoras por ser nuevo.",
+      "Te burlas de que esté solo.",
+      "Le dices que se busque a otros.",
+    ],
   },
   {
     s: "Tu amigo está triste y quiere hablar contigo.",
     ok: "Lo escuchas con atención, sin interrumpir.",
-    malas: ["Miras el teléfono mientras habla.", "Le dices que exagera.", "Cambias de tema enseguida."],
+    malas: [
+      "Miras el teléfono mientras habla.",
+      "Le dices que exagera.",
+      "Cambias de tema enseguida.",
+    ],
   },
   {
     s: "Alguien te pide perdón por un error que cometió.",
     ok: "Aceptas la disculpa y sigues adelante.",
-    malas: ["Se lo recuerdas para siempre.", "Le gritas aún más fuerte.", "No le vuelves a hablar nunca."],
+    malas: [
+      "Se lo recuerdas para siempre.",
+      "Le gritas aún más fuerte.",
+      "No le vuelves a hablar nunca.",
+    ],
   },
   {
     s: "En el bus, una persona mayor no encuentra asiento.",
@@ -90,7 +110,11 @@ const CASOS: { s: string; ok: string; malas: string[] }[] = [
   {
     s: "Un familiar está enfermo en cama.",
     ok: "Le preguntas cómo se siente y en qué puedes ayudar.",
-    malas: ["Le subes el volumen a la tele.", "Le dices que no moleste.", "Lo dejas solo sin avisar."],
+    malas: [
+      "Le subes el volumen a la tele.",
+      "Le dices que no moleste.",
+      "Lo dejas solo sin avisar.",
+    ],
   },
   {
     s: "Alguien deja caer sus llaves sin darse cuenta.",
@@ -133,7 +157,11 @@ export function RespuestaAdecuada({ level, onFinish }: GameProps) {
     const malas = [...caso.malas].sort(() => Math.random() - 0.5).slice(0, 3);
     const options = [caso.ok, ...malas]
       .sort(() => Math.random() - 0.5)
-      .map((v) => ({ key: v, node: <span className="text-sm leading-snug">{v}</span>, correct: v === caso.ok }));
+      .map((v) => ({
+        key: v,
+        node: <span className="text-sm leading-snug">{v}</span>,
+        correct: v === caso.ok,
+      }));
     return {
       prompt: <p className="text-base font-semibold leading-relaxed text-white">{caso.s}</p>,
       options,

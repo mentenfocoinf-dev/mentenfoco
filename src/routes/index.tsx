@@ -289,10 +289,15 @@ function Index() {
               />
               <div className="relative z-10 flex flex-1 flex-col">
                 <h3 className="text-xl font-bold text-primary">{d.title}</h3>
-                <p className="mt-3 flex-1 text-sm text-muted-foreground leading-relaxed">{d.desc}</p>
+                <p className="mt-3 flex-1 text-sm text-muted-foreground leading-relaxed">
+                  {d.desc}
+                </p>
                 <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold text-primary">
                   Conocer más{" "}
-                  <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight
+                    size={14}
+                    className="group-hover:translate-x-1 transition-transform"
+                  />
                 </span>
               </div>
             </Link>
@@ -352,10 +357,26 @@ function Index() {
           </div>
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { icon: ClipboardList, t: "Valoración estructurada", d: "Una evaluación inicial seria, no un formulario genérico." },
-              { icon: FileText, t: "Historia clínica real", d: "Tu proceso documentado y protegido, no notas sueltas." },
-              { icon: Stethoscope, t: "Informes profesionales", d: "Documentos formales que puedes usar cuando los necesites." },
-              { icon: ShieldCheck, t: "Estándar CIE-11", d: "Clasificación diagnóstica internacional, como en un hospital." },
+              {
+                icon: ClipboardList,
+                t: "Valoración estructurada",
+                d: "Una evaluación inicial seria, no un formulario genérico.",
+              },
+              {
+                icon: FileText,
+                t: "Historia clínica real",
+                d: "Tu proceso documentado y protegido, no notas sueltas.",
+              },
+              {
+                icon: Stethoscope,
+                t: "Informes profesionales",
+                d: "Documentos formales que puedes usar cuando los necesites.",
+              },
+              {
+                icon: ShieldCheck,
+                t: "Estándar CIE-11",
+                d: "Clasificación diagnóstica internacional, como en un hospital.",
+              },
             ].map((item) => {
               const Icon = item.icon;
               return (
@@ -392,29 +413,29 @@ function Index() {
             </div>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {guias.map((g) => (
-                  <Link
-                    key={g.id}
-                    to="/guias/$guiaId"
-                    params={{ guiaId: g.id }}
-                    className="card-neon-hover group relative rounded-3xl border-border bg-white overflow-hidden p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col"
-                  >
-                    <div
-                      className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity group-hover:opacity-30"
-                      style={{ backgroundImage: `url('/guias/${g.imageName}')` }}
-                    />
-                    <div className="relative z-10 flex flex-col h-full">
-                      <div className="mb-2 flex items-center gap-2">
-                        <span className="inline-block rounded-full bg-primary/10 border border-primary/10 px-3 py-1 text-xs font-bold text-primary">
-                          {g.categoria}
-                        </span>
-                      </div>
-                      <h3 className="text-lg font-bold text-primary">{g.titulo}</h3>
-                      <p className="mt-2 flex-1 text-sm text-foreground/80">{g.descripcionBreve}</p>
-                      <span className="mt-4 text-xs font-semibold text-muted-foreground">
-                        Lectura de {g.tiempoLectura}
+                <Link
+                  key={g.id}
+                  to="/guias/$guiaId"
+                  params={{ guiaId: g.id }}
+                  className="card-neon-hover group relative rounded-3xl border-border bg-white overflow-hidden p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl flex flex-col"
+                >
+                  <div
+                    className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20 transition-opacity group-hover:opacity-30"
+                    style={{ backgroundImage: `url('/guias/${g.imageName}')` }}
+                  />
+                  <div className="relative z-10 flex flex-col h-full">
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="inline-block rounded-full bg-primary/10 border border-primary/10 px-3 py-1 text-xs font-bold text-primary">
+                        {g.categoria}
                       </span>
                     </div>
-                  </Link>
+                    <h3 className="text-lg font-bold text-primary">{g.titulo}</h3>
+                    <p className="mt-2 flex-1 text-sm text-foreground/80">{g.descripcionBreve}</p>
+                    <span className="mt-4 text-xs font-semibold text-muted-foreground">
+                      Lectura de {g.tiempoLectura}
+                    </span>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
@@ -440,9 +461,18 @@ function Index() {
         </h2>
         <div className="mt-8 space-y-3">
           {[
-            { q: "¿Las sesiones son en línea?", a: "Sí, el acompañamiento es virtual. Algunas valoraciones específicas pueden requerir aplicación presencial; te lo indicamos si es tu caso." },
-            { q: "¿Necesito un diagnóstico para empezar?", a: "No. Empiezas con una valoración inicial en la que entendemos tu situación y definimos juntos el mejor camino." },
-            { q: "¿Es confidencial?", a: "Totalmente. Tu información clínica es privada y solo accesible para el profesional que te acompaña." },
+            {
+              q: "¿Las sesiones son en línea?",
+              a: "Sí, el acompañamiento es virtual. Algunas valoraciones específicas pueden requerir aplicación presencial; te lo indicamos si es tu caso.",
+            },
+            {
+              q: "¿Necesito un diagnóstico para empezar?",
+              a: "No. Empiezas con una valoración inicial en la que entendemos tu situación y definimos juntos el mejor camino.",
+            },
+            {
+              q: "¿Es confidencial?",
+              a: "Totalmente. Tu información clínica es privada y solo accesible para el profesional que te acompaña.",
+            },
           ].map((f) => (
             <details
               key={f.q}
@@ -450,7 +480,10 @@ function Index() {
             >
               <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-semibold text-foreground">
                 {f.q}
-                <ArrowRight size={16} className="text-primary transition-transform group-open:rotate-90" />
+                <ArrowRight
+                  size={16}
+                  className="text-primary transition-transform group-open:rotate-90"
+                />
               </summary>
               <p className="px-5 pb-4 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
             </details>

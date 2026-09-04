@@ -122,7 +122,12 @@ const styles = StyleSheet.create({
   chipActivo: { backgroundColor: colors.primary, borderColor: colors.primary },
   chipText: { fontSize: 12, fontWeight: "600", color: colors.mutedForeground },
   chipTextActivo: { color: colors.primaryForeground },
-  cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
   tiempo: { fontSize: 12, color: colors.mutedForeground },
   titulo: { fontSize: 16, fontWeight: "700", color: colors.primary, marginTop: 8 },
   descripcion: { fontSize: 13, color: colors.mutedForeground, marginTop: 4, lineHeight: 18 },

@@ -89,15 +89,12 @@ function GuiaDetalle() {
     };
   }, [guia]);
 
-
   // ── Caso: guía no encontrada (no existe) ─────────────────────────────────
   if (!guia) {
     return (
       <section className="mx-auto flex min-h-[70vh] max-w-4xl flex-col items-center justify-center px-4 py-16 text-center">
         <h1 className="mb-4 text-4xl font-bold text-slate-900">Guía no encontrada</h1>
-        <p className="mb-8 text-slate-500">
-          La guía que buscas no existe o fue removida.
-        </p>
+        <p className="mb-8 text-slate-500">La guía que buscas no existe o fue removida.</p>
         <Link
           to="/guia"
           className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary/90"

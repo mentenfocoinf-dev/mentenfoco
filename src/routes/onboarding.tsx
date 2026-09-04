@@ -215,7 +215,9 @@ function Onboarding() {
           ayuda="Nos ayuda a proponerte al profesional adecuado. Puedes dejarlo en blanco."
         >
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Idioma</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Idioma
+            </span>
             <select
               value={idioma}
               onChange={(e) => setIdioma(e.target.value)}

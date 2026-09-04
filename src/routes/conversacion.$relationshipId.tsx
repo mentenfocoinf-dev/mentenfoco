@@ -97,9 +97,7 @@ function Conversacion() {
     return (
       <section className="mx-auto flex min-h-[60vh] max-w-2xl flex-col items-center justify-center px-4 text-center">
         <h1 className="text-2xl font-bold text-slate-900">Conversación no disponible</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          No existe o no formas parte de ella.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">No existe o no formas parte de ella.</p>
         <Link
           to="/ingresa"
           className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"

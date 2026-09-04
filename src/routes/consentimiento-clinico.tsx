@@ -20,10 +20,7 @@ import { useState } from "react";
 import { FileSignature, Loader2 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { acceptClinicalConsent, trackEvent } from "../lib/api";
-import {
-  ClinicalConsentContent,
-  CLINICAL_CONSENT_TITLE,
-} from "../components/ClinicalConsentText";
+import { ClinicalConsentContent, CLINICAL_CONSENT_TITLE } from "../components/ClinicalConsentText";
 
 export const Route = createFileRoute("/consentimiento-clinico")({
   head: () => ({

@@ -89,7 +89,9 @@ function NuevaContrasena() {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-inner">
             <KeyRound size={32} strokeWidth={1.5} />
           </div>
-          <h1 className="mt-6 text-2xl font-bold text-primary drop-shadow-sm">Crea tu contraseña</h1>
+          <h1 className="mt-6 text-2xl font-bold text-primary drop-shadow-sm">
+            Crea tu contraseña
+          </h1>
           <p className="mt-3 text-sm text-muted-foreground">
             Por seguridad, reemplaza la contraseña temporal que te enviamos por correo.
           </p>

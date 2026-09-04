@@ -15,9 +15,11 @@ export function PsychometricScaleModal({ scaleType, patientId, onClose, onSaved 
   const [answers, setAnswers] = useState<(number | null)[]>(scale.items.map(() => null));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [result, setResult] = useState<{ totalScore: number; severity: string; risk: boolean } | null>(
-    null,
-  );
+  const [result, setResult] = useState<{
+    totalScore: number;
+    severity: string;
+    risk: boolean;
+  } | null>(null);
 
   const allAnswered = answers.every((a) => a !== null);
 
@@ -102,16 +104,18 @@ export function PsychometricScaleModal({ scaleType, patientId, onClose, onSaved 
             <div className="text-center py-4">
               <p className="text-sm text-slate-500 mb-1">Puntaje total</p>
               <p className="text-5xl font-bold text-primary mb-2">{result.totalScore}</p>
-              <p className="text-lg font-semibold text-slate-800 mb-6">Severidad: {result.severity}</p>
+              <p className="text-lg font-semibold text-slate-800 mb-6">
+                Severidad: {result.severity}
+              </p>
 
               {result.risk && (
                 <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-left flex gap-3">
                   <AlertTriangle size={20} className="text-red-600 shrink-0 mt-0.5" />
                   <p className="text-sm text-red-800">
-                    Tu respuesta indica que puede haber riesgo para tu seguridad. Ya enviamos una alerta
-                    directa a tu terapeuta asignado, quien se pondrá en contacto contigo lo antes
-                    posible. Si en este momento estás en peligro, acude al servicio de urgencias más
-                    cercano.
+                    Tu respuesta indica que puede haber riesgo para tu seguridad. Ya enviamos una
+                    alerta directa a tu terapeuta asignado, quien se pondrá en contacto contigo lo
+                    antes posible. Si en este momento estás en peligro, acude al servicio de
+                    urgencias más cercano.
                   </p>
                 </div>
               )}

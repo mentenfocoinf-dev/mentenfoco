@@ -78,9 +78,7 @@ export function MoodTrackerCard({ patientId }: Props) {
                     // La altura crece con el nivel: el valor se lee de un vistazo.
                     style={{ height: `${10 + value * 6}px` }}
                     className={`w-2 rounded-full transition-all ${
-                      selected
-                        ? "bg-primary"
-                        : "bg-slate-300 group-hover:bg-primary/50"
+                      selected ? "bg-primary" : "bg-slate-300 group-hover:bg-primary/50"
                     }`}
                   />
                   <span

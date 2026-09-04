@@ -13,15 +13,7 @@
 // ============================================================================
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  Check,
-  Loader2,
-  Phone,
-  RefreshCw,
-  ShieldCheck,
-  UserPlus,
-} from "lucide-react";
+import { ArrowRight, Check, Loader2, Phone, RefreshCw, ShieldCheck, UserPlus } from "lucide-react";
 import {
   attachEmailToSubmission,
   recordSubmission,
@@ -146,9 +138,9 @@ function BloqueCrisis({ porItem }: { porItem: boolean }) {
       </p>
 
       <p className="mt-3 text-sm leading-relaxed text-red-800">
-        Si sientes que estás en riesgo, llama al <strong>123</strong> (línea nacional de emergencias)
-        o acude al servicio de urgencias más cercano. También hay líneas de atención psicológica
-        gratuitas y confidenciales.
+        Si sientes que estás en riesgo, llama al <strong>123</strong> (línea nacional de
+        emergencias) o acude al servicio de urgencias más cercano. También hay líneas de atención
+        psicológica gratuitas y confidenciales.
       </p>
 
       <Link

@@ -160,13 +160,12 @@ function FichaPaciente() {
     (valoracion?.soap_data as Record<string, string> | null)?.s ||
     (anamnesis?.motivo_consulta as string) ||
     "Sin motivo de consulta registrado.";
-  const diagnostico =
-    documents.find(
-      (d) =>
-        d.is_signed &&
-        d.document_type !== "evolucion" &&
-        (d.soap_data as Record<string, string> | null)?.diagnostic,
-    )?.soap_data as Record<string, string> | undefined;
+  const diagnostico = documents.find(
+    (d) =>
+      d.is_signed &&
+      d.document_type !== "evolucion" &&
+      (d.soap_data as Record<string, string> | null)?.diagnostic,
+  )?.soap_data as Record<string, string> | undefined;
 
   const pendingAlerts = alerts.filter((a) => !a.resolved_at);
   const hasSignedValoracion = documents.some(
@@ -460,9 +459,7 @@ function FichaPaciente() {
                       key={`${e.scale_type}-${e.evaluated_at}-${i}`}
                       className="flex items-center justify-between gap-2 text-xs"
                     >
-                      <span className="font-semibold uppercase text-slate-700">
-                        {e.scale_type}
-                      </span>
+                      <span className="font-semibold uppercase text-slate-700">{e.scale_type}</span>
                       <span className="text-slate-500">
                         {e.total_score} pts · {e.severity_level}
                       </span>

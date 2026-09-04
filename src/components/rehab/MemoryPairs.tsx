@@ -95,7 +95,8 @@ export function MemoryPairs({ level, onFinish }: GameProps) {
           const precision = pares / Math.max(totalIntentos, pares);
           const score = Math.max(0, Math.round(1000 - segundos * 5 - (totalIntentos - pares) * 20));
           setTimeout(
-            () => onFinish({ score, accuracy: precision, durationSeconds: segundos, completed: true }),
+            () =>
+              onFinish({ score, accuracy: precision, durationSeconds: segundos, completed: true }),
             400,
           );
         }

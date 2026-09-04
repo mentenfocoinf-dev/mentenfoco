@@ -121,7 +121,8 @@ describe("crear solicitud", () => {
 describe("duplicado", () => {
   it("traduce el choque del índice único a una frase legible", async () => {
     insertError = {
-      message: 'duplicate key value violates unique constraint "idx_contact_requests_una_pendiente"',
+      message:
+        'duplicate key value violates unique constraint "idx_contact_requests_una_pendiente"',
     };
     await expect(createContactRequest("terapeuta-1")).rejects.toThrow(
       /Ya tienes una solicitud pendiente/i,

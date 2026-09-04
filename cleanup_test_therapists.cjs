@@ -69,10 +69,16 @@ async function main() {
   }
 
   console.log("✅ Se conservan:");
-  toKeep.forEach((t) => console.log(`   - ${t.full_name || "(sin nombre)"} <${t.email}> (${t.id})`));
+  toKeep.forEach((t) =>
+    console.log(`   - ${t.full_name || "(sin nombre)"} <${t.email}> (${t.id})`),
+  );
 
-  console.log(`\n${DELETE_MODE ? "🗑️  Borrando" : "🔎 Se borrarían (agrega --delete para confirmar)"}:`);
-  toDelete.forEach((t) => console.log(`   - ${t.full_name || "(sin nombre)"} <${t.email}> (${t.id})`));
+  console.log(
+    `\n${DELETE_MODE ? "🗑️  Borrando" : "🔎 Se borrarían (agrega --delete para confirmar)"}:`,
+  );
+  toDelete.forEach((t) =>
+    console.log(`   - ${t.full_name || "(sin nombre)"} <${t.email}> (${t.id})`),
+  );
 
   if (!DELETE_MODE) {
     console.log("\nNada fue borrado. Corre de nuevo con --delete para ejecutar.");

@@ -115,10 +115,7 @@ export async function createSession(params: {
 }
 
 export async function updateSessionStatus(sessionId: string, status: SessionStatus) {
-  const { error } = await supabase
-    .from("therapy_sessions")
-    .update({ status })
-    .eq("id", sessionId);
+  const { error } = await supabase.from("therapy_sessions").update({ status }).eq("id", sessionId);
   if (error) throw new Error(error.message);
 }
 
@@ -146,9 +143,7 @@ export async function getSessionByAppointment(
 ): Promise<SessionDetalle | null> {
   const { data, error } = await supabase.rpc("list_my_sessions");
   if (error || !data) return null;
-  const fila = (data as Record<string, unknown>[]).find(
-    (s) => s.appointment_id === appointmentId,
-  );
+  const fila = (data as Record<string, unknown>[]).find((s) => s.appointment_id === appointmentId);
   return (fila as unknown as SessionDetalle) ?? null;
 }
 

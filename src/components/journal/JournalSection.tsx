@@ -58,7 +58,9 @@ export function JournalSection() {
       setPrompt(null);
       await recargar();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "No pudimos guardar tu entrada. Intenta de nuevo.");
+      setError(
+        err instanceof Error ? err.message : "No pudimos guardar tu entrada. Intenta de nuevo.",
+      );
     } finally {
       setGuardando(false);
     }
@@ -157,9 +159,7 @@ export function JournalSection() {
                   <p className="text-xs font-semibold text-muted-foreground">
                     {formatFecha(e.entryDate)}
                   </p>
-                  {e.prompt && (
-                    <p className="mt-0.5 text-xs italic text-primary/80">{e.prompt}</p>
-                  )}
+                  {e.prompt && <p className="mt-0.5 text-xs italic text-primary/80">{e.prompt}</p>}
                 </div>
                 <div className="flex shrink-0 gap-1">
                   {editId === e.id ? (

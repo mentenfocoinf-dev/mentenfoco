@@ -270,7 +270,9 @@ function validar(test) {
   // resultado. Los dos fallos solo aparecerían con un usuario ya delante.
   const bandas = [...test.bandas].sort((a, b) => a.min - b.min);
   if (bandas[0].min !== minPosible)
-    errores.push(`la banda más baja empieza en ${bandas[0].min} y el mínimo posible es ${minPosible}`);
+    errores.push(
+      `la banda más baja empieza en ${bandas[0].min} y el mínimo posible es ${minPosible}`,
+    );
   if (bandas[bandas.length - 1].max !== maxPosible)
     errores.push(
       `la banda más alta termina en ${bandas[bandas.length - 1].max} y el máximo posible es ${maxPosible}`,

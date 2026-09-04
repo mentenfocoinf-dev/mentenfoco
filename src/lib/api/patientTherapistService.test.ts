@@ -40,13 +40,8 @@ vi.mock("../supabase", () => ({
 vi.mock("./journeyService", () => ({ trackEvent: vi.fn() }));
 
 const servicio = await import("./patientTherapistService");
-const {
-  getMyTherapist,
-  getMyPatients,
-  getRelationship,
-  finishRelationship,
-  cancelRelationship,
-} = servicio;
+const { getMyTherapist, getMyPatients, getRelationship, finishRelationship, cancelRelationship } =
+  servicio;
 const { trackEvent } = await import("./journeyService");
 
 beforeEach(() => {
@@ -82,10 +77,7 @@ describe("finalizar", () => {
 
   it("registra el evento solo si el cambio salió bien", async () => {
     await finishRelationship("rel-1");
-    expect(trackEvent).toHaveBeenCalledWith(
-      "THERAPIST_RELATIONSHIP_FINISHED",
-      expect.anything(),
-    );
+    expect(trackEvent).toHaveBeenCalledWith("THERAPIST_RELATIONSHIP_FINISHED", expect.anything());
 
     vi.mocked(trackEvent).mockClear();
     updateError = { message: "RELATIONSHIP_CLOSED" };
@@ -98,10 +90,7 @@ describe("cancelar", () => {
   it("manda 'cancelled'", async () => {
     await cancelRelationship("rel-1");
     expect(ultimoUpdate).toEqual({ status: "cancelled" });
-    expect(trackEvent).toHaveBeenCalledWith(
-      "THERAPIST_RELATIONSHIP_CANCELLED",
-      expect.anything(),
-    );
+    expect(trackEvent).toHaveBeenCalledWith("THERAPIST_RELATIONSHIP_CANCELLED", expect.anything());
   });
 
   it("ningún cierre toca paciente, terapeuta ni fecha de inicio", async () => {
