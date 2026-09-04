@@ -1,0 +1,43 @@
+name: CI
+
+# Red de seguridad: ningún build roto ni test en rojo debería llegar a producción.
+# NO hace deploy (el despliegue a Easypanel/Cloudflare sigue siendo manual, aparte).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Bloqueantes: si algo de esto falla, el merge no debería pasar.
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Informativos (no bloquean todavía): hoy hay deuda pre-existente
+      #   - typecheck: 1 error de tipos en src/start.ts
+      #   - lint: ~580 avisos de formato (prettier) en supabase/functions y src
+      # Cuando esa deuda se limpie en una pasada dedicada, quitar
+      # `continue-on-error` para volverlos obligatorios.
+      - name: Typecheck (informativo)
+        run: npx tsc --noEmit
+        continue-on-error: true
+
+      - name: Lint (informativo)
+        run: npm run lint
+        continue-on-error: true
