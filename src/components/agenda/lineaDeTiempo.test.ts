@@ -114,9 +114,12 @@ describe("ciclo de vida de la sesión", () => {
 describe("rejilla de disponibilidad", () => {
   const dia = new Date(2026, 8, 1); // 1 de septiembre, hora local
   const alas = (h: number) => new Date(2026, 8, 1, h, 0, 0, 0).getTime();
+  // Reloj congelado a la medianoche del día bajo prueba: así "libre"/"pasada"
+  // no dependen de la hora real en que corra el test (era un flake temporal).
+  const ahora = dia.getTime();
 
   it("todo libre cuando no hay nada", () => {
-    const horas = construirHoras({ dia, ocupacion: new Map() });
+    const horas = construirHoras({ dia, ocupacion: new Map(), ahora });
     expect(horas).toHaveLength(12); // 07:00 … 18:00
     expect(horas.every((h) => h.estado === "libre")).toBe(true);
   });
@@ -124,6 +127,7 @@ describe("rejilla de disponibilidad", () => {
   it("coloca cada estado en su hora", () => {
     const horas = construirHoras({
       dia,
+      ahora,
       ocupacion: new Map([
         [alas(9), { estado: "confirmada" as const, detalle: "Ana" }],
         [alas(11), { estado: "solicitada" as const }],
@@ -138,6 +142,7 @@ describe("rejilla de disponibilidad", () => {
   it("lo de fuera de la ventana no entra", () => {
     const horas = construirHoras({
       dia,
+      ahora,
       ocupacion: new Map([[alas(3), { estado: "confirmada" as const }]]),
     });
     expect(horas.every((h) => h.estado === "libre")).toBe(true);
