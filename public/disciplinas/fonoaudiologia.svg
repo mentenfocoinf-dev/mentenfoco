@@ -1,0 +1,14 @@
+<svg viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Fonoaudiología">
+  <defs>
+    <linearGradient id="fon" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#fon)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Bocadillo de habla -->
+    <path d="M120 120 h150 a26 26 0 0 1 26 26 v70 a26 26 0 0 1 -26 26 h-84 l-40 36 v-36 h-26 a26 26 0 0 1 -26 -26 v-70 a26 26 0 0 1 26 -26 z"/>
+    <!-- Ondas de sonido (lenguaje / comunicación) -->
+    <path d="M318 150 c18 20 18 60 0 80 M348 132 c30 32 30 92 0 124 M378 116 c42 44 42 128 0 172" stroke-width="7"/>
+  </g>
+</svg>
