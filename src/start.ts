@@ -51,7 +51,11 @@ const SECURITY_HEADERS: Record<string, string> = {
 };
 
 const securityHeadersMiddleware = createMiddleware({ type: "request" }).server(async ({ next }) => {
-  setResponseHeaders(SECURITY_HEADERS);
+  // El tipo de setResponseHeaders pide TypedHeaders, pero su implementación hace
+  // Object.entries() sobre el argumento (acepta un objeto plano). El cast alinea
+  // el tipo con ese comportamiento real de la librería; en runtime el Record es
+  // exactamente lo que espera.
+  setResponseHeaders(SECURITY_HEADERS as unknown as Parameters<typeof setResponseHeaders>[0]);
   return next();
 });
 

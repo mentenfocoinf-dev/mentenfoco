@@ -29,15 +29,13 @@ jobs:
       - name: Build
         run: npm run build
 
-      # Informativos (no bloquean todavía): hoy hay deuda pre-existente
-      #   - typecheck: 1 error de tipos en src/start.ts
-      #   - lint: ~580 avisos de formato (prettier) en supabase/functions y src
-      # Cuando esa deuda se limpie en una pasada dedicada, quitar
-      # `continue-on-error` para volverlos obligatorios.
-      - name: Typecheck (informativo)
+      # Typecheck ya está limpio (0 errores) → bloqueante.
+      - name: Typecheck
         run: npx tsc --noEmit
-        continue-on-error: true
 
+      # Lint sigue informativo: ~580 avisos de formato (prettier) pre-existentes en
+      # supabase/functions y src. Al limpiarlos en una pasada dedicada, quitar
+      # `continue-on-error` para volverlo obligatorio.
       - name: Lint (informativo)
         run: npm run lint
         continue-on-error: true
