@@ -1,8 +1,18 @@
 import { createRouter, useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { routeTree } from "./routeTree.gen";
 
 function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+
+  useEffect(() => {
+    // Log estructurado del error, SIN datos clínicos ni PII (solo tipo y mensaje).
+    // Punto de enganche del monitoreo: aquí iría el SDK (p. ej.
+    //   Sentry.captureException(error)
+    // ) el día que se cree la cuenta. Ver GUIA_ACTIVACIONES_MANUALES.
+    // eslint-disable-next-line no-console
+    console.error("[app-error]", { name: error.name, message: error.message });
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -46,7 +56,7 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Volver al inicio
           </a>
         </div>
       </div>

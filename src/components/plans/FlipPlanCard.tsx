@@ -15,6 +15,7 @@
 // ============================================================================
 import { useState } from "react";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
+import { track } from "../../lib/analytics";
 
 export interface FlipPlanCardProps {
   name: string;
@@ -145,6 +146,7 @@ export function FlipPlanCard({
                 href={checkoutUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => track("checkout_iniciado", { plan: name })}
                 tabIndex={flipped ? 0 : -1}
                 className="inline-flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] hover:bg-primary/90"
               >

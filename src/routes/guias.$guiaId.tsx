@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { ContentBody } from "../components/ContentBody";
 import { RecomendacionesRelacionadas } from "../components/content/RecomendacionesRelacionadas";
 import { trackEvent, getGuide } from "../lib/api";
+import { track } from "../lib/analytics";
 
 export const Route = createFileRoute("/guias/$guiaId")({
   loader: async ({ params }) => {
@@ -44,6 +45,7 @@ function GuiaDetalle() {
   const { guia: _g } = Route.useLoaderData();
   useEffect(() => {
     if (_g) trackEvent("GUIDE_VIEW", { resource_id: _g.id, resource_type: "guia" });
+    if (_g) track("contenido_abierto", { tipo: "guia", slug: _g.id });
   }, [_g]);
 
   const { guia } = Route.useLoaderData();

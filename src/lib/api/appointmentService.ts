@@ -11,6 +11,7 @@
 // relación. Lo único que viaja es cuándo y con qué relación.
 // ============================================================================
 import { supabase } from "../supabase";
+import { track } from "../analytics";
 
 export type AppointmentStatus =
   | "requested"
@@ -125,6 +126,7 @@ export async function requestAppointment(
     notes: notes?.trim() ? notes.trim().slice(0, 1000) : null,
   });
   if (error) throw traducir(error.message);
+  track("sesion_reservada");
 }
 
 /**

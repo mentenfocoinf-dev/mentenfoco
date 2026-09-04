@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { RevealObserver } from "../components/home/RevealObserver";
+import { track } from "../lib/analytics";
 import { HeroImagen } from "../components/HeroImagen";
 import { useState, useEffect } from "react";
 import {
@@ -128,6 +129,7 @@ const PLAN_FEATURES: Record<string, string[]> = {
 function Asesoramiento() {
   useEffect(() => {
     trackEvent("PLAN_VIEWED", { resource_type: "asesoramiento" });
+    track("plan_consultado");
   }, []);
 
   // Deriva el nombre del plan destacado en vez de repetirlo aquí: un nombre

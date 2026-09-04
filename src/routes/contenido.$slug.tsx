@@ -25,6 +25,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { trackEvent, getContentBySlug, CONTENT_TYPE_LABELS, type ContentType } from "../lib/api";
+import { track } from "../lib/analytics";
 
 export const Route = createFileRoute("/contenido/$slug")({
   loader: async ({ params }) => await getContentBySlug(params.slug),
@@ -85,6 +86,7 @@ function ContenidoDetalle() {
   const { item: _i } = Route.useLoaderData();
   useEffect(() => {
     if (_i) trackEvent("CONTENT_VIEW", { resource_id: _i.slug, resource_type: _i.content_type });
+    if (_i) track("contenido_abierto", { tipo: _i.content_type, slug: _i.slug });
   }, [_i]);
 
   const { item, reachableSteps } = Route.useLoaderData();
