@@ -62,11 +62,11 @@ const features = [
   },
 ];
 
+// Solo datos verificables: nada de eficacias ni conteos de pacientes inventados
+// (ADR-007). Las 4 disciplinas y el estándar CIE-11 son hechos comprobables.
 const stats = [
-  { value: "70%", label: "Eficacia Clínica Comprobada" },
-  { value: "4", label: "Especialidades Integradas" },
-  { value: "100%", label: "Basado en Evidencia Científica" },
-  { value: "+5,000", label: "Pacientes Atendidos" },
+  { value: "4", label: "Especialidades integradas" },
+  { value: "CIE-11", label: "Estándar diagnóstico internacional" },
 ];
 
 // Cada disciplina enlaza a su landing de servicio. `image` es una imagen
@@ -423,7 +423,7 @@ function Index() {
 
       {/* ── Stats (existente) ── */}
       <Reveal as="section" className="bg-primary text-primary-foreground">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:grid-cols-2 md:grid-cols-4 md:px-6">
+        <div className="mx-auto grid max-w-2xl gap-8 px-4 py-16 sm:grid-cols-2 md:px-6">
           {stats.map((s) => (
             <div key={s.label} className="text-center">
               <div className="text-4xl font-bold">{s.value}</div>
