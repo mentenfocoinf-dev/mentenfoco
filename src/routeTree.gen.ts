@@ -9,125 +9,42 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SobreNosotrosRouteImport } from './routes/sobre-nosotros'
-import { Route as RecursosRouteImport } from './routes/recursos'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as NuevaContrasenaRouteImport } from './routes/nueva-contrasena'
-import { Route as NotificacionesRouteImport } from './routes/notificaciones'
-import { Route as MembresiaRouteImport } from './routes/membresia'
-import { Route as LineasDeCrisisRouteImport } from './routes/lineas-de-crisis'
-import { Route as IngresaRouteImport } from './routes/ingresa'
-import { Route as GuiaRouteImport } from './routes/guia'
-import { Route as FaqRouteImport } from './routes/faq'
-import { Route as EspecialistasRouteImport } from './routes/especialistas'
-import { Route as EmpresasRouteImport } from './routes/empresas'
-import { Route as ContactanosRouteImport } from './routes/contactanos'
-import { Route as ConsentimientoClinicoRouteImport } from './routes/consentimiento-clinico'
-import { Route as ConsentimientoRouteImport } from './routes/consentimiento'
-import { Route as CompraExitosaRouteImport } from './routes/compra-exitosa'
-import { Route as CompletarPerfilRouteImport } from './routes/completar-perfil'
-import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
-import { Route as AnamnesisRouteImport } from './routes/anamnesis'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as TestsIndexRouteImport } from './routes/tests.index'
-import { Route as ContenidoIndexRouteImport } from './routes/contenido.index'
+import { Route as AnamnesisRouteImport } from './routes/anamnesis'
+import { Route as AsesoramientoRouteImport } from './routes/asesoramiento'
+import { Route as CompletarPerfilRouteImport } from './routes/completar-perfil'
+import { Route as CompraExitosaRouteImport } from './routes/compra-exitosa'
+import { Route as ConsentimientoRouteImport } from './routes/consentimiento'
+import { Route as ConsentimientoClinicoRouteImport } from './routes/consentimiento-clinico'
+import { Route as ContactanosRouteImport } from './routes/contactanos'
+import { Route as EmpresasRouteImport } from './routes/empresas'
+import { Route as EspecialistasRouteImport } from './routes/especialistas'
+import { Route as FaqRouteImport } from './routes/faq'
+import { Route as GuiaRouteImport } from './routes/guia'
+import { Route as IngresaRouteImport } from './routes/ingresa'
+import { Route as LineasDeCrisisRouteImport } from './routes/lineas-de-crisis'
+import { Route as MembresiaRouteImport } from './routes/membresia'
+import { Route as NotificacionesRouteImport } from './routes/notificaciones'
+import { Route as NuevaContrasenaRouteImport } from './routes/nueva-contrasena'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as RecursosRouteImport } from './routes/recursos'
+import { Route as RehabilitacionCognitivaRouteImport } from './routes/rehabilitacion-cognitiva'
+import { Route as SobreNosotrosRouteImport } from './routes/sobre-nosotros'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as TestsSlugRouteImport } from './routes/tests.$slug'
-import { Route as ServiciosSlugRouteImport } from './routes/servicios.$slug'
-import { Route as PacientesPatientIdRouteImport } from './routes/pacientes.$patientId'
-import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
-import { Route as ConversacionRelationshipIdRouteImport } from './routes/conversacion.$relationshipId'
-import { Route as ContenidoSlugRouteImport } from './routes/contenido.$slug'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as ContenidoIndexRouteImport } from './routes/contenido.index'
+import { Route as ContenidoSlugRouteImport } from './routes/contenido.$slug'
+import { Route as ConversacionRelationshipIdRouteImport } from './routes/conversacion.$relationshipId'
+import { Route as EjerciciosSlugRouteImport } from './routes/ejercicios.$slug'
+import { Route as GuiasGuiaIdRouteImport } from './routes/guias.$guiaId'
+import { Route as PacientesPatientIdRouteImport } from './routes/pacientes.$patientId'
+import { Route as ServiciosSlugRouteImport } from './routes/servicios.$slug'
+import { Route as TestsIndexRouteImport } from './routes/tests.index'
+import { Route as TestsSlugRouteImport } from './routes/tests.$slug'
 
-const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
-  id: '/sobre-nosotros',
-  path: '/sobre-nosotros',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RecursosRoute = RecursosRouteImport.update({
-  id: '/recursos',
-  path: '/recursos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NuevaContrasenaRoute = NuevaContrasenaRouteImport.update({
-  id: '/nueva-contrasena',
-  path: '/nueva-contrasena',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotificacionesRoute = NotificacionesRouteImport.update({
-  id: '/notificaciones',
-  path: '/notificaciones',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MembresiaRoute = MembresiaRouteImport.update({
-  id: '/membresia',
-  path: '/membresia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LineasDeCrisisRoute = LineasDeCrisisRouteImport.update({
-  id: '/lineas-de-crisis',
-  path: '/lineas-de-crisis',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IngresaRoute = IngresaRouteImport.update({
-  id: '/ingresa',
-  path: '/ingresa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GuiaRoute = GuiaRouteImport.update({
-  id: '/guia',
-  path: '/guia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FaqRoute = FaqRouteImport.update({
-  id: '/faq',
-  path: '/faq',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EspecialistasRoute = EspecialistasRouteImport.update({
-  id: '/especialistas',
-  path: '/especialistas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EmpresasRoute = EmpresasRouteImport.update({
-  id: '/empresas',
-  path: '/empresas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactanosRoute = ContactanosRouteImport.update({
-  id: '/contactanos',
-  path: '/contactanos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConsentimientoClinicoRoute = ConsentimientoClinicoRouteImport.update({
-  id: '/consentimiento-clinico',
-  path: '/consentimiento-clinico',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConsentimientoRoute = ConsentimientoRouteImport.update({
-  id: '/consentimiento',
-  path: '/consentimiento',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CompraExitosaRoute = CompraExitosaRouteImport.update({
-  id: '/compra-exitosa',
-  path: '/compra-exitosa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CompletarPerfilRoute = CompletarPerfilRouteImport.update({
-  id: '/completar-perfil',
-  path: '/completar-perfil',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AsesoramientoRoute = AsesoramientoRouteImport.update({
-  id: '/asesoramiento',
-  path: '/asesoramiento',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnamnesisRoute = AnamnesisRouteImport.update({
@@ -135,19 +52,99 @@ const AnamnesisRoute = AnamnesisRouteImport.update({
   path: '/anamnesis',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AsesoramientoRoute = AsesoramientoRouteImport.update({
+  id: '/asesoramiento',
+  path: '/asesoramiento',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TestsIndexRoute = TestsIndexRouteImport.update({
-  id: '/tests/',
-  path: '/tests/',
+const CompletarPerfilRoute = CompletarPerfilRouteImport.update({
+  id: '/completar-perfil',
+  path: '/completar-perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ContenidoIndexRoute = ContenidoIndexRouteImport.update({
-  id: '/contenido/',
-  path: '/contenido/',
+const CompraExitosaRoute = CompraExitosaRouteImport.update({
+  id: '/compra-exitosa',
+  path: '/compra-exitosa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsentimientoRoute = ConsentimientoRouteImport.update({
+  id: '/consentimiento',
+  path: '/consentimiento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsentimientoClinicoRoute = ConsentimientoClinicoRouteImport.update({
+  id: '/consentimiento-clinico',
+  path: '/consentimiento-clinico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactanosRoute = ContactanosRouteImport.update({
+  id: '/contactanos',
+  path: '/contactanos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EmpresasRoute = EmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EspecialistasRoute = EspecialistasRouteImport.update({
+  id: '/especialistas',
+  path: '/especialistas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuiaRoute = GuiaRouteImport.update({
+  id: '/guia',
+  path: '/guia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngresaRoute = IngresaRouteImport.update({
+  id: '/ingresa',
+  path: '/ingresa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LineasDeCrisisRoute = LineasDeCrisisRouteImport.update({
+  id: '/lineas-de-crisis',
+  path: '/lineas-de-crisis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembresiaRoute = MembresiaRouteImport.update({
+  id: '/membresia',
+  path: '/membresia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificacionesRoute = NotificacionesRouteImport.update({
+  id: '/notificaciones',
+  path: '/notificaciones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NuevaContrasenaRoute = NuevaContrasenaRouteImport.update({
+  id: '/nueva-contrasena',
+  path: '/nueva-contrasena',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecursosRoute = RecursosRouteImport.update({
+  id: '/recursos',
+  path: '/recursos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RehabilitacionCognitivaRoute = RehabilitacionCognitivaRouteImport.update({
+  id: '/rehabilitacion-cognitiva',
+  path: '/rehabilitacion-cognitiva',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SobreNosotrosRoute = SobreNosotrosRouteImport.update({
+  id: '/sobre-nosotros',
+  path: '/sobre-nosotros',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -155,24 +152,19 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TestsSlugRoute = TestsSlugRouteImport.update({
-  id: '/tests/$slug',
-  path: '/tests/$slug',
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ServiciosSlugRoute = ServiciosSlugRouteImport.update({
-  id: '/servicios/$slug',
-  path: '/servicios/$slug',
+const ContenidoIndexRoute = ContenidoIndexRouteImport.update({
+  id: '/contenido/',
+  path: '/contenido/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PacientesPatientIdRoute = PacientesPatientIdRouteImport.update({
-  id: '/pacientes/$patientId',
-  path: '/pacientes/$patientId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GuiasGuiaIdRoute = GuiasGuiaIdRouteImport.update({
-  id: '/guias/$guiaId',
-  path: '/guias/$guiaId',
+const ContenidoSlugRoute = ContenidoSlugRouteImport.update({
+  id: '/contenido/$slug',
+  path: '/contenido/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConversacionRelationshipIdRoute =
@@ -181,14 +173,34 @@ const ConversacionRelationshipIdRoute =
     path: '/conversacion/$relationshipId',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ContenidoSlugRoute = ContenidoSlugRouteImport.update({
-  id: '/contenido/$slug',
-  path: '/contenido/$slug',
+const EjerciciosSlugRoute = EjerciciosSlugRouteImport.update({
+  id: '/ejercicios/$slug',
+  path: '/ejercicios/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
+const GuiasGuiaIdRoute = GuiasGuiaIdRouteImport.update({
+  id: '/guias/$guiaId',
+  path: '/guias/$guiaId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PacientesPatientIdRoute = PacientesPatientIdRouteImport.update({
+  id: '/pacientes/$patientId',
+  path: '/pacientes/$patientId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServiciosSlugRoute = ServiciosSlugRouteImport.update({
+  id: '/servicios/$slug',
+  path: '/servicios/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestsIndexRoute = TestsIndexRouteImport.update({
+  id: '/tests/',
+  path: '/tests/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestsSlugRoute = TestsSlugRouteImport.update({
+  id: '/tests/$slug',
+  path: '/tests/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -212,10 +224,12 @@ export interface FileRoutesByFullPath {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/onboarding': typeof OnboardingRoute
   '/recursos': typeof RecursosRoute
+  '/rehabilitacion-cognitiva': typeof RehabilitacionCognitivaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
   '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
+  '/ejercicios/$slug': typeof EjerciciosSlugRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -244,10 +258,12 @@ export interface FileRoutesByTo {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/onboarding': typeof OnboardingRoute
   '/recursos': typeof RecursosRoute
+  '/rehabilitacion-cognitiva': typeof RehabilitacionCognitivaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
   '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
+  '/ejercicios/$slug': typeof EjerciciosSlugRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -277,10 +293,12 @@ export interface FileRoutesById {
   '/nueva-contrasena': typeof NuevaContrasenaRoute
   '/onboarding': typeof OnboardingRoute
   '/recursos': typeof RecursosRoute
+  '/rehabilitacion-cognitiva': typeof RehabilitacionCognitivaRoute
   '/sobre-nosotros': typeof SobreNosotrosRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/contenido/$slug': typeof ContenidoSlugRoute
   '/conversacion/$relationshipId': typeof ConversacionRelationshipIdRoute
+  '/ejercicios/$slug': typeof EjerciciosSlugRoute
   '/guias/$guiaId': typeof GuiasGuiaIdRoute
   '/pacientes/$patientId': typeof PacientesPatientIdRoute
   '/servicios/$slug': typeof ServiciosSlugRoute
@@ -311,10 +329,12 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/onboarding'
     | '/recursos'
+    | '/rehabilitacion-cognitiva'
     | '/sobre-nosotros'
     | '/blog/$slug'
     | '/contenido/$slug'
     | '/conversacion/$relationshipId'
+    | '/ejercicios/$slug'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -343,10 +363,12 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/onboarding'
     | '/recursos'
+    | '/rehabilitacion-cognitiva'
     | '/sobre-nosotros'
     | '/blog/$slug'
     | '/contenido/$slug'
     | '/conversacion/$relationshipId'
+    | '/ejercicios/$slug'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -375,10 +397,12 @@ export interface FileRouteTypes {
     | '/nueva-contrasena'
     | '/onboarding'
     | '/recursos'
+    | '/rehabilitacion-cognitiva'
     | '/sobre-nosotros'
     | '/blog/$slug'
     | '/contenido/$slug'
     | '/conversacion/$relationshipId'
+    | '/ejercicios/$slug'
     | '/guias/$guiaId'
     | '/pacientes/$patientId'
     | '/servicios/$slug'
@@ -408,10 +432,12 @@ export interface RootRouteChildren {
   NuevaContrasenaRoute: typeof NuevaContrasenaRoute
   OnboardingRoute: typeof OnboardingRoute
   RecursosRoute: typeof RecursosRoute
+  RehabilitacionCognitivaRoute: typeof RehabilitacionCognitivaRoute
   SobreNosotrosRoute: typeof SobreNosotrosRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ContenidoSlugRoute: typeof ContenidoSlugRoute
   ConversacionRelationshipIdRoute: typeof ConversacionRelationshipIdRoute
+  EjerciciosSlugRoute: typeof EjerciciosSlugRoute
   GuiasGuiaIdRoute: typeof GuiasGuiaIdRoute
   PacientesPatientIdRoute: typeof PacientesPatientIdRoute
   ServiciosSlugRoute: typeof ServiciosSlugRoute
@@ -423,130 +449,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sobre-nosotros': {
-      id: '/sobre-nosotros'
-      path: '/sobre-nosotros'
-      fullPath: '/sobre-nosotros'
-      preLoaderRoute: typeof SobreNosotrosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recursos': {
-      id: '/recursos'
-      path: '/recursos'
-      fullPath: '/recursos'
-      preLoaderRoute: typeof RecursosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/nueva-contrasena': {
-      id: '/nueva-contrasena'
-      path: '/nueva-contrasena'
-      fullPath: '/nueva-contrasena'
-      preLoaderRoute: typeof NuevaContrasenaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notificaciones': {
-      id: '/notificaciones'
-      path: '/notificaciones'
-      fullPath: '/notificaciones'
-      preLoaderRoute: typeof NotificacionesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/membresia': {
-      id: '/membresia'
-      path: '/membresia'
-      fullPath: '/membresia'
-      preLoaderRoute: typeof MembresiaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lineas-de-crisis': {
-      id: '/lineas-de-crisis'
-      path: '/lineas-de-crisis'
-      fullPath: '/lineas-de-crisis'
-      preLoaderRoute: typeof LineasDeCrisisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ingresa': {
-      id: '/ingresa'
-      path: '/ingresa'
-      fullPath: '/ingresa'
-      preLoaderRoute: typeof IngresaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/guia': {
-      id: '/guia'
-      path: '/guia'
-      fullPath: '/guia'
-      preLoaderRoute: typeof GuiaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/faq': {
-      id: '/faq'
-      path: '/faq'
-      fullPath: '/faq'
-      preLoaderRoute: typeof FaqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/especialistas': {
-      id: '/especialistas'
-      path: '/especialistas'
-      fullPath: '/especialistas'
-      preLoaderRoute: typeof EspecialistasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/empresas': {
-      id: '/empresas'
-      path: '/empresas'
-      fullPath: '/empresas'
-      preLoaderRoute: typeof EmpresasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contactanos': {
-      id: '/contactanos'
-      path: '/contactanos'
-      fullPath: '/contactanos'
-      preLoaderRoute: typeof ContactanosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/consentimiento-clinico': {
-      id: '/consentimiento-clinico'
-      path: '/consentimiento-clinico'
-      fullPath: '/consentimiento-clinico'
-      preLoaderRoute: typeof ConsentimientoClinicoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/consentimiento': {
-      id: '/consentimiento'
-      path: '/consentimiento'
-      fullPath: '/consentimiento'
-      preLoaderRoute: typeof ConsentimientoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/compra-exitosa': {
-      id: '/compra-exitosa'
-      path: '/compra-exitosa'
-      fullPath: '/compra-exitosa'
-      preLoaderRoute: typeof CompraExitosaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/completar-perfil': {
-      id: '/completar-perfil'
-      path: '/completar-perfil'
-      fullPath: '/completar-perfil'
-      preLoaderRoute: typeof CompletarPerfilRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/asesoramiento': {
-      id: '/asesoramiento'
-      path: '/asesoramiento'
-      fullPath: '/asesoramiento'
-      preLoaderRoute: typeof AsesoramientoRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/anamnesis': {
@@ -556,25 +463,137 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnamnesisRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/asesoramiento': {
+      id: '/asesoramiento'
+      path: '/asesoramiento'
+      fullPath: '/asesoramiento'
+      preLoaderRoute: typeof AsesoramientoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tests/': {
-      id: '/tests/'
-      path: '/tests'
-      fullPath: '/tests/'
-      preLoaderRoute: typeof TestsIndexRouteImport
+    '/completar-perfil': {
+      id: '/completar-perfil'
+      path: '/completar-perfil'
+      fullPath: '/completar-perfil'
+      preLoaderRoute: typeof CompletarPerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/contenido/': {
-      id: '/contenido/'
-      path: '/contenido'
-      fullPath: '/contenido/'
-      preLoaderRoute: typeof ContenidoIndexRouteImport
+    '/compra-exitosa': {
+      id: '/compra-exitosa'
+      path: '/compra-exitosa'
+      fullPath: '/compra-exitosa'
+      preLoaderRoute: typeof CompraExitosaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consentimiento': {
+      id: '/consentimiento'
+      path: '/consentimiento'
+      fullPath: '/consentimiento'
+      preLoaderRoute: typeof ConsentimientoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consentimiento-clinico': {
+      id: '/consentimiento-clinico'
+      path: '/consentimiento-clinico'
+      fullPath: '/consentimiento-clinico'
+      preLoaderRoute: typeof ConsentimientoClinicoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contactanos': {
+      id: '/contactanos'
+      path: '/contactanos'
+      fullPath: '/contactanos'
+      preLoaderRoute: typeof ContactanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/empresas': {
+      id: '/empresas'
+      path: '/empresas'
+      fullPath: '/empresas'
+      preLoaderRoute: typeof EmpresasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/especialistas': {
+      id: '/especialistas'
+      path: '/especialistas'
+      fullPath: '/especialistas'
+      preLoaderRoute: typeof EspecialistasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guia': {
+      id: '/guia'
+      path: '/guia'
+      fullPath: '/guia'
+      preLoaderRoute: typeof GuiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingresa': {
+      id: '/ingresa'
+      path: '/ingresa'
+      fullPath: '/ingresa'
+      preLoaderRoute: typeof IngresaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lineas-de-crisis': {
+      id: '/lineas-de-crisis'
+      path: '/lineas-de-crisis'
+      fullPath: '/lineas-de-crisis'
+      preLoaderRoute: typeof LineasDeCrisisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membresia': {
+      id: '/membresia'
+      path: '/membresia'
+      fullPath: '/membresia'
+      preLoaderRoute: typeof MembresiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notificaciones': {
+      id: '/notificaciones'
+      path: '/notificaciones'
+      fullPath: '/notificaciones'
+      preLoaderRoute: typeof NotificacionesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nueva-contrasena': {
+      id: '/nueva-contrasena'
+      path: '/nueva-contrasena'
+      fullPath: '/nueva-contrasena'
+      preLoaderRoute: typeof NuevaContrasenaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recursos': {
+      id: '/recursos'
+      path: '/recursos'
+      fullPath: '/recursos'
+      preLoaderRoute: typeof RecursosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rehabilitacion-cognitiva': {
+      id: '/rehabilitacion-cognitiva'
+      path: '/rehabilitacion-cognitiva'
+      fullPath: '/rehabilitacion-cognitiva'
+      preLoaderRoute: typeof RehabilitacionCognitivaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sobre-nosotros': {
+      id: '/sobre-nosotros'
+      path: '/sobre-nosotros'
+      fullPath: '/sobre-nosotros'
+      preLoaderRoute: typeof SobreNosotrosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -584,39 +603,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tests/$slug': {
-      id: '/tests/$slug'
-      path: '/tests/$slug'
-      fullPath: '/tests/$slug'
-      preLoaderRoute: typeof TestsSlugRouteImport
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/servicios/$slug': {
-      id: '/servicios/$slug'
-      path: '/servicios/$slug'
-      fullPath: '/servicios/$slug'
-      preLoaderRoute: typeof ServiciosSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pacientes/$patientId': {
-      id: '/pacientes/$patientId'
-      path: '/pacientes/$patientId'
-      fullPath: '/pacientes/$patientId'
-      preLoaderRoute: typeof PacientesPatientIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/guias/$guiaId': {
-      id: '/guias/$guiaId'
-      path: '/guias/$guiaId'
-      fullPath: '/guias/$guiaId'
-      preLoaderRoute: typeof GuiasGuiaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/conversacion/$relationshipId': {
-      id: '/conversacion/$relationshipId'
-      path: '/conversacion/$relationshipId'
-      fullPath: '/conversacion/$relationshipId'
-      preLoaderRoute: typeof ConversacionRelationshipIdRouteImport
+    '/contenido/': {
+      id: '/contenido/'
+      path: '/contenido'
+      fullPath: '/contenido/'
+      preLoaderRoute: typeof ContenidoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contenido/$slug': {
@@ -626,11 +624,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContenidoSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
+    '/conversacion/$relationshipId': {
+      id: '/conversacion/$relationshipId'
+      path: '/conversacion/$relationshipId'
+      fullPath: '/conversacion/$relationshipId'
+      preLoaderRoute: typeof ConversacionRelationshipIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ejercicios/$slug': {
+      id: '/ejercicios/$slug'
+      path: '/ejercicios/$slug'
+      fullPath: '/ejercicios/$slug'
+      preLoaderRoute: typeof EjerciciosSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guias/$guiaId': {
+      id: '/guias/$guiaId'
+      path: '/guias/$guiaId'
+      fullPath: '/guias/$guiaId'
+      preLoaderRoute: typeof GuiasGuiaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pacientes/$patientId': {
+      id: '/pacientes/$patientId'
+      path: '/pacientes/$patientId'
+      fullPath: '/pacientes/$patientId'
+      preLoaderRoute: typeof PacientesPatientIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/servicios/$slug': {
+      id: '/servicios/$slug'
+      path: '/servicios/$slug'
+      fullPath: '/servicios/$slug'
+      preLoaderRoute: typeof ServiciosSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tests/': {
+      id: '/tests/'
+      path: '/tests'
+      fullPath: '/tests/'
+      preLoaderRoute: typeof TestsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tests/$slug': {
+      id: '/tests/$slug'
+      path: '/tests/$slug'
+      fullPath: '/tests/$slug'
+      preLoaderRoute: typeof TestsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -656,10 +696,12 @@ const rootRouteChildren: RootRouteChildren = {
   NuevaContrasenaRoute: NuevaContrasenaRoute,
   OnboardingRoute: OnboardingRoute,
   RecursosRoute: RecursosRoute,
+  RehabilitacionCognitivaRoute: RehabilitacionCognitivaRoute,
   SobreNosotrosRoute: SobreNosotrosRoute,
   BlogSlugRoute: BlogSlugRoute,
   ContenidoSlugRoute: ContenidoSlugRoute,
   ConversacionRelationshipIdRoute: ConversacionRelationshipIdRoute,
+  EjerciciosSlugRoute: EjerciciosSlugRoute,
   GuiasGuiaIdRoute: GuiasGuiaIdRoute,
   PacientesPatientIdRoute: PacientesPatientIdRoute,
   ServiciosSlugRoute: ServiciosSlugRoute,
@@ -673,10 +715,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

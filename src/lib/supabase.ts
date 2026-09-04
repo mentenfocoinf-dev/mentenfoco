@@ -33,6 +33,9 @@ export interface Profile {
   must_change_password?: boolean;
   terms_accepted_at?: string | null;
   terms_version?: string | null;
+  // Rehabilitación cognitiva (20260826_cognitive_rehab.sql)
+  birthdate?: string | null;
+  cognitive_terms_accepted_at?: string | null;
   marketing_consent?: boolean;
   signup_source?: string | null;
   // Datos mínimos de operación (20260721_profile_completion_fields.sql)

@@ -22,6 +22,7 @@ export * from "./preferencesService";
 export * from "./journalService";
 export * from "./directoryService";
 export * from "./companiesService";
+export * from "./cognitiveRehabService";
 export * from "./recommendationsService";
 // therapistService expone `getTherapistProfile` con el mismo nombre que
 // clinicalService, que lee otra cosa (la cabecera del informe clínico). Se
